@@ -1,0 +1,35 @@
+{
+  "technology": "react",
+  "latest": "19",
+  "supported": ["18", "19"],
+  "eol": ["17"],
+  "topics": {
+    "hooks": {
+      "has_delta": ["18"],
+      "not_in": []
+    },
+    "components": {
+      "has_delta": [],
+      "not_in": []
+    },
+    "server-components": {
+      "has_delta": ["18"],
+      "not_in": []
+    },
+    "patterns": {
+      "has_delta": [],
+      "not_in": []
+    }
+  },
+  "breaking_changes": {
+    "18→19": [
+      "use() hook for promises and context",
+      "React Compiler (experimental)",
+      "Actions for form handling",
+      "useOptimistic() hook",
+      "useFormStatus() hook",
+      "Document metadata support",
+      "Asset loading improvements"
+    ]
+  }
+}

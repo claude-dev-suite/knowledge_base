@@ -1,0 +1,32 @@
+{
+  "technology": "spring-boot",
+  "latest": "3",
+  "supported": ["2", "3"],
+  "eol": ["1"],
+  "topics": {
+    "basics": {
+      "has_delta": ["2"],
+      "not_in": []
+    },
+    "security": {
+      "has_delta": ["2"],
+      "not_in": []
+    }
+  },
+  "breaking_changes": {
+    "2→3": [
+      "Java 17 minimum requirement",
+      "Jakarta EE 10 (javax.* -> jakarta.*)",
+      "Native compilation with GraalVM",
+      "Observability with Micrometer",
+      "Spring Security 6 changes",
+      "Hibernate 6",
+      "Flyway 9+ / Liquibase 4.17+",
+      "Spring Framework 6",
+      "Logback 1.4 / Log4j2 2.18",
+      "Kotlin 1.7+",
+      "Gradle 7.5+ / Maven 3.6.3+",
+      "Configuration Properties changes"
+    ]
+  }
+}

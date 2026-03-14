@@ -1,0 +1,39 @@
+{
+  "technology": "tauri",
+  "latest": "2",
+  "supported": ["1", "2"],
+  "eol": [],
+  "topics": {
+    "basics": {
+      "has_delta": ["1"],
+      "not_in": []
+    },
+    "commands": {
+      "has_delta": ["1"],
+      "not_in": []
+    },
+    "plugins": {
+      "has_delta": ["1"],
+      "not_in": []
+    },
+    "bundling": {
+      "has_delta": ["1"],
+      "not_in": []
+    }
+  },
+  "breaking_changes": {
+    "1→2": [
+      "New plugin system architecture",
+      "iOS and Android support",
+      "New permission system",
+      "Improved IPC with channels",
+      "Swift/Kotlin bindings for mobile",
+      "Multiwebview support",
+      "New build system",
+      "Rewritten window management",
+      "Menu API changes",
+      "New tray icon API",
+      "Asset protocol changes"
+    ]
+  }
+}

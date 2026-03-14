@@ -1,0 +1,45 @@
+{
+  "technology": "nextjs",
+  "latest": "15",
+  "supported": ["13", "14", "15"],
+  "eol": ["12"],
+  "topics": {
+    "app-router": {
+      "has_delta": ["13"],
+      "not_in": []
+    },
+    "routing": {
+      "has_delta": ["13"],
+      "not_in": []
+    },
+    "data-fetching": {
+      "has_delta": ["13"],
+      "not_in": []
+    },
+    "server-actions": {
+      "has_delta": ["13"],
+      "not_in": []
+    },
+    "caching": {
+      "has_delta": ["13", "14"],
+      "not_in": []
+    }
+  },
+  "breaking_changes": {
+    "13→14": [
+      "Partial Prerendering (experimental)",
+      "Turbopack stable for dev",
+      "Server Actions stable",
+      "Improved caching defaults"
+    ],
+    "14→15": [
+      "React 19 support",
+      "Async Request APIs (headers, cookies, params)",
+      "Caching no longer default for fetch",
+      "Turbopack stable",
+      "next/form component",
+      "Instrumentation stable",
+      "Enhanced security for Server Actions"
+    ]
+  }
+}

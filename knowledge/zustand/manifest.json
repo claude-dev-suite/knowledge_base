@@ -1,0 +1,23 @@
+{
+  "technology": "zustand",
+  "latest": "5",
+  "supported": ["4", "5"],
+  "eol": ["3"],
+  "topics": {
+    "basics": {
+      "has_delta": ["4"],
+      "not_in": []
+    }
+  },
+  "breaking_changes": {
+    "4→5": [
+      "TypeScript 4.5+ required",
+      "Use with React 18+ recommended",
+      "Deprecated API removals",
+      "Improved TypeScript inference",
+      "createWithEqualityFn removed",
+      "useShallow helper added",
+      "Better selector performance"
+    ]
+  }
+}

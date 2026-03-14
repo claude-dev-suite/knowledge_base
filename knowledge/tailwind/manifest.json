@@ -1,0 +1,34 @@
+{
+  "technology": "tailwind",
+  "latest": "4",
+  "supported": ["3", "4"],
+  "eol": ["2"],
+  "topics": {
+    "utilities": {
+      "has_delta": ["3"],
+      "not_in": []
+    },
+    "customization": {
+      "has_delta": ["3"],
+      "not_in": []
+    },
+    "responsive": {
+      "has_delta": ["3"],
+      "not_in": []
+    }
+  },
+  "breaking_changes": {
+    "3→4": [
+      "CSS-first configuration (no tailwind.config.js)",
+      "@import 'tailwindcss' replaces @tailwind directives",
+      "Native CSS variables for theming",
+      "3D transform utilities",
+      "Container queries support",
+      "New @starting-style support",
+      "Simplified color palette",
+      "Automatic content detection",
+      "Lightning CSS for processing",
+      "No JavaScript config needed"
+    ]
+  }
+}

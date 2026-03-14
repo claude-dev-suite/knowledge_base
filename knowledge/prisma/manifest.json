@@ -1,0 +1,37 @@
+{
+  "technology": "prisma",
+  "latest": "5",
+  "supported": ["4", "5"],
+  "eol": ["3"],
+  "topics": {
+    "schema": {
+      "has_delta": ["4"],
+      "not_in": []
+    },
+    "queries": {
+      "has_delta": ["4"],
+      "not_in": []
+    },
+    "migrations": {
+      "has_delta": [],
+      "not_in": []
+    },
+    "relations": {
+      "has_delta": [],
+      "not_in": []
+    }
+  },
+  "breaking_changes": {
+    "4→5": [
+      "Node.js 16.13+ required",
+      "Prisma Accelerate for connection pooling",
+      "Prisma Pulse for real-time",
+      "jsonProtocol as default",
+      "Improved query engine performance",
+      "Better TypeScript inference",
+      "New $extends API",
+      "Client extensions GA",
+      "Removed deprecated features"
+    ]
+  }
+}

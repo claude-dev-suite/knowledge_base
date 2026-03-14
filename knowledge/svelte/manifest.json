@@ -1,0 +1,34 @@
+{
+  "technology": "svelte",
+  "latest": "5",
+  "supported": ["4", "5"],
+  "eol": ["3"],
+  "topics": {
+    "runes": {
+      "has_delta": ["4"],
+      "not_in": []
+    },
+    "reactivity": {
+      "has_delta": ["4"],
+      "not_in": []
+    },
+    "components": {
+      "has_delta": ["4"],
+      "not_in": []
+    },
+    "sveltekit": {
+      "has_delta": [],
+      "not_in": []
+    }
+  },
+  "breaking_changes": {
+    "4→5": [
+      "Runes replace reactive declarations ($: syntax)",
+      "$state() replaces let declarations for reactive state",
+      "$derived() replaces $: for computed values",
+      "$effect() replaces $: for side effects",
+      "$props() replaces export let for props",
+      "Snippets replace slots"
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "technology": "vue",
+  "latest": "3",
+  "supported": ["2", "3"],
+  "eol": [],
+  "topics": {
+    "composition-api": {
+      "has_delta": ["2"],
+      "not_in": []
+    },
+    "components": {
+      "has_delta": ["2"],
+      "not_in": []
+    },
+    "patterns": {
+      "has_delta": ["2"],
+      "not_in": []
+    }
+  },
+  "breaking_changes": {
+    "2→3": [
+      "Composition API as primary approach",
+      "<script setup> syntax",
+      "Multiple root elements in templates",
+      "Teleport component",
+      "Fragments support",
+      "Suspense (experimental)",
+      "v-model changes (modelValue + update:modelValue)",
+      "v-bind.sync removed (use v-model:prop)",
+      "Filters removed (use computed/methods)",
+      "$listeners removed (merged into $attrs)",
+      "Emits option required for custom events",
+      "createApp() instead of new Vue()",
+      "Global API changes (app.use, app.component)",
+      "Async component syntax changes",
+      "Functional components syntax changes"
+    ]
+  }
+}

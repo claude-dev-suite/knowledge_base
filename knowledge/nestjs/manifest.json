@@ -1,0 +1,42 @@
+{
+  "technology": "nestjs",
+  "latest": "10",
+  "supported": ["9", "10"],
+  "eol": ["8"],
+  "topics": {
+    "controllers": {
+      "has_delta": [],
+      "not_in": []
+    },
+    "providers": {
+      "has_delta": [],
+      "not_in": []
+    },
+    "modules": {
+      "has_delta": [],
+      "not_in": []
+    },
+    "guards": {
+      "has_delta": [],
+      "not_in": []
+    },
+    "interceptors": {
+      "has_delta": [],
+      "not_in": []
+    },
+    "pipes": {
+      "has_delta": [],
+      "not_in": []
+    }
+  },
+  "breaking_changes": {
+    "9→10": [
+      "Node.js 16+ required",
+      "Updated RxJS to v7",
+      "Updated TypeScript to 5.x support",
+      "SWC builder as default",
+      "Cache module improvements",
+      "Minor decorator signature changes"
+    ]
+  }
+}

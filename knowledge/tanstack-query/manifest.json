@@ -1,0 +1,27 @@
+{
+  "technology": "tanstack-query",
+  "latest": "5",
+  "supported": ["4", "5"],
+  "eol": ["3"],
+  "topics": {
+    "basics": {
+      "has_delta": ["4"],
+      "not_in": []
+    }
+  },
+  "breaking_changes": {
+    "4→5": [
+      "Simplified optimistic updates (no more onMutate + onError + onSettled)",
+      "Removed callbacks from useQuery (onSuccess, onError, onSettled)",
+      "New useSuspenseQuery hook",
+      "Streaming with React Server Components",
+      "Removed keepPreviousData (use placeholderData)",
+      "Status renamed: loading -> pending",
+      "isLoading -> isPending",
+      "isInitialLoading -> isLoading",
+      "cacheTime -> gcTime",
+      "Mandatory queryFn",
+      "eslint-plugin-query included"
+    ]
+  }
+}

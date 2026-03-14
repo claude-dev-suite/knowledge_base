@@ -1,0 +1,33 @@
+{
+  "technology": "typescript",
+  "latest": "5",
+  "supported": ["4", "5"],
+  "eol": ["3"],
+  "topics": {
+    "types": {
+      "has_delta": ["4"],
+      "not_in": []
+    },
+    "generics": {
+      "has_delta": ["4"],
+      "not_in": []
+    },
+    "utility-types": {
+      "has_delta": ["4"],
+      "not_in": []
+    }
+  },
+  "breaking_changes": {
+    "4→5": [
+      "const type parameters",
+      "satisfies operator",
+      "Decorators (Stage 3)",
+      "Multiple config extends",
+      "All enums are union enums",
+      "Improved inference for methods",
+      "--moduleResolution bundler",
+      "export type * syntax",
+      "Resolution-mode for imports"
+    ]
+  }
+}
