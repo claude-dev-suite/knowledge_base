@@ -1,0 +1,42 @@
+# OS-generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V7
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor and IDE directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code workspace files
+.claude/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Node.js (if tooling is ever added)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (if tooling is ever added)
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Build outputs
+dist/
+build/
+out/
