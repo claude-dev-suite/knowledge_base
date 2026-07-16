@@ -237,7 +237,7 @@ public void morningTask() { }
 @SpringBootTest
 class ScheduledTasksTest {
 
-    @SpyBean
+    @MockitoSpyBean
     private ScheduledTasks scheduledTasks;
 
     @Test

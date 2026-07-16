@@ -255,13 +255,14 @@ Dynamic routes allow you to create routes from dynamic data using brackets notat
 // Matches: /blog/hello-world, /blog/my-first-post
 
 interface BlogPostPageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params;
   return (
     <article>
-      <h1>Post: {params.slug}</h1>
+      <h1>Post: {slug}</h1>
     </article>
   );
 }
@@ -285,20 +286,21 @@ export async function generateStaticParams() {
 // Matches: /products/electronics/123, /products/clothing/456
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     category: string;
     id: string;
-  };
+  }>;
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const product = await getProduct(params.category, params.id);
+  const { category, id } = await params;
+  const product = await getProduct(category, id);
 
   return (
     <div>
       <h1>{product.name}</h1>
-      <p>Category: {params.category}</p>
-      <p>ID: {params.id}</p>
+      <p>Category: {category}</p>
+      <p>ID: {id}</p>
     </div>
   );
 }
@@ -323,21 +325,22 @@ Catch-all routes match any number of segments:
 // Does NOT match: /docs (requires at least one segment)
 
 interface DocsPageProps {
-  params: { slug: string[] };
+  params: Promise<{ slug: string[] }>;
 }
 
-export default function DocsPage({ params }: DocsPageProps) {
+export default async function DocsPage({ params }: DocsPageProps) {
   // /docs/getting-started/installation
   // slug = ['getting-started', 'installation']
 
-  const path = params.slug.join('/');
+  const { slug } = await params;
+  const path = slug.join('/');
 
   return (
     <article>
       <h1>Documentation: {path}</h1>
       <nav>
         <ol>
-          {params.slug.map((segment, index) => (
+          {slug.map((segment, index) => (
             <li key={index}>{segment}</li>
           ))}
         </ol>
@@ -365,22 +368,24 @@ Optional catch-all routes also match the parent route:
 // Matches: /shop, /shop/a, /shop/a/b, /shop/a/b/c
 
 interface ShopPageProps {
-  params: { slug?: string[] };
+  params: Promise<{ slug?: string[] }>;
 }
 
-export default function ShopPage({ params }: ShopPageProps) {
+export default async function ShopPage({ params }: ShopPageProps) {
   // /shop → slug = undefined
   // /shop/electronics → slug = ['electronics']
   // /shop/electronics/phones → slug = ['electronics', 'phones']
 
-  if (!params.slug) {
+  const { slug } = await params;
+
+  if (!slug) {
     return <h1>All Products</h1>;
   }
 
   return (
     <div>
-      <h1>Shop: {params.slug.join(' > ')}</h1>
-      <p>Browsing {params.slug.length} levels deep</p>
+      <h1>Shop: {slug.join(' > ')}</h1>
+      <p>Browsing {slug.length} levels deep</p>
     </div>
   );
 }
@@ -407,14 +412,14 @@ Route parameters are passed to page components via the `params` prop.
 // app/users/[userId]/posts/[postId]/page.tsx
 
 interface PageProps {
-  params: {
+  params: Promise<{
     userId: string;
     postId: string;
-  };
+  }>;
 }
 
 export default async function UserPostPage({ params }: PageProps) {
-  const { userId, postId } = params;
+  const { userId, postId } = await params;
 
   const [user, post] = await Promise.all([
     getUser(userId),
@@ -462,12 +467,13 @@ Layouts receive params for their segment and child segments:
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }
 
-export default function LocaleLayout({ children, params }: LocaleLayoutProps) {
+export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
+  const { locale } = await params;
   return (
-    <html lang={params.locale}>
+    <html lang={locale}>
       <body>{children}</body>
     </html>
   );
@@ -489,11 +495,12 @@ export async function generateStaticParams(): Promise<Params[]> {
 }
 
 interface PageProps {
-  params: Params;
+  params: Promise<Params>;
 }
 
-export default function BlogPost({ params }: PageProps) {
-  return <h1>{params.slug}</h1>;
+export default async function BlogPost({ params }: PageProps) {
+  const { slug } = await params;
+  return <h1>{slug}</h1>;
 }
 ```
 
@@ -510,24 +517,25 @@ Search params (query strings) are available in pages and can be accessed differe
 // URL: /search?query=nextjs&page=2&sort=date
 
 interface SearchPageProps {
-  searchParams: {
+  searchParams: Promise<{
     query?: string;
     page?: string;
     sort?: string;
     filters?: string | string[];
-  };
+  }>;
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const query = searchParams.query || '';
-  const page = Number(searchParams.page) || 1;
-  const sort = searchParams.sort || 'relevance';
+  const sp = await searchParams;
+  const query = sp.query || '';
+  const page = Number(sp.page) || 1;
+  const sort = sp.sort || 'relevance';
 
   // Handle array params: ?filters=new&filters=sale
-  const filters = Array.isArray(searchParams.filters)
-    ? searchParams.filters
-    : searchParams.filters
-    ? [searchParams.filters]
+  const filters = Array.isArray(sp.filters)
+    ? sp.filters
+    : sp.filters
+    ? [sp.filters]
     : [];
 
   const results = await search({ query, page, sort, filters });
@@ -1271,10 +1279,11 @@ export default function Default() {
 // app/@modal/(.)photo/[id]/page.tsx
 import { Modal } from '@/components/Modal';
 
-export default function PhotoModal({ params }: { params: { id: string } }) {
+export default async function PhotoModal({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <Modal>
-      <Photo id={params.id} />
+      <Photo id={id} />
     </Modal>
   );
 }
@@ -1330,15 +1339,18 @@ export default function FeedPage() {
 // app/feed/@modal/(.)photo/[id]/page.tsx
 'use client';
 
+import { use } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function PhotoModal({ params }: { params: { id: string } }) {
+export default function PhotoModal({ params }: { params: Promise<{ id: string }> }) {
+  // params is a Promise in Next.js 16; unwrap it with React's use() in Client Components
+  const { id } = use(params);
   const router = useRouter();
 
   return (
     <div className="modal-overlay" onClick={() => router.back()}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <img src={`/photos/${params.id}.jpg`} alt="Photo" />
+        <img src={`/photos/${id}.jpg`} alt="Photo" />
         <button onClick={() => router.back()}>Close</button>
       </div>
     </div>
@@ -1346,10 +1358,11 @@ export default function PhotoModal({ params }: { params: { id: string } }) {
 }
 
 // app/photo/[id]/page.tsx (full page version)
-export default function PhotoPage({ params }: { params: { id: string } }) {
+export default async function PhotoPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <div className="photo-page">
-      <img src={`/photos/${params.id}.jpg`} alt="Photo" />
+      <img src={`/photos/${id}.jpg`} alt="Photo" />
       <div className="photo-details">
         {/* Full photo details */}
       </div>
@@ -1461,13 +1474,14 @@ export async function POST(request: NextRequest) {
 import { NextRequest, NextResponse } from 'next/server';
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // GET /api/posts/:id
 export async function GET(request: NextRequest, { params }: RouteParams) {
+  const { id } = await params;
   const post = await db.post.findUnique({
-    where: { id: params.id },
+    where: { id },
   });
 
   if (!post) {
@@ -1482,10 +1496,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 // PUT /api/posts/:id
 export async function PUT(request: NextRequest, { params }: RouteParams) {
+  const { id } = await params;
   const body = await request.json();
 
   const post = await db.post.update({
-    where: { id: params.id },
+    where: { id },
     data: body,
   });
 
@@ -1494,10 +1509,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 // PATCH /api/posts/:id
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const { id } = await params;
   const body = await request.json();
 
   const post = await db.post.update({
-    where: { id: params.id },
+    where: { id },
     data: body,
   });
 
@@ -1506,8 +1522,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
 // DELETE /api/posts/:id
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  const { id } = await params;
   await db.post.delete({
-    where: { id: params.id },
+    where: { id },
   });
 
   return new NextResponse(null, { status: 204 });
@@ -1645,6 +1662,8 @@ export const maxDuration = 30;
 ## Middleware
 
 Middleware runs before a request is completed, allowing you to modify the response.
+
+> **Deprecated in Next.js 16:** `middleware.ts` is deprecated in favour of `proxy.ts`. Rename the file to `proxy.ts` and the exported function from `middleware` to `proxy` — the logic is identical, but `proxy` runs on the Node.js runtime. `middleware.ts` still works on the Edge runtime but is deprecated and will be removed in a future release. The examples below use the `middleware`/`middleware.ts` names; migrate them to `proxy`/`proxy.ts` for Next.js 16.
 
 ### Basic Middleware
 
@@ -1784,7 +1803,9 @@ const WINDOW_MS = 60 * 1000; // 1 minute
 const MAX_REQUESTS = 100;
 
 function getRateLimitKey(request: NextRequest): string {
-  const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+  // request.ip and request.geo were removed from NextRequest in Next.js 15;
+  // read the forwarded IP from the request headers instead
+  const ip = request.headers.get('x-forwarded-for') || 'unknown';
   return ip;
 }
 
@@ -2036,8 +2057,9 @@ export default function BlogNotFound() {
 // app/blog/[slug]/page.tsx
 import { notFound } from 'next/navigation';
 
-export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const post = await getPost(params.slug);
+export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = await getPost(slug);
 
   if (!post) {
     notFound(); // Renders the closest not-found.tsx
@@ -2410,8 +2432,8 @@ type ProductParams = {
 
 // Use in page components
 interface PageProps {
-  params: BlogParams;
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<BlogParams>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 ```
 
@@ -2533,6 +2555,8 @@ export async function POST(request: NextRequest) {
 ```
 
 ### 9. Middleware Best Practices
+
+> **Next.js 16:** `middleware.ts` is deprecated in favour of `proxy.ts` (rename the file to `proxy.ts` and the exported `middleware` function to `proxy`, running on the Node.js runtime). The example below keeps the legacy `middleware.ts` naming.
 
 ```tsx
 // middleware.ts

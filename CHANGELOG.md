@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   release channels, 2026-07): nestjs 10→11, prisma 5→7, nextjs 15→16, spring-boot 3→4,
   typescript 5→7. Refreshed `latest`/`supported`/`eol`, added `breaking_changes` for each
   new transition, and updated the affected base topic docs to describe the new latest.
+- Audited and corrected code examples in the base docs of the five re-versioned techs
+  against official docs: Next.js async `params`/`searchParams`/`cookies`/`headers`, Cache
+  Components, `proxy.ts`, `useActionState`; Prisma 7 `prisma-client` generator, generated-path
+  imports, mandatory driver adapters, `$extends` (no `$use`); Spring Boot 4 `@MockitoBean`,
+  Jackson 3, Spring Cloud 2025.1; plus smaller NestJS 11 and TypeScript 7 fixes.
 
 ---
 

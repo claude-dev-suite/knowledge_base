@@ -265,7 +265,7 @@ class UserControllerTest {
     @Autowired
     private WebTestClient webClient;
 
-    @MockBean
+    @MockitoBean
     private UserService userService;
 
     @Test

@@ -309,7 +309,7 @@ class EmailServiceTest {
     @Autowired
     private EmailService emailService;
 
-    @MockBean
+    @MockitoBean
     private JavaMailSender mailSender;
 
     @Test

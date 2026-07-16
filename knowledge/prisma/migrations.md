@@ -51,7 +51,7 @@ Migrations can be in one of several states:
 **Development** (using `prisma migrate dev`):
 1. Modify your `schema.prisma` file
 2. Run `prisma migrate dev` to generate and apply migrations
-3. Prisma Client is automatically regenerated
+3. Run `npx prisma generate` explicitly (v7 does not auto-generate the client)
 4. Shadow database is used for validation
 
 **Production** (using `prisma migrate deploy`):
@@ -93,7 +93,7 @@ npx prisma db pull
 
 ## prisma migrate dev
 
-The `prisma migrate dev` command is the primary tool for managing migrations during development. It creates new migrations, applies them to your development database, and regenerates Prisma Client.
+The `prisma migrate dev` command is the primary tool for managing migrations during development. It creates new migrations and applies them to your development database. In Prisma 7 it no longer regenerates Prisma Client or runs the seed script automatically — run those steps explicitly.
 
 ### Basic Usage
 
@@ -104,11 +104,9 @@ npx prisma migrate dev --name add_user_table
 # Create migration without applying (review first)
 npx prisma migrate dev --create-only --name add_user_table
 
-# Skip seeding after migration
-npx prisma migrate dev --name add_user_table --skip-seed
-
-# Skip generating Prisma Client
-npx prisma migrate dev --name add_user_table --skip-generate
+# In v7, generate the client and seed explicitly afterwards
+npx prisma generate
+npx prisma db seed
 ```
 
 ### What prisma migrate dev Does
@@ -118,8 +116,10 @@ npx prisma migrate dev --name add_user_table --skip-generate
 3. **Compares** the schema to the current database state
 4. **Generates** SQL migration file for the differences
 5. **Applies** the migration to the development database
-6. **Triggers** `prisma generate` to regenerate Prisma Client
-7. **Runs** seed script if configured in `package.json`
+
+In Prisma 7 the client is **not** regenerated and the seed script is **not** run
+automatically — run `npx prisma generate` and `npx prisma db seed` yourself
+afterwards.
 
 ### Command Options
 
@@ -127,8 +127,6 @@ npx prisma migrate dev --name add_user_table --skip-generate
 |--------|-------------|
 | `--name <name>` | Name for the migration (required for new migrations) |
 | `--create-only` | Create migration file without applying it |
-| `--skip-seed` | Skip running the seed script after migration |
-| `--skip-generate` | Skip regenerating Prisma Client |
 | `--schema <path>` | Path to schema file (default: `prisma/schema.prisma`) |
 
 ### Interactive Prompts
@@ -338,7 +336,7 @@ npx prisma migrate resolve --applied 20240115120000_problematic_migration
 
 ## prisma migrate reset
 
-The `prisma migrate reset` command drops the database, recreates it, applies all migrations, and runs seed scripts. This is useful during development to start fresh.
+The `prisma migrate reset` command drops the database, recreates it, and applies all migrations. This is useful during development to start fresh. In Prisma 7 it no longer regenerates Prisma Client or runs the seed script automatically — run those explicitly afterwards.
 
 ### Basic Usage
 
@@ -349,11 +347,9 @@ npx prisma migrate reset
 # Skip confirmation prompt
 npx prisma migrate reset --force
 
-# Skip running seed script
-npx prisma migrate reset --skip-seed
-
-# Skip generating Prisma Client
-npx prisma migrate reset --skip-generate
+# In v7, generate the client and seed explicitly afterwards
+npx prisma generate
+npx prisma db seed
 ```
 
 ### What prisma migrate reset Does
@@ -361,16 +357,15 @@ npx prisma migrate reset --skip-generate
 1. **Drops** the database (or all tables if DROP DATABASE is not supported)
 2. **Creates** a new database with the same name
 3. **Applies** all migrations from the beginning
-4. **Runs** seed script if configured
-5. **Regenerates** Prisma Client
+
+In Prisma 7 you then run `npx prisma generate` and `npx prisma db seed`
+yourself — neither the client regeneration nor seeding happens automatically.
 
 ### Command Options
 
 | Option | Description |
 |--------|-------------|
 | `--force` | Skip confirmation prompt |
-| `--skip-seed` | Do not run the seed script |
-| `--skip-generate` | Do not regenerate Prisma Client |
 | `--schema <path>` | Path to schema file |
 
 ### Warning
@@ -411,20 +406,27 @@ npx prisma migrate reset
 
 ### Seeding After Reset
 
-```json
-// package.json
-{
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
-  }
-}
+In Prisma 7 the `package.json` `"prisma"` block was removed. Configure the seed
+command in `prisma.config.ts` instead:
+
+```typescript
+// prisma.config.ts
+import { defineConfig } from 'prisma/config';
+
+export default defineConfig({
+  migrations: {
+    seed: 'tsx prisma/seed.ts',
+  },
+});
 ```
 
 ```typescript
 // prisma/seed.ts
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from './generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   await prisma.user.createMany({
@@ -654,19 +656,18 @@ npx prisma db push
 # Accept data loss (for destructive changes)
 npx prisma db push --accept-data-loss
 
-# Skip generating Prisma Client
-npx prisma db push --skip-generate
-
 # Force push even if there would be data loss
 npx prisma db push --force-reset
 ```
+
+> In Prisma 7, `db push` no longer runs `prisma generate` automatically —
+> run `npx prisma generate` explicitly afterwards.
 
 ### Command Options
 
 | Option | Description |
 |--------|-------------|
 | `--accept-data-loss` | Allow changes that may delete data |
-| `--skip-generate` | Do not regenerate Prisma Client |
 | `--force-reset` | Reset database if needed to apply changes |
 | `--schema <path>` | Path to schema file |
 
@@ -1190,9 +1191,11 @@ WHERE "status" IS NULL;
 **3. Application-level migration**:
 ```typescript
 // scripts/migrate-data.ts
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from './generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 async function migrateData() {
   const users = await prisma.user.findMany({
@@ -2245,7 +2248,8 @@ ALTER TABLE "User" DROP COLUMN "name";
 
 ```typescript
 // tests/migrations.test.ts
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from './generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { execSync } from 'child_process';
 
 describe('Migrations', () => {
@@ -2260,7 +2264,10 @@ describe('Migrations', () => {
       },
     });
 
-    prisma = new PrismaClient();
+    const adapter = new PrismaPg({
+      connectionString: process.env.TEST_DATABASE_URL,
+    });
+    prisma = new PrismaClient({ adapter });
   });
 
   afterAll(async () => {
@@ -2393,7 +2400,8 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 ```
 

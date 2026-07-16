@@ -80,12 +80,13 @@ export default function Home() {
 }
 
 // app/blog/[slug]/page.tsx - Dynamic page
-export default function BlogPost({
+export default async function BlogPost({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  return <article>Post: {params.slug}</article>;
+  const { slug } = await params;
+  return <article>Post: {slug}</article>;
 }
 
 // Generate static params for dynamic routes
@@ -135,9 +136,10 @@ export const metadata = {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const post = await getPost(params.slug);
+  const { slug } = await params;
+  const post = await getPost(slug);
   return {
     title: post.title,
     description: post.excerpt,

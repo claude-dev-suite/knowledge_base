@@ -2556,7 +2556,7 @@ await prisma.post.update({
 
 ```typescript
 // 1. Use Prisma-generated types
-import { Prisma, User, Post } from '@prisma/client';
+import { Prisma, User, Post } from './generated/prisma/client';
 
 // Type for user with posts
 type UserWithPosts = Prisma.UserGetPayload<{

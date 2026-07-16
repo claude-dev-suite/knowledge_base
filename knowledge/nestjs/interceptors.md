@@ -955,10 +955,11 @@ export class CacheInvalidationInterceptor implements NestInterceptor {
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
       return next.handle().pipe(
         tap(async () => {
-          // Invalidate related cache keys
-          const resourcePath = request.url.split('/')[1]; // e.g., 'users'
-          const keys = await this.cacheManager.store.keys(`${resourcePath}:*`);
-          await Promise.all(keys.map((key) => this.cacheManager.del(key)));
+          // NestJS 11's CacheModule uses cache-manager v6 (Keyv), which has no
+          // public key-enumeration API (`store.keys()` was removed). Either clear
+          // the whole cache, or track the keys you set so you can delete them
+          // explicitly (e.g. keep a per-resource key set).
+          await this.cacheManager.clear();
         }),
       );
     }

@@ -1912,7 +1912,7 @@ const users = await prisma.$queryRaw<UserResult[]>`
 `;
 
 // Using Prisma.sql for dynamic queries
-import { Prisma } from '@prisma/client';
+import { Prisma } from './generated/prisma/client';
 
 const columns = Prisma.sql`id, email, name`;
 const users = await prisma.$queryRaw`
@@ -2257,7 +2257,8 @@ Full-text search is available for PostgreSQL and MySQL.
 ```prisma
 // schema.prisma - Enable preview feature
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
   previewFeatures = ["fullTextSearch"]
 }
 ```
@@ -2336,7 +2337,8 @@ const posts = await prisma.$queryRaw`
 ```prisma
 // schema.prisma - Enable preview feature
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
   previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
@@ -2514,7 +2516,7 @@ await prisma.$executeRaw`
 ### JSON with Prisma Types
 
 ```typescript
-import { Prisma } from '@prisma/client';
+import { Prisma } from './generated/prisma/client';
 
 // Define type for JSON field
 type UserSettings = {
@@ -2560,7 +2562,7 @@ await prisma.user.update({
 ### Dynamic Query Building
 
 ```typescript
-import { Prisma } from '@prisma/client';
+import { Prisma } from './generated/prisma/client';
 
 // Build where clause dynamically
 function buildUserFilter(params: {
@@ -2597,7 +2599,7 @@ const users = await prisma.user.findMany({
 ### Reusable Query Components
 
 ```typescript
-import { Prisma } from '@prisma/client';
+import { Prisma } from './generated/prisma/client';
 
 // Reusable select objects
 const userBasicSelect = {
@@ -2636,7 +2638,7 @@ const posts = await prisma.post.findMany({
 ### Validated Enum Filters
 
 ```typescript
-import { Prisma } from '@prisma/client';
+import { Prisma } from './generated/prisma/client';
 
 // Use Prisma generated enums
 const status: Prisma.EnumUserStatusFilter = {
@@ -2658,7 +2660,7 @@ const users = await prisma.user.findMany({ orderBy });
 ### Generic Repository Pattern
 
 ```typescript
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from './generated/prisma/client';
 
 // Generic pagination helper
 async function paginate<T, A>(
@@ -2747,13 +2749,18 @@ async function getUsers(fields: string[]) {
 
 ```typescript
 // Singleton pattern for PrismaClient
-import { PrismaClient } from '@prisma/client';
+// In Prisma 7 a driver adapter is mandatory and PrismaClient is imported
+// from the generated output path (not from '@prisma/client').
+import { PrismaClient } from './generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
@@ -2768,7 +2775,7 @@ process.on('beforeExit', async () => {
 ### 2. Error Handling
 
 ```typescript
-import { Prisma } from '@prisma/client';
+import { Prisma } from './generated/prisma/client';
 
 async function createUser(email: string, name: string) {
   try {
@@ -2802,40 +2809,57 @@ async function createUser(email: string, name: string) {
 ### 3. Soft Deletes
 
 ```typescript
-// Middleware approach
-prisma.$use(async (params, next) => {
-  // Intercept delete and convert to soft delete
-  if (params.model === 'User') {
-    if (params.action === 'delete') {
-      params.action = 'update';
-      params.args['data'] = { deletedAt: new Date() };
-    }
-    if (params.action === 'deleteMany') {
-      params.action = 'updateMany';
-      params.args['data'] = { deletedAt: new Date() };
-    }
-  }
-
-  // Auto-filter soft deleted records
-  if (params.model === 'User') {
-    if (params.action === 'findUnique' || params.action === 'findFirst') {
-      params.action = 'findFirst';
-      params.args.where = { ...params.args.where, deletedAt: null };
-    }
-    if (params.action === 'findMany') {
-      params.args.where = { ...params.args.where, deletedAt: null };
-    }
-  }
-
-  return next(params);
+// Client Extensions approach ($use middleware was REMOVED in Prisma 7)
+// Wrap the base client with a query extension that rewrites deletes into
+// soft deletes and filters out already soft-deleted records.
+const prisma = basePrisma.$extends({
+  query: {
+    user: {
+      // Intercept delete and convert to soft delete
+      async delete({ args, query }) {
+        return query({ ...args, data: { deletedAt: new Date() } } as any);
+      },
+      async deleteMany({ args, query }) {
+        return query({ ...args, data: { deletedAt: new Date() } } as any);
+      },
+      // Auto-filter soft deleted records
+      async findUnique({ args, query }) {
+        args.where = { ...args.where, deletedAt: null };
+        return query(args);
+      },
+      async findFirst({ args, query }) {
+        args.where = { ...args.where, deletedAt: null };
+        return query(args);
+      },
+      async findMany({ args, query }) {
+        args.where = { ...args.where, deletedAt: null };
+        return query(args);
+      },
+    },
+  },
 });
+
+// For the same behavior across every model, use `$allModels` / `$allOperations`:
+// basePrisma.$extends({
+//   query: { $allModels: { async $allOperations({ args, query }) { /* ... */ return query(args); } } },
+// });
 ```
+
+> Note: `delete`/`deleteMany` are mapped to `update`/`updateMany` semantics by
+> writing `deletedAt`; call the real delete only when you intend a hard delete.
 
 ### 4. Logging and Debugging
 
 ```typescript
+import { PrismaClient } from './generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+// A driver adapter is mandatory in Prisma 7 — pass it alongside `log`.
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+
 // Enable query logging
 const prisma = new PrismaClient({
+  adapter,
   log: [
     { level: 'query', emit: 'event' },
     { level: 'error', emit: 'stdout' },
@@ -2852,6 +2876,7 @@ prisma.$on('query', (e) => {
 
 // Conditional logging
 const prisma = new PrismaClient({
+  adapter,
   log: process.env.NODE_ENV === 'development'
     ? ['query', 'info', 'warn', 'error']
     : ['error'],
@@ -2934,7 +2959,7 @@ await prisma.$transaction([
 ### 7. Type Safety with Validators
 
 ```typescript
-import { Prisma } from '@prisma/client';
+import { Prisma } from './generated/prisma/client';
 
 // Validate input matches schema
 function validateUserCreate(data: unknown): Prisma.UserCreateInput {
@@ -3005,8 +3030,14 @@ const users = await prisma.$queryRaw`
 ### 10. Performance Monitoring
 
 ```typescript
+import { PrismaClient } from './generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+
 // Track query performance
 const prisma = new PrismaClient({
+  adapter,
   log: [{ level: 'query', emit: 'event' }],
 });
 
@@ -3019,14 +3050,12 @@ prisma.$on('query', (e) => {
   }
 });
 
-// Use connection pooling appropriately
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
+// Connection pooling is configured on the driver adapter's connection string
+// (the `datasources` url override was removed — the adapter owns the connection).
+const pooledAdapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
 });
+const pooledPrisma = new PrismaClient({ adapter: pooledAdapter });
 ```
 
 ---

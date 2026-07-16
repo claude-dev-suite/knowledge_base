@@ -213,7 +213,6 @@ Routes become dynamic when they use:
 ```tsx
 // 1. Dynamic functions
 import { cookies, headers } from 'next/headers';
-import { searchParams } from 'next/navigation';
 
 const cookieStore = await cookies();
 const headersList = await headers();
@@ -225,9 +224,10 @@ fetch(url, { cache: 'no-store' });
 export const dynamic = 'force-dynamic';
 
 // 4. searchParams in page components
-export default function Page({ searchParams }: {
-  searchParams: { query: string }
+export default async function Page({ searchParams }: {
+  searchParams: Promise<{ query: string }>
 }) {
+  const { query } = await searchParams;
   // Using searchParams makes the page dynamic
 }
 ```
@@ -246,9 +246,6 @@ export const dynamic = 'auto';
 
 // Set default revalidation for all fetches in segment
 export const revalidate = 3600; // seconds
-
-// Opt into Partial Prerendering (experimental)
-export const experimental_ppr = true;
 ```
 
 ---
@@ -265,7 +262,8 @@ import Link from 'next/link';
 // Static routes: Fully prefetched and cached for 5 minutes
 <Link href="/about">About</Link>
 
-// Dynamic routes: Only shared layout is prefetched (30 seconds)
+// Dynamic routes: Only the shared layout is prefetched; the page itself is
+// not cached by default (staleTimes.dynamic is 0 since Next.js 15)
 <Link href="/dashboard">Dashboard</Link>
 
 // Disable prefetching
@@ -280,7 +278,7 @@ import Link from 'next/link';
 | Route Type | Default Duration | After Invalidation |
 |------------|------------------|-------------------|
 | Static | 5 minutes | Immediate refresh |
-| Dynamic | 30 seconds | Immediate refresh |
+| Dynamic | 0 (not cached by default since Next.js 15) | Immediate refresh |
 
 ### Invalidating Router Cache
 
@@ -351,13 +349,14 @@ export const preloadItem = (id: string) => {
 // In a parent component
 import { preloadItem } from './data';
 
-export default function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // Start fetching immediately
-  preloadItem(params.id);
+  preloadItem(id);
 
   return (
     <Suspense fallback={<Loading />}>
-      <ItemDetails id={params.id} />
+      <ItemDetails id={id} />
     </Suspense>
   );
 }
@@ -820,13 +819,14 @@ export const getUser = cache(
 ```tsx
 import { getPost, preloadPost } from './data';
 
-export default function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // Start fetching immediately, don't await
-  preloadPost(params.id);
+  preloadPost(id);
 
   return (
     <Suspense fallback={<PostSkeleton />}>
-      <PostContent id={params.id} />
+      <PostContent id={id} />
     </Suspense>
   );
 }

@@ -2257,8 +2257,9 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
 
 # Application Info
@@ -2497,7 +2498,7 @@ class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private UserService userService;
 
     @Autowired
@@ -2669,7 +2670,7 @@ class UserRepositoryTest {
 }
 ```
 
-### Mocking with @MockBean and @SpyBean
+### Mocking with @MockitoBean and @MockitoSpyBean
 
 ```java
 @SpringBootTest
@@ -2678,10 +2679,10 @@ class OrderServiceTest {
     @Autowired
     private OrderService orderService;
 
-    @MockBean
+    @MockitoBean
     private PaymentService paymentService;
 
-    @SpyBean
+    @MockitoSpyBean
     private OrderRepository orderRepository;
 
     @Test
@@ -2756,7 +2757,7 @@ spring:
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
+        <version>4.0.0</version>
         <relativePath/>
     </parent>
 
@@ -2831,7 +2832,7 @@ spring:
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.3.0</version>
+            <version>3.0.0</version>
         </dependency>
 
         <!-- Micrometer for metrics -->
@@ -2923,7 +2924,7 @@ spring:
 ```groovy
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.2.0'
+    id 'org.springframework.boot' version '4.0.0'
     id 'io.spring.dependency-management' version '1.1.4'
 }
 
@@ -2970,7 +2971,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
     // OpenAPI / Swagger
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
 
     // Micrometer for metrics
     implementation 'io.micrometer:micrometer-registry-prometheus'
