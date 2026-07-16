@@ -14,6 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Open-source community health files (LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY)
 - GitHub issue and pull request templates
+- Version delta files under `knowledge/{tech}/_versions/{version}/{topic}.md` for the
+  previously-current majors of nestjs (10), prisma (6), nextjs (14, 15), spring-boot (3),
+  and typescript (6), so the documentation server can reconstruct non-latest versions
+
+### Changed
+- Updated stale version manifests to the current stable majors (verified against upstream
+  release channels, 2026-07): nestjs 10→11, prisma 5→7, nextjs 15→16, spring-boot 3→4,
+  typescript 5→7. Refreshed `latest`/`supported`/`eol`, added `breaking_changes` for each
+  new transition, and updated the affected base topic docs to describe the new latest.
 
 ---
 

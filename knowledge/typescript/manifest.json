@@ -1,19 +1,19 @@
 {
   "technology": "typescript",
-  "latest": "5",
-  "supported": ["4", "5"],
-  "eol": ["3"],
+  "latest": "7",
+  "supported": ["6", "7"],
+  "eol": ["5"],
   "topics": {
     "types": {
-      "has_delta": ["4"],
+      "has_delta": ["6"],
       "not_in": []
     },
     "generics": {
-      "has_delta": ["4"],
+      "has_delta": [],
       "not_in": []
     },
     "utility-types": {
-      "has_delta": ["4"],
+      "has_delta": [],
       "not_in": []
     }
   },
@@ -28,6 +28,16 @@
       "--moduleResolution bundler",
       "export type * syntax",
       "Resolution-mode for imports"
+    ],
+    "6→7": [
+      "Native compiler (Project Corsa): tsc is rewritten in Go (tsgo), delivering roughly up to 10x faster type-checking and builds",
+      "`strict` is enabled by default when not explicitly set (noImplicitAny, strictNullChecks, strictFunctionTypes, ...)",
+      "`target: \"es5\"` removed — minimum target is ES2015",
+      "Legacy `module` values removed (amd, umd, system, none); supported outputs are ESNext, ES2022, NodeNext, and CommonJS",
+      "`moduleResolution: \"node10\"` and `baseUrl` removed — use `moduleResolution: \"bundler\"` or `\"nodenext\"`",
+      "No stable programmatic compiler API until 7.1 — tools that embed tsc (ts-loader, and Vue/Svelte/Angular template type-checking) should stay on 6.x until it lands",
+      "Stricter JSDoc-in-JS semantics: values can no longer stand in for types (use `typeof`), `@enum` is unrecognized, postfix `!` and Closure-style function syntax are unsupported, and `@class` no longer creates constructors",
+      "TypeScript 6.x was the bridge release that surfaced these changes as deprecation warnings before 7.0 made them hard errors"
     ]
   }
 }

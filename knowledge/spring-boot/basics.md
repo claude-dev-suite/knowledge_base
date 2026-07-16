@@ -1,7 +1,10 @@
-# Spring Boot 3 Basics - Comprehensive Guide
+# Spring Boot Basics - Comprehensive Guide
 
-This comprehensive guide covers Spring Boot 3.x fundamentals based on official Spring Boot documentation.
-It provides patterns, best practices, and practical examples for building production-ready applications.
+This comprehensive guide covers Spring Boot fundamentals based on official Spring Boot documentation,
+targeting the current **Spring Boot 4.x** (built on Spring Framework 7, Jakarta EE 11-era modules, and
+Jackson 3 by default). The core patterns below also apply to Spring Boot 3.x; see the version notes for
+3.x-specific differences. It provides patterns, best practices, and practical examples for building
+production-ready applications.
 
 ---
 

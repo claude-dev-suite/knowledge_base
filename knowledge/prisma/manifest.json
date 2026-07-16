@@ -1,15 +1,15 @@
 {
   "technology": "prisma",
-  "latest": "5",
-  "supported": ["4", "5"],
-  "eol": ["3"],
+  "latest": "7",
+  "supported": ["6", "7"],
+  "eol": ["5"],
   "topics": {
     "schema": {
-      "has_delta": ["4"],
+      "has_delta": ["6"],
       "not_in": []
     },
     "queries": {
-      "has_delta": ["4"],
+      "has_delta": ["6"],
       "not_in": []
     },
     "migrations": {
@@ -22,16 +22,16 @@
     }
   },
   "breaking_changes": {
-    "4→5": [
-      "Node.js 16.13+ required",
-      "Prisma Accelerate for connection pooling",
-      "Prisma Pulse for real-time",
-      "jsonProtocol as default",
-      "Improved query engine performance",
-      "Better TypeScript inference",
-      "New $extends API",
-      "Client extensions GA",
-      "Removed deprecated features"
+    "6→7": [
+      "Node.js 20.19+ required (v22 recommended)",
+      "ESM required: set \"type\": \"module\" in package.json and target ESNext modules in tsconfig",
+      "New generator: use the `prisma-client` provider (not `prisma-client-js`); the `output` path is now required and the client is no longer emitted into node_modules",
+      "Explicit driver adapters required for every datasource (e.g. @prisma/adapter-pg, @prisma/adapter-better-sqlite3)",
+      "New prisma.config.ts config file at the project root (datasource URL, schema location, migrations)",
+      "Environment variables are no longer auto-loaded — load .env explicitly (e.g. with dotenv)",
+      "Removed CLI flags --skip-generate and --skip-seed; generate and seed no longer run automatically after migrations",
+      "Client middleware ($use) removed — use Client Extensions ($extends) instead",
+      "Stricter TLS: invalid certificates are no longer ignored by default"
     ]
   }
 }

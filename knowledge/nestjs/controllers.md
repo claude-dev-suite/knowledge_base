@@ -304,33 +304,40 @@ export class UsersController {
 
 ### Route Wildcards
 
-Use asterisk `*` as a wildcard to match any combination of characters.
+NestJS 11 defaults to Express 5, whose router (path-to-regexp v8) requires **named** wildcards — a bare `*` is no longer valid. Use `*splat` (or the braced form `{*splat}` for an optional segment); the matched value is exposed under that parameter name.
 
 ```typescript
 @Controller('files')
 export class FilesController {
-  // Matches: /files/any/path/here
-  @Get('*')
-  findAll() {
-    return 'Wildcard route';
+  // Matches: /files/any/path/here — capture the rest under `splat`
+  @Get('*splat')
+  findAll(@Param('splat') splat: string[]) {
+    return `Wildcard route: ${splat}`;
   }
 
-  // Matches: /files/ab_cd, /files/aXYZcd, etc.
-  @Get('ab*cd')
-  findPattern() {
-    return 'Pattern matched';
+  // Optional trailing segments: matches /files and /files/a/b
+  @Get('{*splat}')
+  findOptional() {
+    return 'Optional wildcard';
   }
 }
 ```
 
+> On Fastify the wildcard token is still `*`. Prefer named parameters over broad wildcards where possible.
+
 ### Regular Expression Routes
+
+Express 5 (path-to-regexp v8) removed inline regex in path strings, so the old `:id(\\d+)` syntax no longer works. Constrain and validate the parameter inside the handler (or with a pipe) instead.
 
 ```typescript
 @Controller()
 export class AppController {
-  // Matches numeric IDs only
-  @Get('users/:id(\\d+)')
+  // Validate the segment rather than embedding a regex in the path
+  @Get('users/:id')
   findNumericUser(@Param('id') id: string) {
+    if (!/^\d+$/.test(id)) {
+      throw new NotFoundException();
+    }
     return `Numeric user ID: ${id}`;
   }
 }

@@ -35,9 +35,12 @@ The Prisma schema file (`prisma/schema.prisma`) consists of three main blocks: g
 ```prisma
 // prisma/schema.prisma
 
-// 1. Generator - Defines what client to generate
+// 1. Generator - Defines what client to generate.
+// Prisma 7 uses the `prisma-client` provider (ESM-first) and requires an
+// explicit `output` path; the client is no longer emitted into node_modules.
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 // 2. Datasource - Database connection configuration
