@@ -1,0 +1,4 @@
+# Version-delta files under _versions/ are parsed line-by-line by the dev-suite
+# documentation server's version resolver, whose section matching requires LF.
+# Force LF for them on every platform so CRLF never reaches the resolver.
+knowledge/**/_versions/**/*.md text eol=lf
