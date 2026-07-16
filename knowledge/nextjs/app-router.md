@@ -171,7 +171,8 @@ app/
 ```
 app/
 ├── @modal/           # Parallel route slot
-│   └── login/page.tsx
+│   ├── login/page.tsx
+│   └── default.tsx   # Required in Next.js 16
 ├── @sidebar/
 │   └── default.tsx
 ├── layout.tsx
@@ -196,6 +197,8 @@ export default function Layout({
   );
 }
 ```
+
+> **Next.js 16:** every parallel-route slot must have an explicit `default.js`/`default.tsx` — the build fails without it. Return `null` or call `notFound()` for the default when a slot has no content for the current route.
 
 ## Intercepting Routes
 

@@ -1168,13 +1168,18 @@ app/
 ├── page.tsx
 ├── @dashboard/
 │   ├── page.tsx
-│   └── loading.tsx
+│   ├── loading.tsx
+│   └── default.tsx   # Required in Next.js 16
 ├── @analytics/
 │   ├── page.tsx
-│   └── loading.tsx
+│   ├── loading.tsx
+│   └── default.tsx   # Required in Next.js 16
 └── @notifications/
-    └── page.tsx
+    ├── page.tsx
+    └── default.tsx   # Required in Next.js 16
 ```
+
+> **Next.js 16:** every parallel-route slot must define an explicit `default.js`/`default.tsx`, or the build fails. The `default` file is rendered for a slot that has no match for the current route — return `null` or call `notFound()` as appropriate.
 
 ### Layout with Parallel Routes
 
