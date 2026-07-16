@@ -163,7 +163,7 @@ Next.js extends the native `fetch` API with additional options for caching and r
 ### Extended Fetch Options
 
 ```tsx
-// Default: cached indefinitely (equivalent to force-cache)
+// Default in Next.js 15/16: NOT cached — fetched at request time
 const data = await fetch('https://api.example.com/data');
 
 // Revalidate after specified seconds
@@ -299,9 +299,9 @@ Next.js provides multiple caching layers for optimal performance.
 The Data Cache persists fetch results across requests and deployments:
 
 ```tsx
-// Cached indefinitely until manually revalidated
+// Opt into caching explicitly (not the default since Next.js 15)
 const staticData = await fetch('https://api.example.com/data', {
-  cache: 'force-cache', // Default behavior
+  cache: 'force-cache', // Cache until manually revalidated
 });
 
 // Opt out of Data Cache
