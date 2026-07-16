@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Components, `proxy.ts`, `useActionState`; Prisma 7 `prisma-client` generator, generated-path
   imports, mandatory driver adapters, `$extends` (no `$use`); Spring Boot 4 `@MockitoBean`,
   Jackson 3, Spring Cloud 2025.1; plus smaller NestJS 11 and TypeScript 7 fixes.
+- Refreshed stale third-party API usage in the same base docs: RxJS `retryWhen` → `retry({ delay })`
+  and removed a dead `class-transformer` import (NestJS interceptors); jjwt `0.11.5` → `0.13.0` with
+  the 0.12+ `Jwts.parser().verifyWith(...).parseSignedClaims(...)` / builder API (Spring Boot security).
+- Documented that Next.js 16 requires an explicit `default.js` in every parallel-route slot.
 
 ---
 
