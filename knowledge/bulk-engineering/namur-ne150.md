@@ -1,12 +1,12 @@
-# NAMUR NE 148 - Engineering Data Standardization
+# NAMUR NE 150 - Engineering Data Standardization
 
-> Official Reference: https://www.namur.net/en/recommendations/namur-recommendations/detail/ne-148.html
-> Industry Context: https://www.automation.com/en-us/articles/2019/namur-ne-148-engineering-data-standardization
+> Official Reference: https://www.namur.net/en/publications/news-archive/ne-150-is-newly-published.html
+> Recommendations index: https://www.namur.net/en/recommendations-and-worksheets/index.html
 > Related: AutomationML IEC 62714, DEXPI ISO 15926, EDDL IEC 61804
 
 ## Overview
 
-NAMUR NE 148 ("Requirements for Automation Engineering Interfaces for an Integrated Engineering Data Management") is a recommendation from the NAMUR organization (User Association of Automation Technology in Process Industries). It defines the interface requirements between engineering data management systems and automation systems (DCS, PLC, SCADA) to enable efficient, consistent, and traceable bulk engineering.
+NAMUR NE 150 ("Standardised NAMUR-Interface for Exchange of Engineering-Data between CAE-System and PCS Engineering Tools", version 2014-10-13) is a recommendation from the NAMUR organization (User Association of Automation Technology in Process Industries). It defines the interface requirements between engineering data management systems and automation systems (DCS, PLC, SCADA) to enable efficient, consistent, and traceable bulk engineering.
 
 NAMUR is a German-based process industry user organization (founded 1949) whose members include BASF, Bayer, Dow, Evonik, and most other major European chemical and pharmaceutical manufacturers. NAMUR recommendations (NE = "NAMUR Empfehlung") are not standards (not ISO/IEC), but they represent industry consensus and are widely implemented by DCS vendors.
 
@@ -14,10 +14,10 @@ NAMUR is a German-based process industry user organization (founded 1949) whose 
 
 ## Table of Contents
 
-1. [Problem Statement: Why NE 148 Exists](#1-problem-statement-why-ne-148-exists)
+1. [Problem Statement: Why NE 150 Exists](#1-problem-statement-why-ne-150-exists)
 2. [Single Source of Truth Principle](#2-single-source-of-truth-principle)
 3. [Template-Based Engineering](#3-template-based-engineering)
-4. [NE 148 Data Model](#4-ne-148-data-model)
+4. [NE 150 Data Model](#4-ne-150-data-model)
 5. [Workflow: P&ID to DCS Import](#5-workflow-pid-to-dcs-import)
 6. [Interoperability Standards](#6-interoperability-standards)
 7. [Vendor Implementations](#7-vendor-implementations)
@@ -26,7 +26,7 @@ NAMUR is a German-based process industry user organization (founded 1949) whose 
 
 ---
 
-## 1. Problem Statement: Why NE 148 Exists
+## 1. Problem Statement: Why NE 150 Exists
 
 In traditional plant engineering, the same data is entered multiple times in different tools by different engineers:
 
@@ -49,7 +49,7 @@ Each data entry is a potential source of inconsistency. A tag name entered as `F
 - 1-2 weeks of testing/debugging data entry errors
 - Total: 5-9 weeks for configuration work that is 90% non-creative data transformation
 
-NE 148 reduces this to:
+NE 150 reduces this to:
 - 1 week for data validation in the master database
 - 1-2 days for automated generation
 - 1-2 days for verification
@@ -57,7 +57,7 @@ NE 148 reduces this to:
 
 ### The NAMUR Answer: Engineering Data Standardization
 
-NE 148 defines:
+NE 150 defines:
 1. What data must exist for each control point in the master engineering database
 2. Which systems must consume that data
 3. The interface format between systems
@@ -159,11 +159,11 @@ Problems:
 
 ---
 
-## 4. NE 148 Data Model
+## 4. NE 150 Data Model
 
-NE 148 defines the **minimum data set** that must be available in the engineering database for each control point. This is the data model that enables automated generation.
+NE 150 defines the **minimum data set** that must be available in the engineering database for each control point. This is the data model that enables automated generation.
 
-### Minimum Data Per Control Point (NE 148 Required Fields)
+### Minimum Data Per Control Point (NE 150 Required Fields)
 
 | Field Category | Specific Fields |
 |----------------|----------------|
@@ -178,7 +178,7 @@ NE 148 defines the **minimum data set** that must be available in the engineerin
 | **Operating Conditions** | Normal operating value, min/max process range |
 | **Functional Group** | Which equipment module or process cell this point belongs to |
 
-### Extended Data Fields (NE 148 Recommended)
+### Extended Data Fields (NE 150 Recommended)
 
 | Field | Purpose |
 |-------|---------|
@@ -245,7 +245,7 @@ CREATE TABLE generated_files (
 
 ## 5. Workflow: P&ID to DCS Import
 
-The complete workflow from P&ID creation to DCS commissioning, following NE 148 principles:
+The complete workflow from P&ID creation to DCS commissioning, following NE 150 principles:
 
 ### Phase 1: P&ID Design
 1. Process engineer creates P&ID in P&ID tool (AVEVA, COMOS, AutoCAD P&ID)
@@ -256,7 +256,7 @@ The complete workflow from P&ID creation to DCS commissioning, following NE 148 
 ### Phase 2: Engineering Database Population
 1. Export instrument list from P&ID tool (CSV or direct interface)
 2. Load into master engineering database
-3. Validate: completeness check (all required NE 148 fields present)
+3. Validate: completeness check (all required NE 150 fields present)
 4. Assign I/O addresses (from I/O schedule / hardware design)
 5. Assign function block templates (map instrument type to DCS template)
 6. Define alarm setpoints from process engineer input
@@ -292,15 +292,15 @@ The complete workflow from P&ID creation to DCS commissioning, following NE 148 
 
 ## 6. Interoperability Standards
 
-NE 148 does not define a specific file format — it defines the data requirements. Several standards provide the interchange format:
+NE 150 does not define a specific file format — it defines the data requirements. Several standards provide the interchange format:
 
 ### AutomationML (IEC 62714)
 
-The most widely adopted format for NE 148 data exchange in Europe:
+The most widely adopted format for NE 150 data exchange in Europe:
 - XML-based (CAEX structure — Computer Aided Engineering eXchange)
 - Carries plant topology (site/area/unit hierarchy), instrument data, connection data
 - Supported by: AVEVA E3D, Siemens COMOS, AUCOTEC Engineering Base, EPLAN
-- Maps NE 148 fields to CAEX attributes
+- Maps NE 150 fields to CAEX attributes
 
 ```xml
 <InternalElement Name="FIC-101A" ID="inst-abc-123">
@@ -344,7 +344,7 @@ DEXPI (Data Exchange in the Process Industry) is an XML format for P&ID data exc
 
 ### PLCopen XML (IEC 61131-10)
 
-For DCS systems that support it (CODESYS-based), PLCopen XML carries the PLC program structure. Does NOT carry the NE 148 instrument data (process values, alarm setpoints, I/O assignment) — only the program logic.
+For DCS systems that support it (CODESYS-based), PLCopen XML carries the PLC program structure. Does NOT carry the NE 150 instrument data (process values, alarm setpoints, I/O assignment) — only the program logic.
 
 ### OPC UA Information Models
 
@@ -357,7 +357,7 @@ OPC UA (IEC 62541) companion specifications define information models for:
 
 ## 7. Vendor Implementations
 
-### DCS Vendors Supporting NE 148 / AutomationML Import
+### DCS Vendors Supporting NE 150 / AutomationML Import
 
 | Vendor / Product | Format Supported | Notes |
 |-----------------|-----------------|-------|
@@ -365,32 +365,32 @@ OPC UA (IEC 62541) companion specifications define information models for:
 | Emerson DeltaV | Proprietary FHX + Bulk Edit Excel | No AML support; uses proprietary formats |
 | ABB System 800xA | AutomationML, ABB proprietary | 800xA has AML import; Freelance does not |
 | ABB Freelance | PRT/CSV (proprietary text) | No standard interface; must use template generation |
-| Honeywell Experion | CSV point import | Limited NE 148 compliance |
+| Honeywell Experion | CSV point import | Limited NE 150 compliance |
 | Yokogawa CENTUM | AutomationML (via builder) | Supported in newer CENTUM versions |
 
 ### Engineering Tool Vendors
 
-| Tool | Role | NE 148 Support |
+| Tool | Role | NE 150 Support |
 |------|------|----------------|
-| Siemens COMOS | Integrated engineering database | Full NE 148, exports AutomationML |
-| AVEVA Engineering (formerly Aveva PDMS) | P&ID + engineering database | Full NE 148 support |
-| AUCOTEC Engineering Base | Multi-discipline engineering | Full AutomationML, NE 148 |
-| EPLAN | Electrical + I&C | AutomationML export, NE 148 fields |
-| Excel + Python (custom) | Simple/small projects | Manual NE 148 implementation |
+| Siemens COMOS | Integrated engineering database | Full NE 150, exports AutomationML |
+| AVEVA Engineering (formerly Aveva PDMS) | P&ID + engineering database | Full NE 150 support |
+| AUCOTEC Engineering Base | Multi-discipline engineering | Full AutomationML, NE 150 |
+| EPLAN | Electrical + I&C | AutomationML export, NE 150 fields |
+| Excel + Python (custom) | Simple/small projects | Manual NE 150 implementation |
 | SQLite + Python (custom) | Medium projects | Practical SSoT implementation |
 
 ---
 
 ## 8. Practical Implementation Patterns
 
-For projects without access to enterprise engineering tools (COMOS, AVEVA), NE 148 principles can be implemented with:
+For projects without access to enterprise engineering tools (COMOS, AVEVA), NE 150 principles can be implemented with:
 
 ### Pattern A: Excel as Master Database (small projects, < 500 I/O)
 
 ```
 Structure:
 Excel file (master.xlsx)
-  Sheet: Instruments    (one row per instrument, all NE 148 fields as columns)
+  Sheet: Instruments    (one row per instrument, all NE 150 fields as columns)
   Sheet: Alarms         (one row per alarm configuration)
   Sheet: IO_Assignment  (one row per I/O channel)
   Sheet: Templates      (defines which template applies to each InstrumentType)
@@ -471,16 +471,16 @@ def instantiate_template(template_text: str, replacements: dict) -> str:
 
 ## 9. Corner Cases and Limitations
 
-### NE 148 is a Recommendation, Not a Standard
+### NE 150 is a Recommendation, Not a Standard
 
-NAMUR recommendations are not legally binding and have no certification body. Vendors may claim "NE 148 compatible" with varying levels of compliance. When evaluating a DCS vendor's NE 148 support, specifically ask:
-- Can the vendor's engineering tool accept AutomationML import with NE 148 fields?
-- Which specific NE 148 fields are supported?
+NAMUR recommendations are not legally binding and have no certification body. Vendors may claim "NE 150 compatible" with varying levels of compliance. When evaluating a DCS vendor's NE 150 support, specifically ask:
+- Can the vendor's engineering tool accept AutomationML import with NE 150 fields?
+- Which specific NE 150 fields are supported?
 - What is the import workflow (file upload, API, manual mapping)?
 
 ### Data Quality is the Primary Challenge
 
-The NE 148 workflow fails if the master engineering database contains bad data:
+The NE 150 workflow fails if the master engineering database contains bad data:
 - Tags named inconsistently (sometimes hyphen, sometimes dot)
 - Missing I/O assignments (instruments without allocated channels)
 - Duplicate tag names
