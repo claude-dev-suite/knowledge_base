@@ -35,9 +35,12 @@ The Prisma schema file (`prisma/schema.prisma`) consists of three main blocks: g
 ```prisma
 // prisma/schema.prisma
 
-// 1. Generator - Defines what client to generate
+// 1. Generator - Defines what client to generate.
+// Prisma 7 uses the `prisma-client` provider (ESM-first) and requires an
+// explicit `output` path; the client is no longer emitted into node_modules.
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 // 2. Datasource - Database connection configuration
@@ -63,11 +66,11 @@ The generator block defines which client library Prisma generates.
 
 ```prisma
 generator client {
-  provider        = "prisma-client-js"
-  output          = "./generated/prisma-client"  // Custom output directory
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"  // Required output directory
   previewFeatures = ["fullTextSearch", "metrics"]
   binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
-  engineType      = "library"  // or "binary"
+  engineType      = "client"  // Rust-free client engine (default)
 }
 ```
 
@@ -75,17 +78,18 @@ generator client {
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `provider` | Generator to use | `"prisma-client-js"` |
-| `output` | Output directory for generated client | `node_modules/.prisma/client` |
+| `provider` | Generator to use | `"prisma-client"` |
+| `output` | Output directory for generated client (**required** — the client is no longer emitted to `node_modules`) | None (required) |
 | `previewFeatures` | Array of preview features to enable | `[]` |
 | `binaryTargets` | Platforms to generate binaries for | `["native"]` |
-| `engineType` | Query engine type | `"library"` |
+| `engineType` | Query engine type | `"client"` (Rust-free) |
 
 #### Multiple Generators
 
 ```prisma
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 generator typegraphql {
@@ -685,7 +689,8 @@ Requires `fullTextIndex` preview feature.
 
 ```prisma
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
   previewFeatures = ["fullTextIndex"]
 }
 
@@ -1005,7 +1010,8 @@ Support for multiple database schemas (PostgreSQL, SQL Server, CockroachDB).
 
 ```prisma
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
   previewFeatures = ["multiSchema"]
 }
 
@@ -1616,7 +1622,8 @@ Preview features are experimental and may change.
 
 ```prisma
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
   previewFeatures = ["fullTextSearch", "fullTextIndex", "metrics", "tracing"]
 }
 ```
@@ -1625,7 +1632,6 @@ generator client {
 
 | Feature | Description |
 |---------|-------------|
-| `driverAdapters` | Use custom database drivers |
 | `fullTextIndex` | Full-text search indexes |
 | `fullTextSearch` | Full-text search queries |
 | `metrics` | Prisma Client metrics |
@@ -1641,7 +1647,8 @@ generator client {
 
 ```prisma
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
   previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
@@ -1658,7 +1665,8 @@ model Post {
 
 ```prisma
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
   previewFeatures = ["postgresqlExtensions"]
 }
 
@@ -1673,7 +1681,8 @@ datasource db {
 
 ```prisma
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
   previewFeatures = ["views"]
 }
 
@@ -1689,7 +1698,8 @@ view UserStats {
 ```prisma
 // In prisma/schema.prisma
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
   previewFeatures = ["prismaSchemaFolder"]
 }
 ```
@@ -1707,6 +1717,11 @@ prisma/
 ---
 
 ## Environment Variables
+
+> **Prisma 7 note:** Prisma no longer auto-loads `.env` files. Load environment
+> variables explicitly — for example `import 'dotenv/config'` at the top of
+> `prisma.config.ts` — and provide the datasource connection string to the
+> driver adapter / config rather than relying on implicit `.env` loading.
 
 ### Using env() Function
 
@@ -1817,12 +1832,12 @@ npx prisma db push
 # Force push (reset data if needed)
 npx prisma db push --force-reset
 
-# Skip generators
-npx prisma db push --skip-generate
-
 # Accept data loss
 npx prisma db push --accept-data-loss
 ```
+
+> In Prisma 7, `db push` no longer runs `prisma generate` automatically.
+> Run `npx prisma generate` explicitly after pushing schema changes.
 
 ### Database Pull (Introspection)
 
@@ -1878,12 +1893,13 @@ npx prisma generate --watch
 # Run seed script
 npx prisma db seed
 
-# Configure seed in package.json
-# {
-#   "prisma": {
-#     "seed": "ts-node prisma/seed.ts"
-#   }
-# }
+# Configure seed in prisma.config.ts (the package.json "prisma" block was removed in v7)
+# // prisma.config.ts
+# import { defineConfig } from 'prisma/config';
+#
+# export default defineConfig({
+#   migrations: { seed: 'tsx prisma/seed.ts' },
+# });
 ```
 
 ### Prisma Studio

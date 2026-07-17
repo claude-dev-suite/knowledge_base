@@ -7,7 +7,7 @@ Server Actions are asynchronous functions that run on the server. They can be ca
 1. [Server Action Basics](#server-action-basics)
 2. [Form Handling](#form-handling)
 3. [Validation with Zod](#validation-with-zod)
-4. [useFormState Hook](#useformstate-hook)
+4. [useActionState Hook](#useactionstate-hook)
 5. [useFormStatus Hook](#useformstatus-hook)
 6. [useOptimistic Hook](#useoptimistic-hook)
 7. [Programmatic Invocation](#programmatic-invocation)
@@ -256,11 +256,12 @@ export async function likePost(postId: string) {
 // app/posts/[id]/page.tsx
 import { createComment, likePost } from '@/app/actions';
 
-export default async function PostPage({ params }: { params: { id: string } }) {
-  const post = await db.post.findUnique({ where: { id: params.id } });
+export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const post = await db.post.findUnique({ where: { id } });
 
-  const createCommentWithId = createComment.bind(null, params.id);
-  const likePostWithId = likePost.bind(null, params.id);
+  const createCommentWithId = createComment.bind(null, id);
+  const likePostWithId = likePost.bind(null, id);
 
   return (
     <article>
@@ -523,11 +524,13 @@ export async function createProduct(prevState: FormState, formData: FormData) {
 
 ---
 
-## useFormState Hook
+## useActionState Hook
 
-Note: In React 19, `useFormState` has been renamed to `useActionState`. Both work similarly.
+`useActionState` (imported from `react`) is the primary API for managing the state returned by a Server Action. It returns `[state, formAction, isPending]`.
 
-### Basic useFormState Usage
+> **Deprecated:** `useFormState` from `react-dom` is the old React 18 name for this hook and is deprecated. Use `useActionState` from `react` instead.
+
+### Basic useActionState Usage
 
 ```tsx
 // app/actions.ts
@@ -581,7 +584,7 @@ export async function submitContact(
 // app/contact/ContactForm.tsx
 'use client';
 
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { submitContact, type ActionState } from '@/app/actions';
 
 const initialState: ActionState = {
@@ -590,7 +593,7 @@ const initialState: ActionState = {
 };
 
 export function ContactForm() {
-  const [state, formAction] = useFormState(submitContact, initialState);
+  const [state, formAction, isPending] = useActionState(submitContact, initialState);
 
   return (
     <form action={formAction} className="space-y-4">
@@ -654,7 +657,7 @@ export function ContactForm() {
 }
 ```
 
-### useActionState (React 19)
+### useActionState with Pending State
 
 ```tsx
 'use client';
@@ -813,7 +816,7 @@ export function SaveButton() {
 'use client';
 
 import { useFormStatus } from 'react-dom';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 
 function FormFields() {
   const { pending } = useFormStatus();
@@ -852,7 +855,7 @@ function SubmitButton() {
 }
 
 export function CreatePostForm() {
-  const [state, formAction] = useFormState(createPost, initialState);
+  const [state, formAction] = useActionState(createPost, initialState);
 
   return (
     <form action={formAction}>
@@ -1759,14 +1762,13 @@ export async function createPost(
 ```tsx
 'use client';
 
-import { useFormState } from 'react-dom';
-import { useEffect, useRef } from 'react';
+import { useActionState, useEffect, useRef } from 'react';
 import { createPost, FormState } from '@/app/actions';
 import { toast } from 'sonner';
 
 export function CreatePostForm() {
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useFormState(createPost, {
+  const [state, formAction] = useActionState(createPost, {
     success: false,
     message: '',
   });
@@ -1846,9 +1848,9 @@ export async function uploadFile(formData: FormData) {
 // app/upload/UploadForm.tsx
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { uploadFile } from '@/app/actions';
-import { useState } from 'react';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -1861,7 +1863,7 @@ function SubmitButton() {
 
 export function UploadForm() {
   const [preview, setPreview] = useState<string | null>(null);
-  const [state, formAction] = useFormState(uploadFile, {
+  const [state, formAction] = useActionState(uploadFile, {
     success: false,
     message: '',
   });
@@ -2037,7 +2039,8 @@ import { verifySession } from '@/app/lib/session';
 
 // Helper to get authenticated user
 async function getAuthUser() {
-  const sessionId = cookies().get('session')?.value;
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get('session')?.value;
 
   if (!sessionId) {
     return null;
@@ -2237,7 +2240,8 @@ import { headers } from 'next/headers';
 import { rateLimit } from '@/app/lib/rate-limit';
 
 export async function submitForm(formData: FormData) {
-  const ip = headers().get('x-forwarded-for') || 'anonymous';
+  const headersList = await headers();
+  const ip = headersList.get('x-forwarded-for') || 'anonymous';
 
   const { success, remaining } = rateLimit(
     `submit:${ip}`,
@@ -2297,7 +2301,8 @@ import { headers } from 'next/headers';
 import { rateLimitRedis } from '@/app/lib/rate-limit-redis';
 
 export async function apiAction(formData: FormData) {
-  const ip = headers().get('x-forwarded-for') || 'anonymous';
+  const headersList = await headers();
+  const ip = headersList.get('x-forwarded-for') || 'anonymous';
 
   const { success, remaining, resetAt } = await rateLimitRedis(
     `api:${ip}`,
@@ -2852,7 +2857,8 @@ import crypto from 'crypto';
 
 export async function sensitiveAction(formData: FormData) {
   const csrfToken = formData.get('csrf_token') as string;
-  const storedToken = cookies().get('csrf_token')?.value;
+  const cookieStore = await cookies();
+  const storedToken = cookieStore.get('csrf_token')?.value;
 
   if (!csrfToken || csrfToken !== storedToken) {
     return { success: false, error: 'Invalid CSRF token' };
@@ -2864,7 +2870,8 @@ export async function sensitiveAction(formData: FormData) {
 // Generate CSRF token
 export async function generateCsrfToken() {
   const token = crypto.randomBytes(32).toString('hex');
-  cookies().set('csrf_token', token, {
+  const cookieStore = await cookies();
+  cookieStore.set('csrf_token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
@@ -3165,12 +3172,12 @@ export function withValidation<T>(schema: z.ZodSchema<T>) {
 /**
  * Creates a new blog post
  *
- * @param prevState - Previous form state (for useFormState)
+ * @param prevState - Previous form state (for useActionState)
  * @param formData - Form data containing title, content, and category
  * @returns ActionResult with created post or validation errors
  *
  * @example
- * const [state, formAction] = useFormState(createPost, initialState);
+ * const [state, formAction, isPending] = useActionState(createPost, initialState);
  */
 export async function createPost(
   prevState: FormState,

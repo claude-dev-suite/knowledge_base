@@ -280,7 +280,7 @@ class LoggingAspectTest {
     @Autowired
     private UserService userService;
 
-    @SpyBean
+    @MockitoSpyBean
     private LoggingAspect loggingAspect;
 
     @Test

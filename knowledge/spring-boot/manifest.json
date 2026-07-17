@@ -1,15 +1,15 @@
 {
   "technology": "spring-boot",
-  "latest": "3",
-  "supported": ["2", "3"],
-  "eol": ["1"],
+  "latest": "4",
+  "supported": ["3", "4"],
+  "eol": ["2"],
   "topics": {
     "basics": {
-      "has_delta": ["2"],
+      "has_delta": ["3"],
       "not_in": []
     },
     "security": {
-      "has_delta": ["2"],
+      "has_delta": ["3"],
       "not_in": []
     }
   },
@@ -27,6 +27,17 @@
       "Kotlin 1.7+",
       "Gradle 7.5+ / Maven 3.6.3+",
       "Configuration Properties changes"
+    ],
+    "3→4": [
+      "Built on Spring Framework 7",
+      "Java 17 baseline (Java 21+ recommended)",
+      "Jakarta EE upgrade: Jakarta Servlet 6.1, Persistence 3.2, Validation 3.1, WS RS 4.0, WebSocket 2.2, Annotation 3.0",
+      "Jackson 3 is the default; Jackson 2 support ships deprecated",
+      "`org.springframework.boot.env.EnvironmentPostProcessor` moved to `org.springframework.boot.EnvironmentPostProcessor`",
+      "MongoDB auto-configuration and health indicators moved from spring-boot-data-mongodb to spring-boot-mongodb (package changes) with several spring.data.mongodb.* properties renamed",
+      "`@ConditionalOnEnabledTracing` renamed to `@ConditionalOnEnabledTracingExport`; property `management.tracing.enabled` renamed to `management.tracing.export.enabled`",
+      "Property `spring.dao.exceptiontranslation.enabled` renamed to `spring.persistence.exceptiontranslation.enabled`",
+      "Gradle 9 supported (Gradle 8.14+ still supported)"
     ]
   }
 }

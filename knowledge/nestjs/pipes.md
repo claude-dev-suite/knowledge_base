@@ -44,7 +44,7 @@ interface ArgumentMetadata {
 
 ## Built-in Pipes
 
-NestJS provides eight built-in pipes from `@nestjs/common`:
+NestJS provides the following built-in pipes from `@nestjs/common`:
 
 ### ParseIntPipe
 
@@ -387,6 +387,10 @@ export class AppModule {}
 ## Custom Pipes
 
 ### Transformation Pipe
+
+> Note: NestJS ships a built-in `ParseDatePipe` (available since v10), so you do not
+> need to write one for basic date parsing. The example below is a teaching example
+> of a custom transformation pipe — use the built-in one in real code where it fits.
 
 ```typescript
 import {

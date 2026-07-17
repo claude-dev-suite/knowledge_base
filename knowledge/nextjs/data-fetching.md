@@ -163,7 +163,7 @@ Next.js extends the native `fetch` API with additional options for caching and r
 ### Extended Fetch Options
 
 ```tsx
-// Default: cached indefinitely (equivalent to force-cache)
+// Default in Next.js 15/16: NOT cached — fetched at request time
 const data = await fetch('https://api.example.com/data');
 
 // Revalidate after specified seconds
@@ -299,9 +299,9 @@ Next.js provides multiple caching layers for optimal performance.
 The Data Cache persists fetch results across requests and deployments:
 
 ```tsx
-// Cached indefinitely until manually revalidated
+// Opt into caching explicitly (not the default since Next.js 15)
 const staticData = await fetch('https://api.example.com/data', {
-  cache: 'force-cache', // Default behavior
+  cache: 'force-cache', // Cache until manually revalidated
 });
 
 // Opt out of Data Cache
@@ -359,7 +359,7 @@ export default function AboutPage() {
 import { cookies } from 'next/headers';
 
 export default async function DashboardPage() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const session = cookieStore.get('session');
   return <div>Dashboard for {session?.value}</div>;
 }
@@ -569,9 +569,10 @@ Use when data depends on previous fetch results:
 
 ```tsx
 // app/posts/[id]/page.tsx
-async function PostPage({ params }: { params: { id: string } }) {
+async function PostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // First: Get the post
-  const post = await getPost(params.id);
+  const post = await getPost(id);
 
   // Then: Get author (depends on post)
   const author = await getAuthor(post.authorId);
@@ -593,15 +594,16 @@ async function PostPage({ params }: { params: { id: string } }) {
 ### Hybrid Approach
 
 ```tsx
-async function PostPage({ params }: { params: { id: string } }) {
+async function PostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // First fetch - needed for subsequent fetches
-  const post = await getPost(params.id);
+  const post = await getPost(id);
 
   // Parallel fetches that depend on post
   const [author, relatedPosts, comments] = await Promise.all([
     getAuthor(post.authorId),
     getRelatedPosts(post.categoryId),
-    getComments(params.id),
+    getComments(id),
   ]);
 
   return (
@@ -637,14 +639,15 @@ export const preloadPost = (id: string) => {
 // app/posts/[id]/page.tsx
 import { getPost, preloadPost } from '@/lib/data';
 
-export default async function PostPage({ params }: { params: { id: string } }) {
+export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // Start fetching immediately
-  preloadPost(params.id);
+  preloadPost(id);
 
   // ... other setup work ...
 
   // Await the already-started fetch
-  const post = await getPost(params.id);
+  const post = await getPost(id);
 
   return <article>{post.content}</article>;
 }
@@ -721,21 +724,22 @@ async function Recommendations() {
 ### Nested Suspense Boundaries
 
 ```tsx
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <div>
       {/* Outer boundary for main product */}
       <Suspense fallback={<ProductSkeleton />}>
-        <ProductDetails id={params.id} />
+        <ProductDetails id={id} />
 
         {/* Nested boundary for reviews */}
         <Suspense fallback={<ReviewsSkeleton />}>
-          <ProductReviews productId={params.id} />
+          <ProductReviews productId={id} />
         </Suspense>
 
         {/* Nested boundary for related products */}
         <Suspense fallback={<RelatedSkeleton />}>
-          <RelatedProducts productId={params.id} />
+          <RelatedProducts productId={id} />
         </Suspense>
       </Suspense>
     </div>
@@ -1228,7 +1232,7 @@ import crypto from 'crypto';
 
 export async function POST(request: Request) {
   const body = await request.text();
-  const headersList = headers();
+  const headersList = await headers();
   const signature = headersList.get('x-webhook-signature');
 
   // Verify webhook signature
@@ -1398,20 +1402,21 @@ export const preloadPost = (id: string) => {
 import { getPost, preloadPost } from '@/lib/data';
 import { Comments } from './comments';
 
-export default async function PostPage({ params }: { params: { id: string } }) {
+export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // Start fetching immediately
-  preloadPost(params.id);
+  preloadPost(id);
 
   // Component setup, other work...
 
   // Await the result (likely already resolved)
-  const post = await getPost(params.id);
+  const post = await getPost(id);
 
   return (
     <article>
       <h1>{post.title}</h1>
       <div>{post.content}</div>
-      <Comments postId={params.id} />
+      <Comments postId={id} />
     </article>
   );
 }
@@ -1652,8 +1657,9 @@ async function getPost(id: string) {
   }
 }
 
-export default async function PostPage({ params }: { params: { id: string } }) {
-  const post = await getPost(params.id);
+export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const post = await getPost(id);
 
   if (!post) {
     notFound(); // Triggers not-found.tsx
@@ -1841,27 +1847,28 @@ export default function DashboardPage() {
 
 ```tsx
 // Show critical content first, then progressively load more
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <div>
       {/* Critical - load first */}
       <Suspense fallback={<ProductHeaderSkeleton />}>
-        <ProductHeader id={params.id} />
+        <ProductHeader id={id} />
       </Suspense>
 
       {/* Important - load second */}
       <Suspense fallback={<ProductDetailsSkeleton />}>
-        <ProductDetails id={params.id} />
+        <ProductDetails id={id} />
       </Suspense>
 
       {/* Less critical - can load later */}
       <Suspense fallback={<ReviewsSkeleton />}>
-        <ProductReviews id={params.id} />
+        <ProductReviews id={id} />
       </Suspense>
 
       {/* Lowest priority */}
       <Suspense fallback={<RelatedSkeleton />}>
-        <RelatedProducts id={params.id} />
+        <RelatedProducts id={id} />
       </Suspense>
     </div>
   );
@@ -1913,8 +1920,9 @@ export async function generateStaticParams() {
 // Revalidate every 60 seconds
 export const revalidate = 60;
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
-  const post = await fetch(`https://api.example.com/posts/${params.slug}`, {
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = await fetch(`https://api.example.com/posts/${slug}`, {
     next: { revalidate: 60 },
   }).then(r => r.json());
 
@@ -1984,11 +1992,12 @@ export async function generateStaticParams() {
 // Enable dynamic params for products not pre-rendered
 export const dynamicParams = true; // Default is true
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // Products not in generateStaticParams will be:
   // 1. Generated on first request
   // 2. Cached for subsequent requests
-  const product = await fetch(`https://api.example.com/products/${params.id}`, {
+  const product = await fetch(`https://api.example.com/products/${id}`, {
     next: { revalidate: 3600 },
   }).then(r => r.json());
 
@@ -2038,24 +2047,25 @@ import { cookies, headers } from 'next/headers';
 
 export default async function Page() {
   // Using cookies() makes the page dynamic
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const theme = cookieStore.get('theme');
 
   // Using headers() makes the page dynamic
-  const headersList = headers();
+  const headersList = await headers();
   const userAgent = headersList.get('user-agent');
 
   return <div>Theme: {theme?.value}</div>;
 }
 
 // 2. searchParams prop
-export default function Page({
+export default async function Page({
   searchParams,
 }: {
-  searchParams: { q: string };
+  searchParams: Promise<{ q: string }>;
 }) {
   // Accessing searchParams makes the page dynamic
-  return <SearchResults query={searchParams.q} />;
+  const { q } = await searchParams;
+  return <SearchResults query={q} />;
 }
 
 // 3. Uncached fetch
@@ -2146,8 +2156,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
-  const post = await getPost(params.slug);
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = await getPost(slug);
   return <PostContent post={post} />;
 }
 ```
@@ -2168,12 +2179,13 @@ export async function generateStaticParams() {
   );
 }
 
-export default function Page({
+export default async function Page({
   params,
 }: {
-  params: { locale: string; slug: string };
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  return <div>Locale: {params.locale}, Slug: {params.slug}</div>;
+  const { locale, slug } = await params;
+  return <div>Locale: {locale}, Slug: {slug}</div>;
 }
 ```
 
@@ -2221,8 +2233,9 @@ export async function generateStaticParams() {
 // If false: URLs not in generateStaticParams return 404
 export const dynamicParams = false;
 
-export default async function Page({ params }: { params: { slug: string } }) {
-  const post = await getPost(params.slug);
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = await getPost(slug);
   return <PostContent post={post} />;
 }
 ```
@@ -2239,8 +2252,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export default function DocPage({ params }: { params: { slug: string[] } }) {
-  const path = params.slug.join('/');
+export default async function DocPage({ params }: { params: Promise<{ slug: string[] }> }) {
+  const { slug } = await params;
+  const path = slug.join('/');
   return <DocContent path={path} />;
 }
 ```
@@ -2257,12 +2271,13 @@ export async function generateStaticParams() {
   ];
 }
 
-export default function ShopPage({
+export default async function ShopPage({
   params,
 }: {
-  params: { slug?: string[] };
+  params: Promise<{ slug?: string[] }>;
 }) {
-  const segments = params.slug ?? [];
+  const { slug } = await params;
+  const segments = slug ?? [];
   // Handle different path depths
   return <Shop segments={segments} />;
 }
@@ -2447,11 +2462,12 @@ export const getUser = cache(async (id: string) => {
 });
 
 // Both components get same cached result
-// Layout.tsx
-const user = await getUser(params.id);
+// Layout.tsx (params is a Promise in Next.js 16)
+const { id } = await params;
+const user = await getUser(id);
 
 // Page.tsx
-const user = await getUser(params.id); // No extra DB query
+const user = await getUser(id); // No extra DB query
 ```
 
 ### 9. Handle Loading States Gracefully
@@ -2519,10 +2535,11 @@ export async function generateStaticParams() {
 // Preload critical data
 import { preloadPost } from '@/lib/data';
 
-export default async function Page({ params }: { params: { id: string } }) {
-  preloadPost(params.id); // Start fetch early
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  preloadPost(id); // Start fetch early
   // ... other setup
-  const post = await getPost(params.id);
+  const post = await getPost(id);
   return <Post post={post} />;
 }
 

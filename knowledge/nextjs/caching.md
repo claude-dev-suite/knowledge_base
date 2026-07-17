@@ -17,6 +17,52 @@ Next.js implements a multi-layered caching architecture to optimize performance 
 
 ---
 
+## What's New in Next.js 16
+
+Next.js 16 makes caching **explicit and opt-in** through **Cache Components**.
+
+- **`use cache` directive** — mark a component, function, or route as cached. Cache keys are generated automatically by the compiler. Enable it in config:
+
+  ```ts
+  // next.config.ts
+  const nextConfig = { cacheComponents: true };
+  export default nextConfig;
+  ```
+
+  ```tsx
+  async function Posts() {
+    'use cache';
+    const posts = await db.post.findMany();
+    return <PostList posts={posts} />;
+  }
+  ```
+
+  This replaces the experimental `dynamicIO` flag and completes the Partial Prerendering (PPR) model; the `experimental.ppr` flag and `export const experimental_ppr` are removed.
+
+- **`revalidateTag(tag, profile)`** — now takes a `cacheLife` profile as the second argument for stale-while-revalidate behavior (`'max'`, `'hours'`, `'days'`, or `{ expire: seconds }`). The single-argument form is deprecated.
+
+- **`updateTag(tag)`** — new Server Actions-only API with read-your-writes semantics (expires and immediately re-reads within the same request).
+
+- **`refresh()`** — new Server Actions-only API that refreshes uncached data only, without touching the cache.
+
+```ts
+'use server';
+import { revalidateTag, updateTag, refresh } from 'next/cache';
+
+// SWR invalidation for tagged content
+revalidateTag('posts', 'max');
+
+// Immediate read-your-writes after a mutation
+updateTag(`user-${id}`);
+
+// Refresh uncached data (e.g. a live counter)
+refresh();
+```
+
+> Middleware note: `middleware.ts` is deprecated in favour of `proxy.ts` (Node.js runtime). Turbopack is now the default bundler.
+
+---
+
 ## Request Memoization
 
 React extends the `fetch` API to automatically memoize requests with the same URL and options during a single render pass. This means you can call the same fetch in multiple places without worrying about duplicate network requests.
@@ -87,13 +133,15 @@ The Data Cache persists fetch results across incoming server requests and deploy
 
 ### Default Behavior
 
+Since Next.js 15, `fetch` is **not cached by default** — each call hits the network at request time unless you opt in. (Next.js 14 and earlier cached `fetch` indefinitely by default.)
+
 ```tsx
-// Cached indefinitely by default (force-cache is implicit)
+// NOT cached by default in Next.js 15/16 — fetched at request time
 const data = await fetch('https://api.example.com/posts');
 
-// Explicitly set cache behavior
+// Opt into caching explicitly
 const data = await fetch('https://api.example.com/posts', {
-  cache: 'force-cache', // Default - cache indefinitely
+  cache: 'force-cache', // Cache until revalidated
 });
 ```
 
@@ -128,7 +176,8 @@ const data = await fetch('https://api.example.com/posts', {
 
 | Option | Data Cache | Revalidation |
 |--------|------------|--------------|
-| `cache: 'force-cache'` (default) | Cached | None until manual revalidation |
+| (no option) — default in 15/16 | Not cached | Every request |
+| `cache: 'force-cache'` | Cached | None until manual revalidation |
 | `cache: 'no-store'` | Not cached | Every request |
 | `next: { revalidate: N }` | Cached | After N seconds |
 | `next: { tags: [...] }` | Cached | On-demand via `revalidateTag()` |
@@ -164,7 +213,6 @@ Routes become dynamic when they use:
 ```tsx
 // 1. Dynamic functions
 import { cookies, headers } from 'next/headers';
-import { searchParams } from 'next/navigation';
 
 const cookieStore = await cookies();
 const headersList = await headers();
@@ -176,9 +224,10 @@ fetch(url, { cache: 'no-store' });
 export const dynamic = 'force-dynamic';
 
 // 4. searchParams in page components
-export default function Page({ searchParams }: {
-  searchParams: { query: string }
+export default async function Page({ searchParams }: {
+  searchParams: Promise<{ query: string }>
 }) {
+  const { query } = await searchParams;
   // Using searchParams makes the page dynamic
 }
 ```
@@ -197,9 +246,6 @@ export const dynamic = 'auto';
 
 // Set default revalidation for all fetches in segment
 export const revalidate = 3600; // seconds
-
-// Opt into Partial Prerendering (experimental)
-export const experimental_ppr = true;
 ```
 
 ---
@@ -216,7 +262,8 @@ import Link from 'next/link';
 // Static routes: Fully prefetched and cached for 5 minutes
 <Link href="/about">About</Link>
 
-// Dynamic routes: Only shared layout is prefetched (30 seconds)
+// Dynamic routes: Only the shared layout is prefetched; the page itself is
+// not cached by default (staleTimes.dynamic is 0 since Next.js 15)
 <Link href="/dashboard">Dashboard</Link>
 
 // Disable prefetching
@@ -231,7 +278,7 @@ import Link from 'next/link';
 | Route Type | Default Duration | After Invalidation |
 |------------|------------------|-------------------|
 | Static | 5 minutes | Immediate refresh |
-| Dynamic | 30 seconds | Immediate refresh |
+| Dynamic | 0 (not cached by default since Next.js 15) | Immediate refresh |
 
 ### Invalidating Router Cache
 
@@ -302,13 +349,14 @@ export const preloadItem = (id: string) => {
 // In a parent component
 import { preloadItem } from './data';
 
-export default function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // Start fetching immediately
-  preloadItem(params.id);
+  preloadItem(id);
 
   return (
     <Suspense fallback={<Loading />}>
-      <ItemDetails id={params.id} />
+      <ItemDetails id={id} />
     </Suspense>
   );
 }
@@ -771,13 +819,14 @@ export const getUser = cache(
 ```tsx
 import { getPost, preloadPost } from './data';
 
-export default function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // Start fetching immediately, don't await
-  preloadPost(params.id);
+  preloadPost(id);
 
   return (
     <Suspense fallback={<PostSkeleton />}>
-      <PostContent id={params.id} />
+      <PostContent id={id} />
     </Suspense>
   );
 }

@@ -234,7 +234,7 @@ class OrderEventTest {
     @Autowired
     private OrderService orderService;
 
-    @MockBean
+    @MockitoBean
     private OrderEventListener eventListener;
 
     @Test

@@ -1,11 +1,11 @@
 {
   "technology": "nestjs",
-  "latest": "10",
-  "supported": ["9", "10"],
-  "eol": ["8"],
+  "latest": "11",
+  "supported": ["10", "11"],
+  "eol": ["9"],
   "topics": {
     "controllers": {
-      "has_delta": [],
+      "has_delta": ["10"],
       "not_in": []
     },
     "providers": {
@@ -37,6 +37,16 @@
       "SWC builder as default",
       "Cache module improvements",
       "Minor decorator signature changes"
+    ],
+    "10→11": [
+      "Node.js 20+ required (v16 and v18 dropped)",
+      "Express 5 is now the default HTTP adapter",
+      "Express 5 routing: wildcards must be named — use '/*splat' or '/{*splat}' instead of '/*', and optional segments use braces '/:file{.:ext}' instead of the '?' suffix",
+      "Fastify 5 support",
+      "RxJS 7 across the framework",
+      "CacheModule now uses cache-manager v6 (Keyv-based unified key-value interface)",
+      "Termination lifecycle hooks (OnModuleDestroy, OnApplicationShutdown, ...) now execute in reverse order",
+      "ConsoleLogger overhaul: built-in JSON logging, better formatting for nested objects/Maps/Sets, and customizable prefixes"
     ]
   }
 }

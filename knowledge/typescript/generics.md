@@ -40,9 +40,12 @@ function identity<T>(value: T): T {
 const num = identity<number>(42);          // Type: number
 const str = identity<string>("hello");     // Type: string
 
-// Type inference - TypeScript infers the type from the argument
-const inferredNum = identity(42);          // Type: 42 (literal type)
-const inferredStr = identity("hello");     // Type: "hello" (literal type)
+// Type inference - TypeScript infers the type from the argument.
+// For an unconstrained parameter, fresh literal arguments are WIDENED:
+const inferredNum = identity(42);          // Type: number (not 42)
+const inferredStr = identity("hello");     // Type: string (not "hello")
+// To preserve a literal, use an explicit argument (identity<42>(42)),
+// a const type parameter (identity<const T>), or `as const`.
 ```
 
 ### Multiple Type Parameters

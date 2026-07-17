@@ -80,12 +80,13 @@ export default function Home() {
 }
 
 // app/blog/[slug]/page.tsx - Dynamic page
-export default function BlogPost({
+export default async function BlogPost({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  return <article>Post: {params.slug}</article>;
+  const { slug } = await params;
+  return <article>Post: {slug}</article>;
 }
 
 // Generate static params for dynamic routes
@@ -135,9 +136,10 @@ export const metadata = {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const post = await getPost(params.slug);
+  const { slug } = await params;
+  const post = await getPost(slug);
   return {
     title: post.title,
     description: post.excerpt,
@@ -169,7 +171,8 @@ app/
 ```
 app/
 ├── @modal/           # Parallel route slot
-│   └── login/page.tsx
+│   ├── login/page.tsx
+│   └── default.tsx   # Required in Next.js 16
 ├── @sidebar/
 │   └── default.tsx
 ├── layout.tsx
@@ -194,6 +197,8 @@ export default function Layout({
   );
 }
 ```
+
+> **Next.js 16:** every parallel-route slot must have an explicit `default.js`/`default.tsx` — the build fails without it. Return `null` or call `notFound()` for the default when a slot has no content for the current route.
 
 ## Intercepting Routes
 

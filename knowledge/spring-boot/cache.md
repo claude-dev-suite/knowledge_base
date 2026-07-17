@@ -190,7 +190,7 @@ public class RedisCacheConfig {
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
             .entryTtl(Duration.ofMinutes(10))
             .serializeValuesWith(SerializationPair.fromSerializer(
-                new GenericJackson2JsonRedisSerializer()
+                new GenericJackson3JsonRedisSerializer()
             ));
 
         Map<String, RedisCacheConfiguration> configs = Map.of(

@@ -92,7 +92,7 @@ spring:
 ```xml
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-gateway</artifactId>
+    <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
 </dependency>
 ```
 
@@ -329,7 +329,7 @@ logging:
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-dependencies</artifactId>
-            <version>2023.0.0</version>
+            <version>2025.1.2</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>

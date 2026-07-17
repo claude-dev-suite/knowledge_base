@@ -488,7 +488,6 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { classToPlain } from 'class-transformer';
 
 @Injectable()
 export class ExcludeNullInterceptor implements NestInterceptor {
@@ -955,10 +954,11 @@ export class CacheInvalidationInterceptor implements NestInterceptor {
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
       return next.handle().pipe(
         tap(async () => {
-          // Invalidate related cache keys
-          const resourcePath = request.url.split('/')[1]; // e.g., 'users'
-          const keys = await this.cacheManager.store.keys(`${resourcePath}:*`);
-          await Promise.all(keys.map((key) => this.cacheManager.del(key)));
+          // NestJS 11's CacheModule uses cache-manager v6 (Keyv), which has no
+          // public key-enumeration API (`store.keys()` was removed). Either clear
+          // the whole cache, or track the keys you set so you can delete them
+          // explicitly (e.g. keep a per-resource key set).
+          await this.cacheManager.clear();
         }),
       );
     }
@@ -1335,7 +1335,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Observable, throwError, timer } from 'rxjs';
-import { retryWhen, mergeMap, catchError } from 'rxjs/operators';
+import { retry, catchError } from 'rxjs/operators';
 
 @Injectable()
 export class ExponentialBackoffInterceptor implements NestInterceptor {
@@ -1345,25 +1345,19 @@ export class ExponentialBackoffInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
-      retryWhen((errors) =>
-        errors.pipe(
-          mergeMap((error, index) => {
-            const retryAttempt = index + 1;
+      // retry({ count, delay }) replaces the removed `retryWhen` (RxJS 8).
+      retry({
+        count: this.maxRetries,
+        delay: (error, retryCount) => {
+          const delayMs = this.initialDelay * Math.pow(2, retryCount - 1);
 
-            if (retryAttempt > this.maxRetries) {
-              return throwError(() => error);
-            }
+          this.logger.warn(
+            `Retry attempt ${retryCount}/${this.maxRetries} after ${delayMs}ms`,
+          );
 
-            const delayMs = this.initialDelay * Math.pow(2, index);
-
-            this.logger.warn(
-              `Retry attempt ${retryAttempt}/${this.maxRetries} after ${delayMs}ms`,
-            );
-
-            return timer(delayMs);
-          }),
-        ),
-      ),
+          return timer(delayMs);
+        },
+      }),
       catchError((error) => {
         this.logger.error(
           `All ${this.maxRetries} retry attempts failed: ${error.message}`,
@@ -1387,7 +1381,7 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { Observable, throwError, timer } from 'rxjs';
-import { retryWhen, mergeMap } from 'rxjs/operators';
+import { retry } from 'rxjs/operators';
 
 interface RetryConfig {
   maxRetries: number;
@@ -1408,27 +1402,25 @@ export class ConditionalRetryInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
-      retryWhen((errors) =>
-        errors.pipe(
-          mergeMap((error, index) => {
-            const retryAttempt = index + 1;
+      // retry({ delay }) replaces the removed `retryWhen` (RxJS 8). Throwing
+      // from the delay callback stops retrying and propagates the error.
+      retry({
+        delay: (error, retryCount) => {
+          // Check if we should retry this error
+          if (!this.shouldRetry(error, retryCount)) {
+            return throwError(() => error);
+          }
 
-            // Check if we should retry this error
-            if (!this.shouldRetry(error, retryAttempt)) {
-              return throwError(() => error);
-            }
+          const delay = this.calculateDelay(retryCount - 1);
 
-            const delay = this.calculateDelay(index);
+          this.logger.warn(
+            `Retrying request (attempt ${retryCount}/${this.config.maxRetries}) ` +
+              `after ${delay}ms due to: ${error.message}`,
+          );
 
-            this.logger.warn(
-              `Retrying request (attempt ${retryAttempt}/${this.config.maxRetries}) ` +
-                `after ${delay}ms due to: ${error.message}`,
-            );
-
-            return timer(delay);
-          }),
-        ),
-      ),
+          return timer(delay);
+        },
+      }),
     );
   }
 

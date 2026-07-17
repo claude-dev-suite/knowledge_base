@@ -1,27 +1,27 @@
 {
   "technology": "nextjs",
-  "latest": "15",
-  "supported": ["13", "14", "15"],
-  "eol": ["12"],
+  "latest": "16",
+  "supported": ["14", "15", "16"],
+  "eol": ["13"],
   "topics": {
     "app-router": {
-      "has_delta": ["13"],
+      "has_delta": ["15"],
       "not_in": []
     },
     "routing": {
-      "has_delta": ["13"],
+      "has_delta": [],
       "not_in": []
     },
     "data-fetching": {
-      "has_delta": ["13"],
+      "has_delta": ["15"],
       "not_in": []
     },
     "server-actions": {
-      "has_delta": ["13"],
+      "has_delta": ["15"],
       "not_in": []
     },
     "caching": {
-      "has_delta": ["13", "14"],
+      "has_delta": ["14", "15"],
       "not_in": []
     }
   },
@@ -40,6 +40,19 @@
       "next/form component",
       "Instrumentation stable",
       "Enhanced security for Server Actions"
+    ],
+    "15→16": [
+      "Node.js 20.9+ and TypeScript 5.1+ minimum; Node.js 18 no longer supported",
+      "Turbopack is the default bundler for dev and build (opt out with `next dev --webpack` / `next build --webpack`)",
+      "Cache Components: explicit opt-in caching via the `use cache` directive and `cacheComponents: true` (replaces `experimental.dynamicIO`); all dynamic code runs at request time by default",
+      "`experimental.ppr` flag and `export const experimental_ppr` removed (superseded by Cache Components)",
+      "`middleware.ts` deprecated in favour of `proxy.ts` (runs on the Node.js runtime)",
+      "`revalidateTag(tag)` now requires a cacheLife profile as the second argument for stale-while-revalidate; new `updateTag()` and `refresh()` Server Action APIs",
+      "AMP support removed; `next lint` removed (use ESLint or Biome directly)",
+      "`serverRuntimeConfig` / `publicRuntimeConfig` removed (use env vars); `experimental.turbopack` moved to top-level `turbopack`",
+      "Parallel routes now require explicit `default.js` files",
+      "next/image defaults changed (minimumCacheTTL 4h, qualities [75], stricter local-IP and redirect handling); `images.domains` deprecated for `images.remotePatterns`",
+      "Uses React 19.2 (View Transitions, useEffectEvent, Activity)"
     ]
   }
 }

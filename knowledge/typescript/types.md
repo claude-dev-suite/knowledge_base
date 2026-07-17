@@ -2,6 +2,8 @@
 
 This comprehensive guide covers TypeScript's type system in depth, based on official TypeScript documentation. It serves as both a learning resource and a reference for everyday development.
 
+> Targets **TypeScript 7** (the native Go-based compiler). The type syntax below is unchanged from TypeScript 6, but note that TypeScript 7 enables `strict` mode by default when `tsconfig.json` does not set it explicitly.
+
 ---
 
 ## Table of Contents
