@@ -1767,7 +1767,7 @@ DATABASE_URL="file:./dev.db"
 DATABASE_URL="sqlserver://localhost:1433;database=mydb;user=sa;password=Password123;encrypt=true"
 
 # MongoDB
-DATABASE_URL="mongodb+srv://user:password@cluster.mongodb.net/mydb?retryWrites=true&w=majority"
+DATABASE_URL="mongodb+srv://USER:PASSWORD@HOST/mydb?retryWrites=true&w=majority"
 ```
 
 ### Connection String Parameters

@@ -148,7 +148,7 @@ from pymongo.operations import SearchIndexModel
 
 # Atlas connection string with multi-region cluster
 client = MongoClient(
-    "mongodb+srv://user:pass@global-cluster.mongodb.net/?retryWrites=true"
+    "mongodb+srv://USER:PASSWORD@GLOBAL-CLUSTER-HOST/?retryWrites=true"
 )
 
 db = client["rag_database"]
