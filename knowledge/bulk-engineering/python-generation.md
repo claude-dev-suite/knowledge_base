@@ -2,7 +2,7 @@
 
 > Reference: Practical patterns for DCS configuration bulk generation
 > Context: ABB Freelance PRT/DMF, Emerson DeltaV FHX, PLCopen XML generation
-> Related: knowledge/abb-freelance/prt-format.md, knowledge/bulk-engineering/namur-ne148.md
+> Related: knowledge/abb-freelance/prt-format.md, knowledge/bulk-engineering/namur-ne150.md
 
 ## Overview
 
