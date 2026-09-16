@@ -45,6 +45,12 @@ The receiver's `b_scan` may live on a hot wallet; `b_spend` can stay cold.
 
 ## Worked example
 
+The hex below is **illustrative, not a BIP352 test vector** - the values
+are truncated placeholders that show the shape of each step, not
+reproducible output. For vectors you can actually run against, use
+`bip-0352/send_and_receive_test_vectors.json` in the BIPs repo (see
+References).
+
 Address (testnet, abbreviated):
 ```
 tsp1qqgst...   B_scan = 02f4..., B_spend = 03ae...
@@ -82,6 +88,8 @@ without `b_scan` it looks like an unrelated taproot UTXO.
 
 ## References
 
-- BIP352 — Silent Payments specification.
-- secp256k1 reference implementation `silentpayments` module.
-- "Silent Payments" — Ruben Somsen 2022 explainer.
+- BIP352, Silent Payments specification: https://github.com/bitcoin/bips/blob/master/bip-0352.mediawiki
+- BIP352 send/receive test vectors: https://github.com/bitcoin/bips/blob/master/bip-0352/send_and_receive_test_vectors.json
+- BIP352 Python reference implementation: https://github.com/bitcoin/bips/blob/master/bip-0352/reference.py
+- libsecp256k1 `silentpayments` module header: https://github.com/bitcoin-core/secp256k1/blob/master/include/secp256k1_silentpayments.h
+- "Silent Payments" — Ruben Somsen explainer gist, 13 Mar 2022: https://gist.github.com/RubenSomsen/c43b79517e7cb701ebf77eec6dbb46b8

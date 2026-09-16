@@ -1,15 +1,19 @@
 # PayJoin v2 Asynchronous Flow - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/privacy/payjoin`.
-> Canonical source: https://github.com/bitcoin/bips/pull/1483 (BIP77 draft)
+> Canonical source: https://github.com/bitcoin/bips/blob/master/bip-0077.md
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/privacy/payjoin/SKILL.md
 
 ## Concept
 
-PayJoin v2 (sometimes written "BIP77" / "async PayJoin") removes the BIP78
-requirement that **both sender and receiver be online simultaneously**. v1
-required the receiver to host an HTTPS endpoint reachable at payment time;
-this excluded mobile wallets, hardware wallets, and cold-storage receivers.
+PayJoin v2 is specified as **BIP77 "Async Payjoin"** (Dan Gould, Yuval Kogman).
+The BIP number is assigned and the document is merged in the BIPs repo; its
+status is **Draft** and its spec version is **0.2.0** as of September 2026.
+
+BIP77 removes the BIP78 requirement that **both sender and receiver be online
+simultaneously**. v1 required the receiver to host an HTTPS endpoint reachable
+at payment time; this excluded mobile wallets, hardware wallets, and
+cold-storage receivers.
 
 v2 introduces a **store-and-forward relay** ("directory") that buffers
 encrypted PSBTs between parties. The relay is untrusted: end-to-end encryption
@@ -22,9 +26,14 @@ uses **HPKE (RFC 9180)** with the receiver's static key.
 
 1. **Receiver provisions a session**. Receiver generates a fresh secp256k1
    keypair `(pk_r, sk_r)`, registers `pk_r` with a directory URL, and emits a
-   payjoin URI:
+   payjoin URI. The `pj=` URL is a **mailbox endpoint** whose path is a
+   *Short ID* — SHA-256 of the 33-byte compressed `pk_r`, truncated to 8
+   bytes and encoded with the bech32 character set. BIP77 adds no new BIP21
+   parameters: the session parameters live in the **fragment** of that URL
+   (`EX` expiry, `OH` OHTTP key config, `RK` receiver key), `-`-separated in
+   lexicographical order, with `#` percent-encoded as `%23`:
    ```
-   bitcoin:bc1q...?amount=0.01&pj=https://relay.example/PJ/<pk_r>&pjos=0
+   bitcoin:tb1q...?amount=0.00666666&pjos=0&pj=HTTPS://PAYJO.IN/TXJCGKTKXLUUZ%23EX1...-OH1...-RK1...
    ```
    The receiver may then go offline.
 
@@ -75,12 +84,31 @@ be on cellular networks behind NAT.
 - **Fall-back tx**: still required. v2 keeps the BIP78 property that
   `original_psbt` is a valid standalone payment, broadcastable if the
   v2 round-trip never completes.
-- **Versioning**: clients MUST advertise `v=2` and gracefully fall back to
-  v1 (synchronous endpoint) if the receiver URL responds 404 to v2 routes.
+- **Versioning**: there is no `v=2`. BIP77 declares BIP78's `v` parameter
+  redundant — HPKE binds ciphertexts to an application-specific `info`
+  string, which already supplies the domain separation — and says it should
+  be omitted. Nor is there a 404 version probe: a backwards-compatible
+  receiver distinguishes versions from the request body itself, treating a
+  UTF-8 plaintext payload as BIP78 (see next bullet).
+- **Replying to a BIP78 sender**: a v2 receiver may also service plain BIP78
+  senders, who post a cleartext base64 PSBT to the mailbox. BIP77 made those
+  reply rules normative in June 2026: the response MUST NOT be HPKE-encrypted,
+  MUST be a `PUT` whose body is the base64 PSBT encoded as ASCII, and MUST
+  target the **receiver's own** mailbox — a BIP78 sender supplies no reply key
+  from which a sender-side mailbox could be derived. The directory returns
+  BIP78's `unavailable` error if no response arrives within 30 seconds.
 
 ## References
 
-- BIP77 draft (PayJoin v2).
-- RFC 9180 (HPKE).
+- BIP77 "Async Payjoin" — `bip-0077.md` in the BIPs repo (Draft, spec
+  version 0.2.0 as of September 2026).
+- RFC 9180 (HPKE); BIP77 uses `DHKEM(Secp256k1, HKDF-SHA256)` with
+  ElligatorSwift-encoded encapsulated keys.
 - RFC 9458 (Oblivious HTTP).
-- payjoin.org reference Rust implementation.
+- `payjoin/rust-payjoin` — reference implementation; first stable release
+  `payjoin-1.0.0` on 12 August 2026, covering both BIP78 and BIP77. UniFFI
+  bindings `payjoin-python-0.2.0`, `payjoin-dart-0.2.2`,
+  `payjoin-csharp-0.1.0`, `payjoin-javascript-0.2.0` (JS and C# published
+  27 August 2026). `payjoin-cli` was still at `1.0.0-rc.2` as of
+  September 2026.
+- `payjoin/ohttp-relay` — the OHTTP relay implementation named by the BIP.

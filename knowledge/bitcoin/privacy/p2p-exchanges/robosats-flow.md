@@ -1,7 +1,7 @@
 # RoboSats Trade Flow - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/privacy/p2p-exchanges`.
-> Canonical source: https://learn.robosats.com/docs/protocol-summary/
+> Canonical source: https://learn.robosats.org/docs/trade-pipeline/
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/privacy/p2p-exchanges/SKILL.md
 
 ## Concept
@@ -9,7 +9,14 @@
 RoboSats is a **Lightning-native P2P fiat <-> BTC exchange** running on Tor
 hidden services. Unlike Bisq, all on-chain steps are replaced by **HODL
 invoices**: BTC is escrowed via a Lightning HTLC whose preimage is held by
-the coordinator until both parties confirm. No on-chain footprint per trade.
+the coordinator until both parties confirm. No on-chain footprint per trade,
+unless the buyer opts into an on-chain payout ("swap"), which the
+coordinator settles from its own on-chain balance and charges for via a
+`swap_fee_rate` plus the mining fee.
+
+RoboSats is federated: many independent coordinators, one client app.
+Versions below refer to the `RoboSats/robosats` repo, at v0.8.7-alpha as
+of 9 September 2026 (the project is still alpha-tagged).
 
 The "robot" identity (cute deterministic avatar) is derived from a 32-byte
 randomly-generated token. No registration, no email.
@@ -20,8 +27,36 @@ randomly-generated token. No registration, no email.
 
 - **Maker** posts an order; can be buyer or seller of BTC.
 - **Taker** takes the order.
-- **Coordinator** runs the matching server (Tor onion). It holds the
-  HODL invoice secret but **never custodies funds**.
+- **Coordinator** (called "Host" in the UI) runs *a* matching server
+  (Tor onion). It creates the invoices, holds the HODL preimages and
+  resolves disputes. Funds sit in in-flight HTLCs on the coordinator's
+  own node, so the coordinator is the trust anchor for every trade it
+  hosts.
+- **Federation** - the set of all coordinators. Since v0.6.0-alpha
+  "The Federation Layer" (17 March 2024) there is no single RoboSats
+  server: anyone can register a coordinator, and the client app joins
+  every registered coordinator's order book at once.
+
+### Federation and coordinator selection
+
+- Registration is always open: open a `Coordinator Registration` issue
+  on `RoboSats/robosats`. The requirements are operational (LN node with
+  >= 6M sats total capacity, >= 3 channels, a direct channel to the
+  devFund node), not permissioned.
+- The client caps order size on young coordinators so they can prove
+  themselves: 250,000 sats to start, growing 30 % every 2016 blocks
+  (one difficulty period). After roughly 12,288 blocks (~6 months) a
+  coordinator is "mature" and may host any order size. Coordinators
+  with the "Founder" badge, earned by joining before v0.6.0, are mature
+  from the start.
+- Book ordering is a lottery weighted by each coordinator's DevFund
+  donation value (backend default donation rate 20 %, freely settable
+  down to 0 %). Since v0.8.7-alpha (9 September 2026) the weight is the
+  live value (`devfund % x fee rate`) read from the coordinator's
+  `GET /api/info/`, falling back to the static `federation.json` entry
+  when the coordinator is unreachable.
+- Coordinator fees, reputation, data policy and node ids are shown in
+  the app. Choosing one is an explicit, per-trade trust decision.
 
 ### HODL invoice mechanics
 
@@ -78,9 +113,15 @@ Total Lightning fees: a few sats. No on-chain footprint.
 
 ## Common pitfalls
 
-- **Coordinator outage**: if coordinator dies mid-trade, HTLCs eventually
-  expire and HODLs unwind, returning funds. But the trade is dead until
-  next launch and the chat log may be lost.
+- **Coordinator outage is per-coordinator, not platform-wide**: if the
+  coordinator hosting your order dies mid-trade, its HTLCs eventually
+  expire and the HODLs unwind, returning funds. That trade is dead until
+  the coordinator comes back and the chat log may be lost - but the rest
+  of the federation keeps trading, and only that coordinator's slice of
+  the order book disappears.
+- **Coordinator risk is not uniform**: a mature, high-reputation
+  coordinator and a two-week-old one appear in the same book. Check the
+  coordinator's badge and order-size limit before taking an order.
 - **Privacy from coordinator**: coordinator sees onion connection, robot
   token, IP via Tor circuit (limited), Lightning node pubkey of payouts.
   A privacy-conscious user uses a fresh Lightning channel + LNP via Tor.
@@ -94,6 +135,9 @@ Total Lightning fees: a few sats. No on-chain footprint.
 
 ## References
 
-- RoboSats protocol-summary (learn.robosats.com).
+- RoboSats docs, Trade Pipeline (learn.robosats.org; the old
+  learn.robosats.com domain redirects there, September 2026).
+- RoboSats/robosats GitHub: federation.md, release notes for
+  v0.6.0-alpha and v0.8.7-alpha.
 - BOLT11 invoice spec (HODL via `c=` and `cltv` fields handled by node).
 - LND `invoicesrpc` HoldInvoice API.

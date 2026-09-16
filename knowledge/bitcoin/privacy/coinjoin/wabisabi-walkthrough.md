@@ -1,7 +1,7 @@
 # WabiSabi Coordinator Protocol - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/privacy/coinjoin`.
-> Canonical source: https://github.com/zkSNACKs/WabiSabi/blob/master/Wabisabi.pdf
+> Canonical source: https://eprint.iacr.org/2021/206
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/privacy/coinjoin/SKILL.md
 
 ## Concept
@@ -83,8 +83,35 @@ Signing:          60 s
 Total:            ~120 s, but rounds overlap
 ```
 
-After zkSNACKs shutdown, community coordinators (Kruw, Coinjoin.fr,
-GingerWallet) maintain forks with similar parameters.
+zkSNACKs discontinued that coordinator on 1 June 2024. Wasabi
+v2.0.8, released the same day, added coordinator selection to the
+GUI and moved the repository out of the zkSNACKs org to
+`WalletWasabi/WalletWasabi`; stock Wasabi since then ships with no
+default coordinator at all, so the user pastes in a coordinator URI.
+Community-run coordinators fill that slot with similar round
+parameters. Two that were reachable as of September 2026: Kruw
+(`https://coinjoin.kruw.io/`) and OpenCoordinator
+(`https://api.opencoordinator.org/`, which advertises a 0%
+coordinator fee, no country or UTXO blocklists, and "more than
+13,000 coinjoins" in the year to June 2026). Neither ranking nor
+endorsement implied — read a coordinator's own terms first.
+
+**Ginger Wallet is not one of these and should not be listed with
+them.** It is a Wasabi fork by the GingerPrivacy project /
+InvisibleBit LLC, and at its launch (v2.0.8.1, announced 7 June
+2024) the announcement stated the "Default coordinator set to Ginger
+coordinator (cannot be changed)", carrying over the zkSNACKs fee
+schedule and restrictions (free remixes, free under 0.01 BTC, "no
+illicit actors", US residents excluded). The same announcement said
+the project had "partnered with one of the world's leading
+blockchain analytics companies" and uses "their coin verifier
+service" so "every coin you mix with has a low risk score" when
+coins first enter a round. Net effect: candidate inputs are
+screened by a chain-surveillance vendor and high-risk UTXOs are
+refused entry. That is a compliance product, not a
+privacy-equivalent substitute for a neutral coordinator —
+evaluate it on those terms. (Terms stated at the June 2024
+launch; re-check Ginger's current policy before relying on this.)
 
 ## Trade-offs / pitfalls
 
@@ -109,12 +136,26 @@ GingerWallet) maintain forks with similar parameters.
 - **Exchange refusal**. Many exchanges reject deposits whose history
   shows a CoinJoin input within N hops. Plan an off-ramp wallet
   that stays mixed forever or is dedicated to such use.
-- **Legal risk**. Operating a coordinator carries unclear regulatory
-  exposure (Samourai indictment April 2024). Users running their
-  own coordinators should evaluate jurisdictional risk.
+- **Legal risk**. No longer hypothetical in the US. The April 2024
+  Samourai indictment ended in convictions for conspiring to operate
+  an unlicensed money transmitting business: Keonne Rodriguez (CEO)
+  was sentenced to 5 years on 6 Nov 2025 and William L. Hill (CTO)
+  to 4 years on 19 Nov 2025, each with 3 years supervised release
+  and a $250,000 fine, against a forfeiture order of
+  $237,832,360.55 of which $6,367,139.69 — Samourai's own fee
+  revenue — was paid. The count of conviction was money
+  transmission, not custody or theft, so "the coordinator never
+  holds user keys" is not by itself a defence. Anyone running a
+  coordinator should take jurisdiction-specific legal advice.
 
 ## References
 
-- WabiSabi paper: https://github.com/zkSNACKs/WabiSabi/blob/master/Wabisabi.pdf
+- WabiSabi paper, IACR ePrint 2021/206 (Ficsor, Kogman, Ontivero, Seres): https://eprint.iacr.org/2021/206
+- WabiSabi paper source (repo moved out of the zkSNACKs org; the built PDF is no longer published there): https://github.com/WalletWasabi/WabiSabi
 - Wasabi 2.0 docs: https://docs.wasabiwallet.io/
+- Wasabi v2.0.8 release notes (coordinator selection in GUI, 1 Jun 2024): https://github.com/WalletWasabi/WalletWasabi/releases/tag/v2.0.8
+- Kruw coordinator: https://kruw.io/
+- OpenCoordinator (0% fee, coinjoin count stated Jun 2026): https://opencoordinator.org/
+- Ginger Wallet launch terms (7 Jun 2024): https://www.nobsbitcoin.com/ginger-wallet-v2-0-8-1-launched/
+- Samourai founders sentenced (IRS-CI, 19 Nov 2025): https://www.irs.gov/compliance/criminal-investigation/founders-of-samourai-wallet-cryptocurrency-mixing-service-sentenced-to-five-and-four-years-in-prison
 - KVAC primer: https://eprint.iacr.org/2013/516
