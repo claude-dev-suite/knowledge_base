@@ -2,6 +2,7 @@
 
 > Phase B article. Companion to dev-suite skill `bitcoin/metaprotocols/atomicals`.
 > Canonical source: https://docs.atomicals.xyz/protocols/arc20-fungible-tokens
+> (host offline as of 15 September 2026 - see the note under References)
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/metaprotocols/atomicals/SKILL.md
 
 ## Concept
@@ -101,14 +102,31 @@ carry which token.
   minters lose to specialised hashing scripts. Comparable to early
   BRC-20 mint races in unfairness.
 - **Indexer adoption**: smaller than Ordinals/Runes. Most CEXes do
-  not support ARC-20 deposits; secondary markets are limited to a
-  few specialised platforms (Atomical Market, Wizz).
-- **AVM not live**: the proposed Atomicals VM remains experimental;
-  programmability features advertised in marketing material are not
-  production today.
+  not support ARC-20 deposits, and the venue picture thinned further
+  when Atomicals Market - the main dedicated ARC-20/Atomicals
+  marketplace - shut down on 30 April 2026. Its farewell page states
+  that listings and bids auto-expire, that assets stay on Bitcoin and
+  need no action, and that the frontend repository is being archived.
+  Wizz still advertised ARC-20 wallet support as of September 2026.
+- **AVM not live**: the proposed Atomicals VM remains experimental as
+  of September 2026; programmability features advertised in marketing
+  material are not production today. The reference interpreter
+  `atomicals/avm-interpreter` has had no commits since 22 September
+  2024, and `atomicals/atomicals-electrumx` none since 27 March 2025
+  (newest release v1.5.2.0, same date) - dormant, not archived.
 
 ## References
 
 - ARC-20 docs: https://docs.atomicals.xyz/protocols/arc20-fungible-tokens
 - Atomicals reference: https://github.com/atomicals/atomicals-electrumx
 - Bitwork PoW: https://docs.atomicals.xyz/specifications/bitwork
+- Atomicals Market shutdown notice (30 April 2026): https://atomicalmarket.com/
+
+Note: as of 15 September 2026 `docs.atomicals.xyz` no longer resolves
+(NXDOMAIN on a public resolver), so every docs.atomicals.xyz link in
+this file - the canonical-source pointer in the header and both
+References entries - is dead from here; the apex `atomicals.xyz`
+resolves but answers HTTP 401. A third-party documentation platform
+covering the same material, version 2026.08 and pinned to
+atomicals-electrumx v1.5.2.0, is at
+https://bitcoinuniverseio.github.io/atomicals-and-arc-20/

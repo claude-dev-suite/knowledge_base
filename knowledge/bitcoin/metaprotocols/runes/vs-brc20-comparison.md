@@ -78,8 +78,13 @@ wins on raw etch size but loses on every transfer thereafter.
 Pick BRC-20 if you need:
 
 - Compatibility with the broadest existing wallet ecosystem (UniSat,
-  OKX Web3, Magic Eden, ME marketplace flow). Indexer adoption is
-  more mature.
+  OKX Web3, Xverse). Indexer adoption is more mature. Magic Eden is
+  no longer one of these routes: it exited Bitcoin entirely in 2026
+  (marketplace 9 March 2026, Bitcoin/Runes APIs 27 March 2026, wallet
+  out of the app stores 1 April 2026 and fully shut down 1 May 2026),
+  retiring a venue reported at roughly 80% of Bitcoin Ordinals/Runes
+  trading volume at its 2023-2024 peak - so this advantage is thinner
+  than it was before 2026.
 - Trading volume. BRC-20 still has more secondary-market liquidity
   in late 2025 than Runes for established tickers.
 - Tickers under 4 chars that are already taken on Runes (or vice

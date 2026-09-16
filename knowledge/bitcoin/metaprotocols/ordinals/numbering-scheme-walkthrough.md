@@ -73,8 +73,9 @@ they get re-numbered into the next coinbase output.
 
 ## Trade-offs / pitfalls
 
-- The ord index is large: a recent full ord index sits above 1 TB and
-  takes days to build. Light clients cannot compute ordinals locally.
+- The ord index is large: as of September 2026 a recent full ord index
+  sits above 1 TB and takes days to build. Light clients cannot
+  compute ordinals locally.
 - Different clients must implement FIFO identically. The spec is
   unambiguous, but historically there were bugs in early indexers
   around fee handling and sat-count for non-standard outputs.
@@ -88,5 +89,7 @@ they get re-numbered into the next coinbase output.
 ## References
 
 - Ordinal theory handbook: https://docs.ordinals.com/
-- ord source: https://github.com/ordinals/ord
+- ord source: https://github.com/ordinals/ord - latest release as of
+  September 2026 is 0.29.0 (5 August 2026); check the tag list rather
+  than trusting a pinned version here
 - BIP draft (informational only): https://github.com/ordinals/ord/blob/master/bip.mediawiki
