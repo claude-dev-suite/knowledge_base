@@ -1,7 +1,7 @@
 # PPS vs FPPS vs PPLNS Comparison - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/mining/pool-architectures`.
-> Canonical source: Pool published terms (Foundry, AntPool, Braiins, Ocean, ViaBTC)
+> Canonical source: Pool published terms (Foundry, AntPool, Braiins, OCEAN, ViaBTC)
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/mining/pool-architectures/SKILL.md
 
 ## Concept
@@ -172,5 +172,5 @@ fees are abnormally low.
 - Foundry USA pool terms (PPS+) <https://foundrydigital.com/>
 - AntPool reward schemes <https://help.antpool.com/>
 - Braiins Pool / SV2 PPLNS docs <https://braiins.com/pool>
-- Ocean non-custodial PPS <https://ocean.xyz/>
+- OCEAN non-custodial TIDES payouts <https://ocean.xyz/docs/tides>
 - "Analysis of Bitcoin Pooled Mining Reward Systems" - Rosenfeld (2011)

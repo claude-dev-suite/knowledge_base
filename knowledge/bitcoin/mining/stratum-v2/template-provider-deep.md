@@ -8,9 +8,26 @@
 
 The Template Provider (TP) is the SV2 component that turns a Bitcoin Core
 mempool into a stream of fresh block templates that downstream Job
-Declarator Clients can declare. It is implemented as a feature of Bitcoin
-Core (since v25 with the `--templateprovider` build flag) or via the SRI
-"pool" tooling.
+Declarator Clients can declare. It is *not* a feature of Bitcoin Core.
+Two attempts to put one inside Core were closed unmerged (PR 23049 in
+January 2023, PR 29432 "Stratum v2 Template Provider (take 3)" in October
+2024); contributors settled instead on a generic Mining IPC interface
+(Cap'n Proto over a UNIX socket - tracking issue 31098, closed October
+2025). Core exposes only that interface; the TP itself ships as a separate
+binary, `stratum-mining/sv2-tp` (v1.1.1, July 2026).
+
+Bind the node's IPC socket, then start the TP against it:
+
+```
+bitcoin -m node -ipcbind=unix
+sv2-tp -debug=sv2 -loglevel=sv2:trace
+```
+
+`sv2-tp` v1.1.x requires Bitcoin Core 31.0 or later; v1.0.6 (February
+2026) is the last release that works with Core 30.2. It reads its own
+`sv2-tp.conf` in the datadir (e.g. `~/.bitcoin/sv2-tp.conf`), separate
+from `bitcoin.conf`. Windows is not supported yet (bitcoin/bitcoin#32387,
+as of September 2026).
 
 The TP exposes a thin TCP+Noise interface speaking the Template Distribution
 Protocol (TDP, sub-protocol id `0x04`). It pushes:
@@ -26,8 +43,11 @@ Protocol (TDP, sub-protocol id `0x04`). It pushes:
 ### Process model
 
 ```
-[bitcoind w/ TP feature]
+[bitcoind -m node -ipcbind=unix]
    |- mempool, validation, p2p
+   |
+   v (Cap'n Proto Mining IPC over UNIX socket)
+[sv2-tp]
    |
    v (Noise XK + TDP)
 [JDC running on the same or adjacent host]
@@ -165,9 +185,14 @@ JDC immediately requests a new declaration on the new tip.
 
 ## Common pitfalls
 
-- **TP not enabled in bitcoind** - many distros ship without TP support.
-  Verify with `bitcoin-cli getnetworkinfo` and look for the TP service
-  flag, or check `--templateprovider` in start args.
+- **Node started without the IPC socket** - `sv2-tp` cannot attach unless
+  bitcoind was launched as `bitcoin -m node -ipcbind=unix`. There is no
+  `-templateprovider` option and no TP service flag in `getnetworkinfo`;
+  the TP is a separate process, not a node feature.
+- **`mining.capnp` schema skew** - Bitcoin Core 31.0 (April 2026) requires
+  mining clients to use the latest `mining.capnp` schema; a client built
+  against an older one fails at `Init.makeMining`. Rebuild `sv2-tp`
+  against the Core version you actually run.
 - **Stale `SetNewPrevHash`** - JDC must drop pending shares on tip change
   or the pool will reject as "stale share, wrong prev_hash".
 - **Coinbase oversize** - if JDC builds outputs that exceed
@@ -185,6 +210,7 @@ JDC immediately requests a new declaration on the new tip.
 ## References
 
 - SV2 Template Distribution Protocol spec <https://stratumprotocol.org/specification/07-Template-Distribution-Protocol/>
-- Bitcoin Core PR 27433 (initial TP implementation) <https://github.com/bitcoin/bitcoin/pull/27433>
-- SRI `template-provider` binary <https://github.com/stratum-mining/stratum/tree/main/roles/template-provider>
+- Bitcoin Core issue 31098 (Stratum v2 via IPC Mining Interface tracking issue; closed October 2025) <https://github.com/bitcoin/bitcoin/issues/31098>
+- Bitcoin Core PR 29432 (in-Core TP, closed unmerged October 2024) <https://github.com/bitcoin/bitcoin/pull/29432>
+- `sv2-tp` Template Provider binary <https://github.com/stratum-mining/sv2-tp>
 - Skill: `bitcoin/mining/stratum-v2`

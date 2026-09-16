@@ -36,6 +36,75 @@ TCP connect to pool:port
 The pool may push `mining.set_difficulty` or `mining.notify` at any time,
 even before authorization completes.
 
+A miner using BIP 310 extensions sends `mining.configure` *before*
+`mining.subscribe`, so the request ids above shift by one. Ids are
+per-connection and chosen by the client; each JSON example below
+reproduces its source spec's own id, which is why `mining.configure`
+and `mining.subscribe` both show `"id": 1`.
+
+### `mining.configure` (BIP 310)
+
+BIP 310 "Stratum protocol extensions" (Pavel Moravec, Jan Čapek;
+Informational, assigned 10 March 2018, still Draft as of September 2026)
+adds a single generic negotiation message. It SHOULD be the first message
+the miner sends. The BIP's Specification section lists three extension
+codes - `version-rolling`, `minimum-difficulty`, `subscribe-extranonce` -
+and then defines a fourth, `info`, in a section of its own.
+
+Request:
+
+```json
+{"method": "mining.configure",
+ "id": 1,
+ "params": [["minimum-difficulty", "version-rolling"],
+            {"minimum-difficulty.value": 2048,
+             "version-rolling.mask": "1fffe000",
+             "version-rolling.min-bit-count": 2}]}
+```
+
+Result:
+
+```json
+{"error": null,
+ "id": 1,
+ "result": {"version-rolling": true,
+            "version-rolling.mask": "18000000",
+            "minimum-difficulty": true}}
+```
+
+Params are `[extension_codes[], extension_parameters{}]`; parameter and
+return-value names are namespaced as `<extension>.<param>`. Each requested
+code MUST appear in the result map as `true`, `false`, or an error string,
+so the miner always knows what got activated.
+
+For `version-rolling`:
+
+- `version-rolling.mask` (`TMask`, 8 hex chars) - bits the *miner* can
+  change. Default if omitted: `ffffffff`.
+- `version-rolling.min-bit-count` (REQUIRED, integer) - how many rollable
+  bits the hardware needs. A pool SHOULD NOT drop the connection if it
+  cannot meet this; the miner degrades instead.
+- The returned mask is `server_mask & miner_mask`, and the server SHOULD
+  return the largest mask it can.
+
+The `1fffe000` mask above is exactly BIP 320's reservation: bits 13-28
+inclusive, 16 bits, removed from BIP8/BIP9 signalling by applying
+`0xe0001fff` to `nVersion`. BIP 323 "24 nVersion bits for general purpose
+use" (Matt Corallo, assigned 22 April 2026, `Replaces: 320`) widens this
+to bits 5-28 inclusive - `0x1fffffe0`, 24 bits, signalling mask
+`0xe000001f` - motivated by devices that had started taking ~7 bits from
+`nTime` for extra nonce space. Both BIPs are still Draft as of
+September 2026.
+
+### `mining.set_version_mask`
+
+Server-pushed notification carrying a new mask. Valid **immediately** -
+the server does not wait for the next job.
+
+```json
+{"params": ["00003000"], "id": null, "method": "mining.set_version_mask"}
+```
+
 ### `mining.subscribe`
 
 Request:
@@ -124,6 +193,15 @@ Fields: `worker`, `job_id`, `extranonce2`, `ntime`, `nonce` - all hex
 strings. The pool reconstructs the full block header by combining these
 with the original notify payload, hashes it, and verifies.
 
+If `version-rolling` was activated by `mining.configure`, the client MUST
+send a 6th parameter `version_bits` (`TMask`) after `nonce`, and the
+server MUST accept it. The miner may only set bits present in the last
+mask it received (`version_bits & ~last_mask == 0`); the server computes
+the header version as
+`nVersion = (job_version & ~last_mask) | (version_bits & last_mask)`,
+where `job_version` is the `version` field of the job with that
+`job_id`.
+
 Response on accept: `{"id": 15, "result": true, "error": null}`.
 
 Response on reject: `{"id": 15, "result": null,
@@ -177,7 +255,8 @@ Numerical sanity check: at share difficulty 4096, `share_target =
 diff1_target / 4096 ~ 6.99e71`. Probability per nonce of finding a
 share = `share_target / 2^256 ~ 6.99e71 / 1.16e77 ~ 6.03e-6`. So
 ~165k nonces per share - 165k hashes is microseconds for an ASIC, hence
-miners rotate `extranonce2` to widen the search space.
+miners rotate `extranonce2` to widen the search space (and, where
+`version-rolling` was negotiated, the masked `nVersion` bits).
 
 ## Common pitfalls
 
@@ -188,6 +267,10 @@ miners rotate `extranonce2` to widen the search space.
   work or risk rejection 21.
 - **JSON line framing** - missing `\n` makes the pool buffer indefinitely;
   pretty-printed multi-line JSON breaks the protocol.
+- **Rolling unmasked version bits** - `version_bits & ~last_mask` must be
+  0. Set a bit the pool did not grant and the share is rejected even
+  though the hash is below target. `mining.set_version_mask` can change
+  the mask mid-session, so the check must use the *latest* mask.
 - **Extranonce mismatch** - if the miner uses `extranonce2_size + 1`
   bytes (off-by-one), the coinbase TXID changes from what the pool
   expects, and shares fail to validate.
@@ -197,6 +280,12 @@ miners rotate `extranonce2` to widen the search space.
 
 ## References
 
+- BIP 310: Stratum protocol extensions (`mining.configure`, version-rolling)
+  <https://github.com/bitcoin/bips/blob/master/bip-0310.mediawiki>
+- BIP 320: nVersion bits for general purpose use (16 bits, 13-28)
+  <https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki>
+- BIP 323: 24 nVersion bits for general purpose use (bits 5-28, replaces 320)
+  <https://github.com/bitcoin/bips/blob/master/bip-0323.mediawiki>
 - Slush Pool Stratum spec (archived) <https://slushpool.com/help/stratum-protocol/>
 - `braiins/stratum-v1` <https://github.com/braiins/stratum-v1>
 - cgminer source `stratum.c`

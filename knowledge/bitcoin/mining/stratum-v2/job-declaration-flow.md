@@ -25,9 +25,12 @@ longer dictate transaction selection.
 ### Roles
 
 ```
-[bitcoind] -- ZMQ + RPC --> [Template Provider]
-                                    |
-                                    v
+[bitcoind -m node -ipcbind=unix]
+       |
+       v (Cap'n Proto Mining IPC over UNIX socket)
+[sv2-tp]
+       |
+       v
 [Job Declarator Client (JDC)] -- TCP+Noise --> [Job Declarator Server (JDS) at pool]
        |                                                    |
        v                                                    v
@@ -169,8 +172,11 @@ ASICs hash. Shares come back via `SubmitSharesExtended`.
 ## Worked example
 
 Solo-style miner runs:
-- bitcoind with mempool ~80MB, ZMQ on 28332.
-- Template Provider (bitcoind v25+ with `--templateprovider`).
+- bitcoind (Bitcoin Core 31.x) with mempool ~80MB, started as
+  `bitcoin -m node -ipcbind=unix`.
+- `sv2-tp` Template Provider attached over that IPC socket (it is a
+  separate binary, not a Core feature - see the Template Provider deep
+  dive).
 - SRI Job Declarator Client.
 - SRI Mining Proxy bridging an Antminer S19 over Stratum V1.
 
@@ -193,8 +199,11 @@ Cycle for one block:
 
 ## Common pitfalls
 
-- **TP/JDC version skew** - bitcoind's TP API and SRI's JDC must match
-  versions; mismatched encoding silently produces invalid templates.
+- **TP/JDC version skew** - `sv2-tp` and the SRI JDC must match versions;
+  mismatched encoding silently produces invalid templates. Separately,
+  Bitcoin Core 31.0 (April 2026) requires mining clients to use the latest
+  `mining.capnp` schema, so a `sv2-tp` built against an older schema fails
+  outright at `Init.makeMining`.
 - **Mempool divergence** - if JDS doesn't have a tx the JDC declared, the
   declaration fails. Ensure both nodes peer well or the JDC propagates
   txs to JDS upstream.
@@ -209,6 +218,7 @@ Cycle for one block:
 ## References
 
 - SV2 Job Declaration spec <https://stratumprotocol.org/specification/06-Job-Declaration-Protocol/>
-- SRI Reference Implementation <https://github.com/stratum-mining/stratum>
+- SRI protocol crates <https://github.com/stratum-mining/stratum> (v1.11.1, July 2026)
+- SRI role applications - pool, jd-server, jd-client, translator <https://github.com/stratum-mining/sv2-apps> (v0.7.0, July 2026, alpha)
 - BIP 152 (compact-block short IDs - reused in JD message format)
 - Skill: `bitcoin/mining/stratum-v2`
