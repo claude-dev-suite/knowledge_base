@@ -1,7 +1,9 @@
 # Babylon BTC Staking Protocol Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/l2/babylon`.
-> Canonical source: https://docs.babylonchain.io/
+> Canonical source: https://docs.babylonlabs.io/
+> (the old docs.babylonchain.io domain no longer resolves, checked
+> 16 Sep 2026)
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/l2/babylon/SKILL.md
 
 ## Concept
@@ -128,7 +130,8 @@ her FP did, and consequently her stake was slashed proportionally.
 
 ## References
 
-- Babylon documentation (docs.babylonchain.io).
+- Babylon documentation (docs.babylonlabs.io; the docs.babylonchain.io
+  domain used until the Babylon Labs rename no longer resolves).
 - "Bitcoin-secured PoS" — Babylon team papers 2023.
 - BIP340/BIP341 (Schnorr / Taproot scripts).
 - EOTS construction (research note 2022).

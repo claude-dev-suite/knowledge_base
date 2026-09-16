@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Counterparty: legacy Bitcoin meta-protocol (2014) for assets, DEX, betting using OP_RETURN. Largely historic; still alive with niche use.
+Counterparty: legacy Bitcoin meta-protocol (2014) for assets, DEX, betting using OP_RETURN. Usage is largely historic, but the reference implementation still ships protocol upgrades (AMM pools, Taproot envelopes) as of September 2026.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

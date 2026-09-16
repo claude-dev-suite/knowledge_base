@@ -23,7 +23,9 @@ strategies + staking integrations).
 - **DA**: hybrid — primary on Celestia, with optional Bitcoin
   inscription anchoring.
 - **Settlement**: Bitcoin via a federated multisig bridge (Cobo MPC +
-  partner custodians). Roadmap: BitVM2 trust-minimisation.
+  partner custodians). Roadmap: the "Fraud Proofs Based on Bitcoin"
+  module, still described in future tense in Merlin's own docs as of
+  September 2026.
 
 ### Bridge model
 
@@ -38,8 +40,19 @@ Phase 1 (mainnet launch):
 
 Phase 2 (TBD):
 
-- BitVM2 fraud-proof bridge replacing federation trust.
+- Bitcoin-verified fraud proofs replacing federation trust.
 - ZK validity proofs anchored to Bitcoin via Taproot inscriptions.
+
+Merlin names this module "Fraud Proofs Based on Bitcoin" and still
+writes it in future tense ("will introduce") as of September 2026.
+Its documented shape: prover and verifier pre-sign a series of
+transactions to enable challenge-response; the program under
+verification is compiled to a binary circuit of NAND gates; each
+gate's leaf script goes into a Merkle tree whose root is committed to
+a Taproot address; the verifier reads the root back and, on suspicion,
+challenges the prover to produce the corresponding leaf scripts. The
+construction is BitVM-shaped, but no Merlin primary source uses the
+names BitVM or BitVM2 - do not attribute those to the project.
 
 ### Asset support
 
@@ -60,13 +73,32 @@ yield protocols. Rewards combine:
 - MERL token emissions.
 - Partner protocol incentive layers.
 
-This drove TVL > $3B at peak (early 2024), ranking Merlin among top L2s
-by deposit volume.
+This drove the Merlin's Seal bridge vault to a peak of ~$2.65B of
+locked BTC on 29 March 2024 (DefiLlama), ranking Merlin among top L2s
+by deposit volume at the time.
+
+The program did not hold. As of 15 September 2026 (DefiLlama):
+
+| Metric | Value | Peak |
+|---|---|---|
+| Merlin's Seal vault (BTC locked) | ~$410M | ~$2.65B (29 Mar 2024) |
+| Merlin chain DeFi TVL | ~$9.3M | ~$529M (5 May 2024) |
+
+Note the ~40x gap between the two. These are separate measurements:
+bridge-locked BTC is not value deployed in Merlin DeFi, and only a
+small fraction of the bridged value shows up in the chain's own
+protocols. On the same date Stacks (~$79.3M) and Rootstock (~$79.0M)
+each carried roughly 8x Merlin's chain DeFi TVL, so the "largest
+Bitcoin L2 by TVL" framing is a 2024 statement, not a current one.
+The drawdown is sector-wide: Bitlayer fell from ~$361M (1 Jan 2025)
+to ~$0.46M and BSquared from ~$89M to ~$2.6M over the same window.
 
 ### EVM compatibility
 
 Standard tooling works: Foundry, Hardhat, viem, Metamask. Chain ID
-4200 (Merlin Mainnet). Block time \~3 s. Gas paid in BTC (1 sat = 10^10
+4200 (Merlin Mainnet, confirmed via `eth_chainId` on 15 September
+2026). Block time \~3 s by design; Blockscout reported a \~4.05 s
+trailing average on 15 September 2026. Gas paid in BTC (1 sat = 10^10
 gas-wei equivalent), simplifying UX vs. ETH-fee chains.
 
 ## Worked example
@@ -95,9 +127,12 @@ Withdraw:
 
 ## Common pitfalls
 
-- **Federation custody risk**: until BitVM2 migration, withdrawals
-  require federation honesty + liveness. ~$3B TVL = extremely high
-  reward for attacker if signer set is compromised.
+- **Federation custody risk**: until the Bitcoin fraud-proof module
+  ships, withdrawals require federation honesty + liveness. ~$410M
+  locked in the vault on 15 September 2026 (down from ~$2.65B at the
+  March 2024 peak) is still an extremely high reward for an attacker
+  if the signer set is compromised — the drawdown shrank the
+  prize, it did not remove it.
 - **BRC-20 wrapping correctness**: BRC-20 inscription accounting
   depends on indexer software; bridge must use consensus indexer.
 - **MERL token volatility**: yield denominated in MERL is highly
@@ -112,5 +147,6 @@ Withdraw:
 ## References
 
 - Merlin Chain documentation (docs.merlinchain.io).
+- Fraud Proofs Based on Bitcoin - https://docs.merlinchain.io/merlin-docs/about-merlin/key-modules/fraud-proofs-based-on-bitcoin
 - Polygon CDK technical paper.
 - Cobo MPC custody whitepaper.

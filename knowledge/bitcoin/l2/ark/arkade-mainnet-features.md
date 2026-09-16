@@ -1,17 +1,18 @@
 # Arkade Mainnet Features - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/l2/ark`.
-> Canonical source: https://arklabs.to/ and https://docs.arklabs.to/
+> Canonical source: https://arklabs.to/ and https://docs.arkadeos.com/
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/l2/ark/SKILL.md
 
 ## Concept
 
-ARKADE is Ark Labs' production Ark deployment. As of 2025-2026 it is in **public mainnet
-beta**: real BTC, real users, but with conservative round caps and continuous protocol
-iteration. ARKADE is the first Ark protocol implementation to reach mainnet; the
-reference `bark` (by Second) is still on signet/testnet. ARKADE differentiates from the
-spec with three key features: 5-second rounds, Taproot/MuSig2-only signing, and Arkade
-Assets for native asset issuance.
+ARKADE is Ark Labs' production Ark deployment. It has been in **public mainnet beta**
+since October 2025 (first mainnet payments at Baltic Honeybadger, August 2025): real BTC,
+real users, but with conservative round caps and continuous protocol iteration. ARKADE was
+the first Ark protocol implementation to reach mainnet; the reference `bark` (by Second)
+followed on 9 June 2026 and is no longer signet-only. ARKADE differentiates from the spec
+with three key features: 5-second rounds, Taproot/MuSig2-only signing, and Arkade Assets
+for native asset issuance.
 
 ## Walkthrough / mechanics
 
@@ -99,7 +100,10 @@ Step 3: Bob exits unilaterally on day 25
 - **Mainnet beta**: caps on max round size, max VTXO age, and ASP collateral are tighter
   than the spec. ARKADE has not yet served million-leaf rounds in production.
 - **MuSig2 fast-path**: a single uncooperative cosigner forces a round restart. ARKADE
-  publishes a "drop list" so users can avoid known-bad cosigners.
+  publishes a "drop list" so users can avoid known-bad cosigners. The interactivity is not
+  an ARKADE quirk: with no covenant opcode on mainnet (as of September 2026), covenant-less
+  Ark must pre-sign every branch with all affected parties while the round is open. See the
+  clArk section of the `bitcoin/l2/ark` skill.
 - **Arkade Assets vs TAP / RGB**: an asset minted on ARKADE is *not* portable to LN or
   on-chain Taproot Assets without a bridge. Cross-protocol asset interop is still
   experimental.
@@ -116,7 +120,10 @@ issuance.
 
 ## References
 
-- ARKADE docs - https://docs.arklabs.to/
+- ARKADE docs - https://docs.arkadeos.com/ (the old `docs.arklabs.to` host no longer
+  resolves)
 - Ark Labs blog, "Mainnet Beta" announcement (2025)
 - Burak, "Ark Protocol" (bitcoin-dev archives)
-- Second's bark - https://codeberg.org/ark-network/bark
+- Second's bark - https://codeberg.org/ark-bitcoin/bark (on mainnet since 9 June 2026;
+  the old `ark-network/bark` URL is dead)
+- Bitcoin Optech, Ark topic page - https://bitcoinops.org/en/topics/ark/

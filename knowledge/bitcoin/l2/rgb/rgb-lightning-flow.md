@@ -9,9 +9,18 @@
 `rgb-lightning-node` (RLN) is an LDK fork that carries RGB asset state through Lightning
 channels. Each commitment transaction includes an extra anchor output committing to the
 post-update RGB state via Tapret. Asset transfers route via standard HTLCs whose payment
-amounts are interpreted as asset units rather than (or in addition to) sats. As of March
-2026, RLN is in production beta with USDT-on-RGB rolling out alongside Bitlight Labs's
-testing infrastructure.
+amounts are interpreted as asset units rather than (or in addition to) sats.
+
+As of September 2026 RLN has **no tagged release**: development happens on `master`,
+whose head commit is 26 August 2026. It vendors rust-lightning 0.2.x and declares
+`rgb-lib` `=0.3.0-beta.7` (17 July 2026), though a `[patch.crates-io]` entry redirects
+that dependency to `rgb-lib` git `master`, so the build floats rather than pinning.
+`rgb-lib` 0.3.0-beta.7 in turn pins `rgb-ops`, `rgb-invoicing`, `rgb-psbt-utils` and
+`rgb-schemas` at `=0.11.1-rc.11` (15 July 2026). RLN therefore rides the
+`rgb-protocol` **v0.11.1 line**, not RGB-WG's v0.12 consensus release -- the line
+RGB-WG advised against for production in its 18 July 2025 security notice.
+USDT-on-RGB rides this same v0.11.1 line and is still pre-launch: no public
+mainnet launch announcement had appeared as of mid-September 2026.
 
 ## Walkthrough / mechanics
 
@@ -64,7 +73,10 @@ Currently more constrained than TAP. RLN supports:
 - Same-asset routing through nodes that all hold the same RGB schema.
 - Atomic swap-style cross-asset: less mature than TAP's RFQ.
 
-The expected production path (March 2026 update) involves Bitlight Labs and other
+Swap routing over private channels was fixed in April 2026, and a
+`decode_swapstring` endpoint was added in May 2026.
+
+The expected production path involves Bitlight Labs and other
 infrastructure-providers running RGB-aware liquidity hubs.
 
 ### On-chain close
@@ -119,15 +131,34 @@ Day 30 Cooperative close.
   the RGB state. Adoption is still early.
 - **Liquidity fragmentation**: each asset/schema combo is a separate liquidity surface.
   Cross-asset routing inside RGB is harder than in TAP today.
-- **Wallet dependency on Bitlight infra**: in March 2026, RLN production deployments
-  largely rely on Bitlight Labs's testing nodes. More implementations needed for
-  decentralisation.
+- **Wallet dependency on Bitlight infra**: RLN production deployments largely rely on
+  Bitlight Labs's testing nodes. More implementations needed for decentralisation.
+- **No release tags**: integrators pin a git commit, not a version. As of September
+  2026 the repo has never cut a release.
 - **Compared to TAP/LND**: RLN is more flexible (full AluVM contracts) but less
   battle-tested; TAP is locked to fungible balance tracking but more mature.
+
+## Recent RLN work (2026)
+
+Verified from `master` commit history (no tagged releases exist):
+
+| Date | Change |
+|------|--------|
+| Mar 2026 | zero-amount RGB payment amount in `sendpayment` |
+| Mar 2026 | `push_asset_amount` when opening RGB channels |
+| Mar 2026 | payment preimages exposed in payment APIs |
+| Mar 2026 | support for inflatable fungible assets (IFA) |
+| Apr 2026 | swap routing over private channels; custom signet support |
+| Aug 2026 | BOLT11 `description` / `description_hash` on invoice APIs |
+| Aug 2026 | optional `bitcoind` via `lightning-transaction-sync` backend |
+
+No BOLT12 / offers support has landed as of September 2026.
 
 ## References
 
 - rgb-lightning-node - https://github.com/RGB-Tools/rgb-lightning-node
+- rgb-lib - https://github.com/RGB-Tools/rgb-lib
 - Bitlight Labs blog - https://bitlightlabs.com/blog
-- RGB v0.11 release notes (March 2026) - https://github.com/RGB-WG/rgb/releases
+- RGB v0.12 consensus release (10 July 2025) - https://rgb.tech/blog/release-v0-12-consensus/
+- RGB-WG notice on the v0.11.1 fork (18 July 2025) - https://rgb.tech/blog/on-rgb-fork-by-bitfinex/
 - LDK - https://github.com/lightningdevkit/rust-lightning

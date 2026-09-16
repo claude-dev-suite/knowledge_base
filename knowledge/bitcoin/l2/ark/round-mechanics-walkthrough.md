@@ -24,8 +24,11 @@ ASP      | aggregate     | merge nonces    | aggregate sigs  | broadcast     |
                                                                 + forfeit gather
 ```
 
-ARKADE targets ~5s round time on signet/mainnet beta. The reference `bark` uses longer
-rounds for testing.
+ARKADE targets ~5s round time on signet/mainnet beta. Second's Ark server (`bark` on
+Bitcoin mainnet since 9 June 2026) runs a round every hour as of September 2026; round
+frequency is a server-configurable parameter, reported to clients in the Ark server info.
+The two intervals are not comparable: in Second's implementation rounds carry refreshes
+only -- Ark-address payments settle instantly out-of-round as arkoor transactions.
 
 ### Phase 1 - Registration
 
@@ -102,7 +105,11 @@ After confirm:
 ## Trade-offs and security
 
 - **Atomicity**: a single non-responsive participant can stall the cosigning ceremony.
-  ARKADE uses short timeouts and re-runs the round without the dropout.
+  ARKADE uses short timeouts and re-runs the round without the dropout. The requirement
+  exists because this is covenant-less Ark: absent a covenant opcode, the tree is a
+  pre-signed "pseudo-covenant" that every affected party must cosign in-round. A covenant
+  such as CTV or `OP_TEMPLATEHASH` would remove the ceremony, but neither is active on
+  mainnet as of September 2026.
 - **Forfeit timing race**: the forfeit must be broadcastable *strictly before* the
   unilateral-exit branch becomes spendable. The ASP enforces this by setting the new
   round's CSV well below the old round's exit timelock.
@@ -118,4 +125,7 @@ After confirm:
 - ARKADE protocol overview - https://arkdev.info/docs/protocol-spec/round-flow
 - Burak, original Ark mailing-list post, 2023
 - Ark Labs blog "Round Mechanics" series
-- bark reference implementation - https://codeberg.org/ark-network/bark
+- bark reference implementation - https://codeberg.org/ark-bitcoin/bark
+- Ark Protocol docs, "Covenant-less Ark" - https://ark-protocol.org/intro/clark/
+- Second docs, "Ark rounds" (round interval, out-of-round payments) -
+  https://second.tech/docs/learn/rounds

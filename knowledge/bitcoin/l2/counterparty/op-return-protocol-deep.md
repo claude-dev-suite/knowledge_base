@@ -12,7 +12,11 @@ asset balances and contract state. Counterparty's "OP_RETURN protocol" is the en
 scheme by which messages (issue, send, dividend, dispenser, etc.) are committed to
 Bitcoin. Today Counterparty is most relevant historically (Rare Pepes, Spells of Genesis)
 and as the underlying registry for some collectible communities; it remains active but
-has been overtaken in volume by Ordinals/Inscriptions and Taproot Assets.
+has been overtaken in volume by Ordinals/Inscriptions and Taproot Assets. The reference
+implementation is still under active development -- Counterparty Core v11.3.0
+(16 August 2026) is the current release, and 2026 brought protocol-level additions
+including constant-product AMM liquidity pools and indefinite DEX orders (mainnet gate
+block 952,800).
 
 ## Walkthrough / mechanics
 
@@ -24,9 +28,17 @@ has been overtaken in volume by Ordinals/Inscriptions and Taproot Assets.
 2. **OP_RETURN single-output (2014 onward, primary mode after 2017)**: Up to 80-byte
    payload in an unprunable OP_RETURN.
 3. **OP_RETURN concatenation across outputs**: For long messages, multiple OP_RETURNs.
-4. **Witness data (taproot era, niche)**: experimental newer encoding.
+4. **Taproot envelope (2025 onward)**: Counterparty Core v11.0.0 (27 May 2025) added
+   Taproot envelope data encoding at activation block 902,000 (mined 20 June 2025),
+   explicitly to cut fees on larger messages, and removed P2SH data encoding at the
+   same time. The envelope script is Ordinals-compatible, so an issuance / fairminter /
+   broadcast can carry an inscription.
 
-The dominant mode today is OP_RETURN.
+With `encoding: "auto"` (the compose default in v11.3.0) the composer still picks
+`opreturn` when the payload plus the `CNTRPRTY` prefix fits `OP_RETURN_MAX_SIZE = 80`
+bytes and falls back to `multisig` otherwise; `taproot` must be requested explicitly and
+is rejected for UTXO-attached sources, non-segwit sources, transactions carrying a
+destination output, and `detach`.
 
 ### Message format
 
@@ -133,8 +145,20 @@ Step 4: Alice queries
   wait 6 confs to display balances.
 - **Bloat history**: pre-2018 multisig encoding permanently burned ~3 sats UTXOs into
   Bitcoin's UTXO set. That's an ongoing cost.
-- **OP_RETURN size limit**: Bitcoin's policy limit (80 bytes by default) constrains
-  message sizes; longer messages chunk across multiple outputs, increasing fees.
+- **OP_RETURN size limit**: historically Bitcoin's relay policy allowed a single
+  OP_RETURN output carrying 80 data bytes (`-datacarriersize=83`), so longer messages
+  had to chunk across outputs, increasing fees. Bitcoin Core v30.0 (10 October 2025)
+  raised the default `-datacarriersize` to 100,000 and now relays and mines multiple
+  OP_RETURN outputs per transaction, the limit applying to their aggregate scriptPubKey
+  size; the standard transaction size binds first, so the policy cap is effectively
+  gone. This is relay policy, not consensus, and `-datacarrier` / `-datacarriersize`
+  stay configurable -- Core v31.1 (8 July 2026) still sets `MAX_OP_RETURN_RELAY` to
+  `MAX_STANDARD_TX_WEIGHT / WITNESS_SCALE_FACTOR`, i.e. 100,000 vbytes. Bitcoin Knots
+  keeps the old default, `MAX_OP_RETURN_RELAY = 83` as of the v29.4.1.knots20260508
+  release (2 September 2026), so the real constraint is now which node software sits on
+  the relay path rather than one network-wide number. Counterparty Core itself has not
+  followed: `config.OP_RETURN_MAX_SIZE` is still `80` in v11.3.0, so its composer keeps
+  chunking or switching encoding above that.
 - **No smart contracts in modern sense**: Counterparty supports orders, dispensers, and
   dividends but not arbitrary state machines. CIP-141 added bet/contract logic that has
   been deprecated due to use issues.
@@ -149,4 +173,6 @@ Step 4: Alice queries
 - Counterparty docs - https://docs.counterparty.io/docs/protocol/
 - counterparty-server - https://github.com/CounterpartyXCP/counterparty-core
 - "Counterparty 2.0" announcement (2024 indexer rewrite)
+- counterparty-core release notes - https://github.com/CounterpartyXCP/counterparty-core/releases
+- Bitcoin Core 30.0 release notes (OP_RETURN policy) - https://github.com/bitcoin/bitcoin/blob/v30.0/doc/release-notes.md
 - Original whitepaper (2014) - https://counterparty.io/files/CounterpartyWhitepaper.pdf

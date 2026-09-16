@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Hemi Network: hybrid Bitcoin + Ethereum L2 with "superfinality" via Bitcoin PoW. ~$1.2B TVL, 90+ protocols (early 2026).
+Hemi Network: hybrid Bitcoin + Ethereum L2 with "superfinality" via Bitcoin PoW. Chain TVL under $1M across 44 listed protocols (DefiLlama, September 2026), down from a ~$330M peak in June 2025.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

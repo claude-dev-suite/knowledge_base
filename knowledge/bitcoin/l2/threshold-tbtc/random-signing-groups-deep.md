@@ -7,11 +7,10 @@
 ## Concept
 
 tBTC v2 (Threshold Network) custodies BTC in **randomly-sampled threshold
-ECDSA signing groups**. Each deposit is held by a small group (51 nodes,
-51-of-100 threshold) chosen via VRF lottery from the wider Threshold
-operator set. Mints and redemptions require co-signing by the assigned
-group; if a group misbehaves, individual operators' staked T tokens are
-slashed.
+ECDSA signing groups**. Each group is 100 nodes with a 51-of-100 signing
+threshold, chosen via VRF lottery from the wider Threshold operator set.
+Mints and redemptions require co-signing by the assigned group; if a
+group misbehaves, individual operators' staked T tokens are slashed.
 
 Random sampling is the security innovation: an attacker controlling
 fewer than threshold operators globally is unlikely to control threshold
@@ -33,8 +32,8 @@ When a deposit comes in:
 1. The Threshold contract emits a `groupSelectionRequest` with a deposit
    ID.
 2. A VRF (random beacon) generates a random seed.
-3. The seed is used to pseudo-randomly sample 51 operators from the
-   active set, weighted by stake.
+3. The seed is used to pseudo-randomly sample 100 operators from the
+   active set, weighted by stake (`groupSize = 100`).
 4. Selected operators run a DKG ceremony to compute a shared
    secp256k1 secret key. Public key `Q_group` is published on Ethereum.
 
@@ -98,7 +97,7 @@ Alice deposits 1 BTC.
 
 ```
 1. Alice -> Threshold contract: requestDeposit(P_user_pubkey)
-2. Random seed -> 51 operators selected: {O3, O11, O22, ...}
+2. Random seed -> 100 operators selected: {O3, O11, O22, ...}
 3. DKG: produces Q_group public key.
 4. Contract emits address bc1q... derived from script {P_user, Q_group}.
 5. Alice broadcasts BTC tx: 1 BTC -> bc1q...
@@ -133,6 +132,9 @@ Six months later, Alice redeems 0.5 tBTC:
 ## References
 
 - Threshold Network tBTC v2 documentation.
+- keep-network/keep-core, `solidity/ecdsa/contracts/EcdsaDkgValidator.sol`
+  (`groupSize = 100`, `groupThreshold = 51`, `activeThreshold = 90`; still
+  the values on `main` as of September 2026).
 - Gennaro, Goldfeder. "Fast Multiparty Threshold ECDSA" 2018.
 - Random Beacon design (random.network).
 - BIP143 (SegWit signing for tx witness data).

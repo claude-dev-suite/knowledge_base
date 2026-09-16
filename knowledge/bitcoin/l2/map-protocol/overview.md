@@ -7,6 +7,8 @@
 
 MAP Protocol: omnichain interoperability layer with Bitcoin integration. Cross-chain messaging across many chains; positions itself as Bitcoin L2 connector.
 
+Caution: MAP shut down its Ethereum <-> mainnet MAPO bridge on 20 May 2026 after a reported Butter Bridge V3.1 exploit and migrated to new token contracts. See the status section in the skill and in [interop-architecture.md](interop-architecture.md) before treating MAP as production bridge infrastructure.
+
 ## When to use
 
 This is a Phase A overview - quick orientation only. The full deep-dive
@@ -17,6 +19,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

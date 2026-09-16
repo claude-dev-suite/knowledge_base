@@ -51,7 +51,24 @@ z_i = d_i + rho_i * e_i + lambda_i * s_i * c
 ```
 
 where `lambda_i` is the Lagrange coefficient over the participating set. A coordinator
-sums z_i to get z. The signature is (R, z), a valid Schnorr signature over Y.
+sums the z_i to get the SOs' half, z_so.
+
+### Mandatory user share
+
+Spark's variant is not plain FROST over the SOs alone. The leaf key is an *additive
+aggregate* `Y = pk_user + pk_so`, where `pk_so` is the SOs' (t, n) threshold key. The
+coordinator returns its aggregated half `(R_so, z_so)` to the user, who adds
+
+```
+rho_user = H1(0, m, B)
+z_user   = d_user + rho_user * e_user + sk_user * c
+z        = z_so + z_user
+```
+
+to produce the final Schnorr signature (R, z) over Y. The user is therefore a required
+participant in every signature: the SO set cannot move a leaf on its own at any
+threshold. Spark's docs call out that this rules out plain multisig schemes such as a
+2-of-2, since the result must aggregate to a single Schnorr signature.
 
 ### Robustness
 
@@ -61,10 +78,12 @@ coefficients over the remaining honest k-set.
 
 ### Spark's deployment
 
-- **Beta**: 2-of-2 with Lightspark + Flashnet. This is technically a MuSig2-equivalent
-  configuration (no threshold benefit) but uses FROST tooling for forward compatibility.
-- **Roadmap**: 5-of-7 or 7-of-11 spread across jurisdictions to make collusion
-  legally as well as technically hard.
+- **Mainnet beta (as of September 2026)**: three SOs -- Lightspark
+  (`0.spark.lightspark.com`), Breez (`spark-operator.breez.technology`) and Flashnet
+  (`2.spark.flashnet.xyz`) -- signing at threshold 2, i.e. FROST 2-of-3. The set and
+  the threshold are pinned in the SDK's mainnet wallet config.
+- **Roadmap**: Spark's FAQ states only that additional SOs will join as the network
+  scales; no target set size or threshold has been published.
 - **Key refresh**: SOs periodically run a proactive secret-resharing protocol so that
   share compromise must occur within a single epoch to be useful.
 
@@ -87,14 +106,16 @@ T+80ms     User wallets confirm leaf updated.
 End-to-end < 100ms typical.  No on-chain tx.
 ```
 
-If SO_2 is offline at T+30, the coordinator can wait up to ~5 seconds and either retry
-or, in 5-of-7 deployments, route to another SO without restarting from scratch.
+If SO_2 is offline at T+30, the coordinator can retry or, because mainnet beta is
+2-of-3, select the third SO instead without restarting from scratch.
 
 ## Trade-offs and security
 
-- **k-of-n robustness**: in 5-of-7, up to 2 SOs can be offline or malicious without
-  affecting liveness or safety. In 2-of-2 beta, both must be honest *and* online --
-  effectively a 2-of-2 multisig with an audit trail.
+- **k-of-n robustness**: the threshold governs *liveness*, not honesty. At 2-of-3 (the
+  September 2026 mainnet-beta set) any one SO may be offline without halting transfers;
+  if two are down, off-chain payments stop and users fall back to unilateral exit.
+  Safety after a transfer needs only 1-of-3 honest key deletion, which is a separate
+  axis from the signing threshold.
 - **Nonce reuse vulnerability**: if any SO reuses a nonce across two distinct messages,
   its share leaks. Spark uses deterministic-nonce-or-secure-randomness implementations
   with strict pre-commitment caches.
@@ -114,4 +135,7 @@ or, in 5-of-7 deployments, route to another SO without restarting from scratch.
 - FROST IRTF draft - https://datatracker.ietf.org/doc/draft-irtf-cfrg-frost/
 - Komlo and Goldberg, "FROST: Flexible Round-Optimized Schnorr Threshold Signatures" (2020)
 - ZF FROST library - https://github.com/ZcashFoundation/frost
-- Spark technical docs - https://docs.spark.money/
+- Spark FROST spec - https://docs.spark.money/learn/frost-signing
+- Spark trust model - https://docs.spark.money/learn/trust-model
+- Mainnet operator set and threshold - `sdks/js/packages/spark-sdk/src/services/wallet-config.ts`
+  in https://github.com/buildonspark/spark

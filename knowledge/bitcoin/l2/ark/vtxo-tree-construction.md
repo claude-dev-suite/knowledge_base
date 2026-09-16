@@ -1,7 +1,7 @@
 # VTXO Tree Construction - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/l2/ark`.
-> Canonical source: https://docs.arklabs.to/ and https://arkdev.info/
+> Canonical source: https://docs.arkadeos.com/ and https://arkdev.info/
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/l2/ark/SKILL.md
 
 ## Concept
@@ -32,6 +32,12 @@ Each non-leaf output is spent by exactly one pre-signed tx that splits it into t
 All branch-spending txs are pre-signed by the ASP and the relevant subset of round
 participants using MuSig2/FROST cosigning during the round. After the round, only the
 pool tx is broadcast; everything below it remains off-chain unless someone exits.
+
+Pre-signing is a stand-in for a covenant. Bitcoin has no opcode letting the root output
+commit to the tree below it, so covenant-less Ark (clArk) substitutes an n-of-n pre-signed
+"pseudo-covenant" -- which is why the cosigners must be online at round time. CTV (BIP 119)
+or the taproot-native `OP_TEMPLATEHASH` would let the output commit to the tree directly;
+neither is active on mainnet as of September 2026.
 
 ### Round timeline
 
@@ -95,7 +101,9 @@ User Alice wants to send 0.005 BTC to Carol off-chain:
 ## References
 
 - Burak, "Ark" original post (bitcoin-dev, 2023)
-- ARKADE docs - https://docs.arklabs.to/
+- ARKADE docs - https://docs.arkadeos.com/ (the old `docs.arklabs.to` host no longer
+  resolves)
 - arkdev.info - https://arkdev.info/
-- Second's `bark` reference impl - https://codeberg.org/ark-network/bark
+- Second's `bark` reference impl - https://codeberg.org/ark-bitcoin/bark
+- Ark Protocol docs, "Covenant-less Ark" - https://ark-protocol.org/intro/clark/
 - "Ark on Bitcoin" presentation, BTC++ 2024

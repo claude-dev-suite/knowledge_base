@@ -1,11 +1,11 @@
-# L2 - Spark - Overview
+# L2 - Lombard - Overview
 
-> Canonical content lives in the dev-suite skill: **`bitcoin/l2/spark`**
-> Source link: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/l2/spark/SKILL.md
+> Canonical content lives in the dev-suite skill: **`bitcoin/l2/lombard`**
+> Source link: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/l2/lombard/SKILL.md
 
 ## What this covers
 
-Spark by Lightspark: statechain-derived L2 with FROST threshold signatures, leaf architecture, Lightning compatibility. Beta launched April 2025; managed by Spark Operators (SOs).
+Lombard: LBTC, a cross-chain yield-bearing wrapped BTC issued by a 10-of-14 institutional notary consortium running a Cosmos appchain (the Lombard Ledger), with HSM key custody (CubeSigner) and an independent Bascule verification layer. LBTC yield moved OFF Babylon staking to a Bitwise covered-call strategy in 2026.
 
 ## When to use
 

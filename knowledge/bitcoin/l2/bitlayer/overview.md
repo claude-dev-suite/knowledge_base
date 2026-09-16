@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Bitlayer: Bitcoin L2 with ZK proof system, BTC staking, EVM compatibility. Emerging player 2024-2026.
+Bitlayer: Bitcoin L2 with ZK proof system, BTC staking, EVM compatibility. Early BTCFi entrant (2024); TVL down ~99.9% from peak as of September 2026.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

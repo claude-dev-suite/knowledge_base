@@ -1,11 +1,11 @@
-# L2 - Spark - Overview
+# L2 - Solv Protocol - Overview
 
-> Canonical content lives in the dev-suite skill: **`bitcoin/l2/spark`**
-> Source link: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/l2/spark/SKILL.md
+> Canonical content lives in the dev-suite skill: **`bitcoin/l2/solv`**
+> Source link: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/l2/solv/SKILL.md
 
 ## What this covers
 
-Spark by Lightspark: statechain-derived L2 with FROST threshold signatures, leaf architecture, Lightning compatibility. Beta launched April 2025; managed by Spark Operators (SOs).
+Solv Protocol: SolvBTC / xSolvBTC tokenized Bitcoin distributed across many chains, custody behind Safe multisigs with a Vault Guardian and FROST signing partners. Migrated bridging from LayerZero to Chainlink CCIP on 7 May 2026. BRO Vault incident, 5 March 2026: 38.0474 SolvBTC (~$2.7M), fully compensated.
 
 ## When to use
 

@@ -1,12 +1,55 @@
-# Botanix Spiderchain Deep Dive
+# Botanix Spiderchain Deep Dive (Post-Mortem)
 
 > Phase B article. Companion to dev-suite skill `bitcoin/l2/botanix`.
 > Canonical source: https://botanixlabs.com/
+> Wind-down post: https://botanixlabs.com/blog/winding-down-botanix-what-we-built-and-why-we-re-stopping
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/l2/botanix/SKILL.md
+
+> **RETIRED - architecture study only.** The Botanix network ran on
+> mainnet from 1 July 2025 until the wind-down announced 5 June 2026,
+> staged from 1 July 2026 with final network shutdown scheduled no later
+> than 1 August 2026. Everything below describes how the Spiderchain was
+> designed and how it operated while live. None of these flows are
+> usable today: there is no coordinator to request a deposit address
+> from, and no L2 to mint against.
+
+## Status: network retired
+
+As of September 2026 the Botanix L2 is shut down.
+
+- **5 June 2026** - Botanix Labs published "Winding Down Botanix: What
+  We Built, and Why We're Stopping".
+- **1 July 2026** - target wind-down date. The botanixlabs.com banner
+  reads "Botanix is shutting down on July 1, 2026 ... Please withdraw
+  your assets before this deadline."
+- **15 July 2026** - two-week grace period per the official post.
+- **1 August 2026** - "if needed, 2 weeks more until August 1 when the
+  final shutdown of the network occurs". Afterwards "the federation
+  will sweep the remaining Bitcoin and the company starts its dissolving
+  process"; capital return was expected to take until October 2026.
+
+Secondary coverage (Decrypt, crypto.news, cryptotimes.io) reported a
+9 July 2026 withdrawal cutoff and that non-BTC tokens become permanently
+unrecoverable. Neither appears in the official post; prefer the dates
+above.
+
+The Spiderchain itself did not fail. The post reports "a year of mainnet
+operation with one hundred percent uptime and zero security incidents",
+25 million transactions and 200,000 wallets across the mainnet year
+(July 2025 - 2026), after nearly four years of building. The stated
+reasons are demand-side: mistiming the Bitcoin community's appetite for
+L2 utility, token-incentive bootstrapping no longer working, wrapped BTC
+on an existing L2 such as Arbitrum being sufficient for most Bitcoin
+DeFi demand, and on-chain growth consolidating toward centralized
+venues.
+
+Note that docs.botanixlabs.com was still serving present-tense live
+network documentation with a forward roadmap as of September 2026. It is
+stale vendor documentation, not evidence the chain is running.
 
 ## Concept
 
-Botanix introduces the **Spiderchain**: a network of decentralized
+Botanix introduced the **Spiderchain**: a network of decentralized
 multisigs that custody Bitcoin and back an EVM-equivalent L2. Instead of
 a single static federation, the Spiderchain is a rotating set of
 **orchestrators** chosen via PoS (PoB - Proof-of-Bitcoin) staking. Each
@@ -78,9 +121,9 @@ their staked BTC. Detection mechanisms include:
 - On-chain proof of incorrect L2 state attestations.
 - Signature on conflicting messages (equivocation).
 
-## Worked example
+## Worked example (historical)
 
-Alice deposits 1 BTC to Botanix.
+Alice deposits 1 BTC to Botanix, while the network was live.
 
 ```
 1. Alice -> coordinator: "deposit 1 BTC".
@@ -115,6 +158,8 @@ custody is some new (K, N) tuple of fresh orchestrators.
 
 ## References
 
-- Botanix Labs documentation.
+- Botanix Labs documentation (stale; still describes a live network).
+- "Winding Down Botanix: What We Built, and Why We're Stopping" -
+  Botanix Labs blog, 5 June 2026.
 - "Spiderchain: A Decentralized Bitcoin Sidechain" — Willem Schroé 2023.
 - FROST threshold Schnorr signatures (Komlo & Goldberg 2020).
