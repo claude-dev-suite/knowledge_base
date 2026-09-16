@@ -70,11 +70,24 @@ profitable.
 
 ### Anchor channels mitigation
 
-In **anchor channels** (BOLT-03 v2), commitment_carol has small anchor
-outputs (330 sat) that Bob can use as a CPFP fee-bump source. He can
-attach a child transaction with high feerate to anchor, bumping the
-commitment without needing to RBF. However, before TRUC v3 (BIP-431),
-this can still be cycled.
+In **anchor channels** (BOLT-03 v2, `option_anchors`), commitment_carol
+has small anchor outputs (330 sat) that Bob can use as a CPFP fee-bump
+source. He can attach a child transaction with high feerate to anchor,
+bumping the commitment without needing to RBF. However, before TRUC v3
+(BIP-431), this can still be cycled.
+
+### Zero-fee commitments (`zero_fee_commitments`)
+
+The BOLT spec merged `zero_fee_commitments` on 2026-05-04
+(lightning/bolts PR #1228, BOLT-9 feature bits 40/41). The commitment
+is a version-3 (TRUC) transaction with `feerate_per_kw` 0, and the two
+keyed anchors are replaced by a single keyless `shared_anchor` using
+the standard P2A script `OP_1 <0x4e73>`. Under TRUC the commitment can
+have at most one unconfirmed descendant and that descendant is subject
+to sibling eviction, so Carol cannot park a large low-feerate child on
+it at all — the attack in this walkthrough has no purchase. As of
+September 2026 this is shipped in LDK (`lightning` 0.2, 2025-12-02) and
+Eclair (v0.14.0, 2026-05-21), not in LND or CLN.
 
 ## Worked example
 
@@ -122,4 +135,6 @@ Bob loses 100,000 sat.
 - Matt Corallo. "Pinning attacks" lightning-dev list, April 2020.
 - BIP-125 (RBF) replacement rules.
 - BOLT-03 anchor channels.
-- BIP-431 (TRUC) — full mitigation.
+- BIP-431 (TRUC) — full mitigation (Status: Draft; the policy is
+  standard in Bitcoin Core 28.0+).
+- BOLT-3 `shared_anchor` output (`zero_fee_commitments`).

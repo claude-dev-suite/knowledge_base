@@ -58,6 +58,15 @@ range), wraps it in an onion message, and sends it down the path declared in
 `offer_paths`. Recipient responds with an `invoice` (lni1) carrying types
 80-160 (real payment_hash, encrypted_recipient_data, etc.).
 
+Decoders also meet TLVs far above that range: bLIP-42 "Bolt 12 Contacts"
+(`lightning/blips`, status `Active` as of September 2026) parks its optional
+payer-identity fields in the experimental space - `invreq_contact_secret`
+(2000001729), `invreq_payer_offer` (2000001731),
+`invreq_payer_bip_353_name` (2000001733) and
+`invreq_payer_bip_353_signature` (2000001735). These carry who paid, so a
+contact-aware wallet can offer a pay-back without a round trip; a plain
+decoder just skips them.
+
 ```
 Payer                            Recipient
   | invoice_request (onion msg) →   |
@@ -82,6 +91,8 @@ Payer                            Recipient
 ## References
 
 - BOLT12 specification: https://github.com/lightning/bolts/blob/master/12-offer-encoding.md
+- bLIP-42 Bolt 12 Contacts: https://github.com/lightning/blips/blob/master/blip-0042.md
+- BIP 353 DNS Payment Instructions: https://github.com/bitcoin/bips/blob/master/bip-0353.mediawiki
 - Onion messages BOLT 4: https://github.com/lightning/bolts/blob/master/04-onion-routing.md
 - Rusty Russell's bolt12.org reference impl
 - CLN `lightning-fetchinvoice`/`lightning-offer` documentation

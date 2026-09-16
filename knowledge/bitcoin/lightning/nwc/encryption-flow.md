@@ -13,9 +13,17 @@ from relays. The wallet and app each have a secp256k1 keypair, and the
 shared secret is the X coordinate of the EC-DH point. NIP-44 also adds
 length-padding to defeat traffic analysis.
 
+Which one NWC uses is negotiated, not fixed. NIP-47 as of September 2026
+states NIP-44 should always be preferred and keeps NIP-04 only for peers
+that have not migrated: the wallet service lists its schemes in an
+`encryption` tag on its kind 13194 info event (`nip44_v2 nip04`), the
+client names its pick in an `encryption` tag on each kind 23194 request,
+and absence of the tag means NIP-04. A scheme the wallet did not
+advertise returns `UNSUPPORTED_ENCRYPTION`.
+
 ## Walkthrough / mechanics
 
-### NIP-04 (deprecated but still common)
+### NIP-04 (deprecated; legacy peers only)
 
 ```
 sk_a, pk_a   = client keypair
@@ -94,9 +102,12 @@ The wallet, after subscribing and receiving the event, recomputes
 
 ## Common bugs / pitfalls
 
-- Mixing NIP-04 and NIP-44 events: a wallet that supports both MUST
-  detect via the leading byte (NIP-04 has `?iv=` separator; NIP-44 starts
-  with `0x02`). Misclassification yields garbled JSON.
+- Mixing NIP-04 and NIP-44 events: inside NWC the request's `encryption`
+  tag decides, with no tag meaning NIP-04; a wallet that supports both
+  MUST route on the tag, not on a guess. Sniffing the ciphertext shape
+  (NIP-04 has an `?iv=` separator; NIP-44 starts with `0x02`) is only a
+  sanity check on untagged requests. Misclassification yields garbled
+  JSON.
 - Reusing nonces across messages with the same shared secret: with NIP-04
   IV reuse breaks AES-CBC; with NIP-44 it breaks ChaCha20. Always
   generate fresh nonces.

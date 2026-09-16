@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Replace-by-Fee (BIP125, full-RBF) and Child-Pays-For-Parent fee bumping. Mempool ancestor/descendant rules, package CPFP (BIP331), TRUC v3 (BIP431). Wallet-level fee bump strategies.
+Replace-by-Fee (BIP125, full-RBF) and Child-Pays-For-Parent fee bumping. Cluster mempool policy (Core 31.0+), package CPFP via submitpackage, TRUC v3 (BIP431). Wallet-level fee bump strategies.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

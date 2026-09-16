@@ -128,13 +128,24 @@ Step 4: Bob verifies on receipt
 - **Proof loss = funds loss**: a wallet that loses its proof files cannot prove
   ownership; the on-chain anchor reveals nothing about who holds what. Backup is
   critical (BIP-39 seed alone is not sufficient -- you also need proof history).
+  tapd v0.8.0 (Jun 2026) added first-class wallet backup/restore in three modes:
+  `raw` (v1, complete proof files), `compact` (v2, chain-derivable proof fields
+  stripped and reconstructed from the chain on import) and `optimistic` (v3, no
+  proofs at all, refetched from a universe federation server on import). The backup
+  covers the Taproot Assets layer only - a restore still needs the corresponding lnd
+  wallet - and it contains asset key derivation paths, so treat it like an exported
+  descriptor.
 - **Universe trust**: the universe lookup is a name-resolution layer. A malicious
   universe could hide the true genesis, but can't fake one (anchor verification still
   works against actual chain state).
 - **MS-SMT vs RGB AluVM**: tapd's commitments are pure-balance trees; RGB allows
   programmable state machines via AluVM. tapd is simpler but less flexible.
 - **Channel-asset complexity**: Lightning channels with assets require lnd + tapd version
-  compatibility. Mismatch causes channel-update failures.
+  compatibility. Mismatch causes channel-update failures. tapd v0.8.3 (Sept 2026)
+  builds against lnd v0.21.3-beta.
+- **One-way DB migrations**: every tapd v0.8.x release (v0.8.0 Jun 2026 through v0.8.3
+  Sept 2026) migrates the local DB and cannot be downgraded afterwards. Snapshot
+  tapd's SQLite/Postgres state before upgrading.
 - **Privacy**: anchor outputs leak the *number* of asset transfers but not asset id,
   amount, or recipient. Coin-control patterns (output-merging) are needed for full
   unlinkability.

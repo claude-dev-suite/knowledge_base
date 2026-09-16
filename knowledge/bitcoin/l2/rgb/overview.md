@@ -5,7 +5,7 @@
 
 ## What this covers
 
-RGB protocol: client-side validated smart contracts on Bitcoin + Lightning. Schema-driven contracts, AluVM (RGB VM), rgb-lightning-node for LN integration. USDT-on-RGB rollout.
+RGB protocol: client-side validated smart contracts on Bitcoin + Lightning. v0.12 consensus (zk-AluVM, issuers), the diverging v0.11.1 line, rgb-lightning-node for LN integration. USDT-on-RGB rollout.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

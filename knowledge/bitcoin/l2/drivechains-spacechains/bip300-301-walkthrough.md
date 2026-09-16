@@ -103,9 +103,23 @@ A drivechain "BMM-coin" is registered at slot 0.
 ## Common pitfalls
 
 - **Soft fork status**: BIP-300/-301 are not activated on Bitcoin
-  mainnet (as of 2026). Drivechains exist as testnet experiments only.
-  Multiple Bitcoin Knots and parallel implementations support BIP-300
-  but Bitcoin Core does not.
+  mainnet (as of September 2026). The live drivechain deployments run
+  on two LayerTwo Labs testnets (`drivechain.info/dev.txt`, February
+  2026): a custom signet, driven by the enforcer alongside a stock
+  Bitcoin Core node, and **ForkNet**, which runs their out-of-tree
+  `LayerTwo-Labs/bitcoin-patched` Core fork (`drivechain=1`).
+- **No in-consensus implementation**: no upstream Bitcoin Core or
+  Bitcoin Knots release enforces BIP-300/-301. Core's consensus-logic
+  PR #28311 ("[WIP] BIP300 (Drivechains) consensus-level logic") was
+  closed unmerged in March 2024, and the Knots `doc/bips.md` at
+  v29.4.1.knots20260508 (September 2026) lists no BIP-300/-301 entry.
+  Enforcement instead lives outside consensus in LayerTwo Labs'
+  `bip300301_enforcer`, a CUSF sidecar that follows an unpruned
+  Bitcoin Core node over RPC + ZMQ (Core majors 29, 30 and 31
+  supported as of September 2026). The `bitcoin-patched` fork does
+  not change that: its `-drivechain` option only activates ForkNet's
+  own difficulty reset at `consensus.DrivechainHeight`, and the
+  enforcer still supplies the BIP-300/-301 rules on both testnets.
 - **Miner-collusion theft**: a >= 51 % miner can ACK fraudulent WBs that
   steal sidechain funds. The 6-month voting window is a safety margin
   for users to monitor and complain, but ultimately security is miner
@@ -122,4 +136,7 @@ A drivechain "BMM-coin" is registered at slot 0.
 - BIP-300 (Hashrate-Escrow Voting).
 - BIP-301 (Blind Merge Mining).
 - Sztorc. "The Drivechain Proposition" 2017.
-- Bitcoin Knots BIP-300 implementation.
+- LayerTwo Labs `bip300301_enforcer` - CUSF sidecar enforcing
+  BIP-300/-301 alongside Bitcoin Core.
+- `drivechain.info/dev.txt` (2/19/2026) - software stack, the two
+  testnets (signet / ForkNet) and their node configs.

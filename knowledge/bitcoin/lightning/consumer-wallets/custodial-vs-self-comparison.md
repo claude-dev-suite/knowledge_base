@@ -19,9 +19,9 @@ of difference.
 | Tier | Model | Examples | Custody | Key holder |
 |------|-------|----------|---------|------------|
 | 1 | Fully custodial | Wallet of Satoshi, Strike, Cash App | Provider | Provider |
-| 2 | Federated custodial | Fedimint (Mutiny, etc.) | Federation | Federation guardians |
-| 3 | LSP-assisted self-custodial | Phoenix, Breez | User (with provider help) | User |
-| 4 | Fully self-custodial | Zeus + own LND, Mutiny+ | User | User |
+| 2 | Federated custodial | Fedimint e-cash federations | Federation | Federation guardians |
+| 3 | LSP-assisted self-custodial | Phoenix, Breez SDK apps | User (with provider help) | User |
+| 4 | Fully self-custodial | Zeus + own LND/CLN | User | User |
 
 ### Tier 1: Fully custodial
 
@@ -56,7 +56,10 @@ Cons:
 
 ### Tier 3: LSP-assisted self-custodial
 
-- User runs Lightning node on phone (Phoenix, Breez SDK).
+- User holds the keys on the phone; Phoenix runs a node (Eclair core).
+- Breez SDK is nodeless as of September 2026: Lightning via a service,
+  not a node on the handset (Spark L2, or Liquid swaps in the legacy
+  line).
 - LSP (Lightning Service Provider) opens channels to user on demand.
 - LSP doesn't hold user's funds; user has key.
 

@@ -67,6 +67,21 @@ exchanges the witness data for each side's contributed inputs.
 RBF: either side can send `tx_init_rbf` after broadcast and the negotiation
 restarts with new inputs/outputs but the same channel state pre-active.
 
+The feerate bump rule is a *maximum of two* constraints (BOLT 2, changed by
+lightning/bolts PR #1327, merged 2026-05-04):
+
+```
+new_feerate >= max( floor(prev_feerate * 25 / 24),
+                    prev_feerate + 25 )          # sat per kw
+```
+
+The multiplicative term keeps progress meaningful at high feerates; the
+additive floor of 25 sat/kw (= 0.1 sat/vB) exists because at low feerates
+25/24 alone can produce a bump smaller than Bitcoin Core's default
+`incrementalRelayFee` of 0.1 sat/vB (since Core v30.0), so the replacement
+would not relay. A peer whose `feerate` misses either bound must be answered
+with `tx_abort`.
+
 ## Worked example
 
 Peer A (LSP, contributes 0.5 BTC liquidity), Peer B (mobile wallet, 0.1 BTC):
@@ -120,6 +135,10 @@ When peer is dual-fund-capable, CLN auto-uses v2; an LSP plugin
 - **RBF replay**: `tx_init_rbf` must keep at least one common input or
   the new tx is not technically a replacement. Some mempool policies
   reject it.
+- **Multiplicative-only feerate bump**: implementing only the 25/24 rule
+  and skipping the 25 sat/kw additive floor produces replacements that a
+  strict peer answers with `tx_abort`, and that Bitcoin Core would not
+  relay anyway at low feerates.
 - **Serial-id reuse**: reusing a serial id within the same negotiation
   is an immediate `must-fail-channel` error. RBF round restarts the id
   space.

@@ -18,34 +18,43 @@ and what your implementation does wrong if it fails.
 ### Vector schema
 
 ```
-index, secret_key, public_key, aux_rand, message, signature,
-verification_result, comment
+index, secret key, public key, aux_rand, message, signature,
+verification result, comment
 ```
 
-- `secret_key` empty for verification-only vectors.
-- `verification_result` is `TRUE` or `FALSE`. `FALSE` rows are
+- Three column names contain a space, not an underscore (`secret key`,
+  `public key`, `verification result`) - those are the `DictReader`
+  keys.
+- `secret key` empty for verification-only vectors.
+- `verification result` is `TRUE` or `FALSE`. `FALSE` rows are
   malformed-input cases that a verifier MUST reject.
 
 ### Categories
 
+As of the CSV in the BIPs repo on 2026-09-15:
+
 | Index | Category | What it catches |
 |-------|----------|-----------------|
-| 0 | Signing, simple even-y, even-y nonce | Baseline path |
-| 1 | Signing, even-y secret, even-y nonce, large message | Full-length mod 2^256 |
-| 2 | Signing, large secret close to n | Wrapping in `(k + e*d) mod n` |
-| 3 | Signing, message all zeros | No empty-message bias |
-| 4 | Sign+verify, d at high range, hash near zero | Edge-case interaction |
-| 5 | Verify, public key not on curve | lift_x must reject |
+| 0 | Sign+verify, secret key = 3, aux and message all zero | Baseline path, smallest secret |
+| 1 | Sign+verify, aux_rand = 1 | Aux entropy is hashed, never consumed raw |
+| 2 | Sign+verify, large secret, nonzero aux | Wrapping in `(k + e*d) mod n` |
+| 3 | Sign+verify, message and aux all `FF` | "test fails if msg is reduced modulo p or n" |
+| 4 | Verify only, TRUE | Sanity TRUE case with no secret key supplied |
+| 5 | Verify, public key not on the curve | lift_x must reject |
 | 6 | Verify, has_even_y(R) is false | Parity rule enforcement |
-| 7 | Verify, sig[0:32] is not on curve | r is invalid x |
-| 8 | Verify, sig[0:32] = 0 (R = O) | Zero-point rejection |
-| 9 | Verify, sig[32:64] = 0 (s = 0) | Trivial signature |
-| 10 | Verify, sig[0:32] = field prime p | r out of range |
-| 11 | Verify, sig[32:64] = group order n | s out of range |
-| 12 | Verify, public key = field prime p | Pubkey x must be < p |
-| 13 | Verify, message length != 32 | Length check |
-| 14 | Verify, valid sig with all-even-y | Sanity TRUE case |
-| 15-18 | Various aux_rand values | Deterministic nonce is independent of aux |
+| 7 | Verify, negated message | Challenge must bind the message |
+| 8 | Verify, negated s value | s is not sign-malleable |
+| 9 | Verify, sG - eP is infinite | Fails if has_even_y(inf) is true and x(inf) = 0 |
+| 10 | Verify, sG - eP is infinite | Fails if has_even_y(inf) is true and x(inf) = 1 |
+| 11 | Verify, sig[0:32] is not an X coordinate on the curve | r is an invalid x |
+| 12 | Verify, sig[0:32] equals the field size p | r out of range |
+| 13 | Verify, sig[32:64] equals the curve order n | s out of range |
+| 14 | Verify, public key exceeds the field size | Pubkey x must be < p |
+| 15-18 | Sign+verify, messages of 0, 1, 17 and 100 bytes (added 2022-12) | Arbitrary-length messages - all four expect TRUE |
+
+There is no vector asserting that a non-32-byte message is rejected:
+BIP340's 2023-04 revision lifted the 32-byte restriction, and vectors
+15-18 exist precisely to prove arbitrary lengths verify.
 
 ### Anatomy of a signing vector
 
@@ -98,8 +107,9 @@ Verify-FALSE vector 5 (pubkey not on curve):
 
 ```
 public    = 0xEEFDEA4CDB677750A420FEE807EACF21EB9898AE79B9768766E4FAA04A2D4A34
-message   = 0x0000...0000
-signature = some-valid-looking 64 bytes
+message   = 0x243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89
+signature = 0x6CFF5C3BA86C69EA4B7376F31A9BCB4F74C1976089B2D9963DA2E5543E177769
+            69E89B4C5564D00349106B8497785DD7D1D713A8AE82B32FA79D5F7FC407D39B
 expected  = FALSE
 ```
 
@@ -128,13 +138,13 @@ from your_lib import schnorr_sign, schnorr_verify
 
 passed = failed = 0
 for row in csv.DictReader(open("test-vectors.csv")):
-    idx = row["index"]; ok = row["verification_result"] == "TRUE"
-    pk = bytes.fromhex(row["public_key"])
+    idx = row["index"]; ok = row["verification result"] == "TRUE"
+    pk = bytes.fromhex(row["public key"])
     msg = bytes.fromhex(row["message"])
     sig = bytes.fromhex(row["signature"])
 
-    if row["secret_key"]:
-        sk  = bytes.fromhex(row["secret_key"])
+    if row["secret key"]:
+        sk  = bytes.fromhex(row["secret key"])
         aux = bytes.fromhex(row["aux_rand"])
         recomputed = schnorr_sign(sk, msg, aux)
         assert recomputed == sig, f"vec {idx} sign mismatch"
@@ -151,11 +161,14 @@ sys.exit(0 if failed == 0 else 1)
 ## Common pitfalls
 
 - **Hex parsing**: trim whitespace; CSV quoting can leave embedded spaces.
-- **Empty `secret_key` field**: skip the sign step but still run verify.
-- **Message length 0 or != 32 in vector 13**: this MUST fail. Some libs
-  silently pad - that hides the bug.
-- **Ignoring `aux_rand` in vectors 15-18**: these test that determinism
-  holds across different aux values when `(d, m)` are fixed.
+- **Empty `secret key` field**: skip the sign step but still run verify.
+- **Hard-coding a 32-byte message check**: vectors 15-18 carry messages
+  of 0, 1, 17 and 100 bytes and all expect TRUE. A library that rejects
+  `len(m) != 32` fails all four and is non-conformant with BIP340 as of
+  its 2023-04 revision.
+- **Zero-length hex in vector 15**: `bytes.fromhex("")` is `b""`, which
+  is a valid message. Code that treats an empty message field the same
+  way it treats an empty `secret key` field will silently skip the row.
 - **Using a constant-time-only signer that does not return early on
   invalid input**: fine for production but during testing wrap with a
   variant that surfaces the rejection reason.

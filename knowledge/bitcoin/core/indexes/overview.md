@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Bitcoin Core indexes: txindex, blockfilterindex (BIP157/158), coinstatsindex. Disk costs, rebuild times, when each is needed.
+Bitcoin Core indexes: txindex, blockfilterindex (BIP157/158), coinstatsindex, txospenderindex. Disk costs, rebuild times, when each is needed.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

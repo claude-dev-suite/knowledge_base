@@ -8,7 +8,9 @@
 
 SLIP-39 (Shamir's Secret Sharing for Mnemonic Codes) splits the master
 secret into N shares of which any M reconstruct it. Trezor calls this
-Shamir Backup. Available on Model T, Safe 3, Safe 5 (NOT Trezor One).
+Shamir Backup (branded "Multi-share Backup" in Trezor Suite). Available
+on Model T, Safe 3, Safe 5 and Safe 7 (NOT Trezor One), as of
+September 2026.
 
 Two structures:
 
@@ -22,7 +24,7 @@ Each share is 20 or 33 SLIP-39 words from a 1024-word wordlist
 
 ## Walkthrough
 
-Generate Shamir backup on Model T / Safe 3 / Safe 5:
+Generate Shamir backup on Model T / Safe 3 / Safe 5 / Safe 7:
 
 1. Wipe device or pick "Create new wallet".
 2. Choose "Advanced backup" -> "Shamir backup".

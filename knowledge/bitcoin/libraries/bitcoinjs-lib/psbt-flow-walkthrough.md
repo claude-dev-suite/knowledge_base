@@ -14,9 +14,17 @@ sign one input at a time with an `ECPair`-shaped signer, finalize, then
 extract the broadcastable transaction.
 
 The library is OO with stateful builders. Modern code uses `Psbt`
-exclusively and treats the older `TransactionBuilder` (deprecated) as
-gone. Browser usage typically pairs `bitcoinjs-lib` with `tiny-secp256k1`
-(WASM) plus `bip32`/`bip39` from the same author.
+exclusively and treats the older `TransactionBuilder` (removed in 6.0.0)
+as gone. Browser usage typically pairs `bitcoinjs-lib` with
+`tiny-secp256k1` (WASM) plus `bip32`/`bip39` from the same author.
+
+This article targets the **7.x** line — npm `latest` is 7.0.2 as of
+15 September 2026, the newest tagged release being 7.0.1 (January 2026).
+Two 7.0.0 breaking changes dominate the snippets below: every satoshi
+`value` is a `bigint`, and every public API returns `Uint8Array` rather
+than a Node `Buffer` (a `Buffer` is still *accepted* as input, since it
+subclasses `Uint8Array`). On the v6 `maintenance-v6` line the same code
+uses plain numbers and `Buffer`.
 
 ## API walkthrough
 
@@ -41,10 +49,10 @@ psbt.addInput({
     index: 0,
     witnessUtxo: {
         script: bitcoin.address.toOutputScript(address!, network),
-        value: 100_000,
+        value: 100_000n,
     },
 });
-psbt.addOutput({ address: "tb1q...recipient...", value: 90_000 });
+psbt.addOutput({ address: "tb1q...recipient...", value: 90_000n });
 
 psbt.signInput(0, signer);
 psbt.finalizeAllInputs();
@@ -65,14 +73,14 @@ const psbt = new bitcoin.Psbt({ network });
 psbt.addInput({
     hash: "a0b1c2d3...",
     index: 0,
-    witnessUtxo: { script: spk, value: 100_000 },
+    witnessUtxo: { script: spk, value: 100_000n },
     bip32Derivation: [{
-        masterFingerprint: Buffer.from("d34db33f", "hex"),
+        masterFingerprint: Uint8Array.from([0xd3, 0x4d, 0xb3, 0x3f]),
         path: "m/84'/1'/0'/0/0",
         pubkey: signer.publicKey,
     }],
 });
-psbt.addOutput({ address: dest, value: 90_000 });
+psbt.addOutput({ address: dest, value: 90_000n });
 const unsignedB64 = psbt.toBase64();
 
 // Signer (could be a HW wallet, another process, or a server)
@@ -93,8 +101,13 @@ witness input wastes signing material; on a legacy input only
 
 ## Common pitfalls
 
-- `ECPair` was removed from the main package in v6+. Install `ecpair`
-  separately and pass `tiny-secp256k1` to its factory.
+- `ECPair` was removed from the main package in 6.0.0. Install `ecpair`
+  separately and pass `tiny-secp256k1` to its factory. `ecpair` 3.0.2
+  (August 2026) declares `engines.node >= 20`, one LTS line above
+  bitcoinjs-lib 7.x's own `>= 18` floor.
+- Passing a `number` where 7.x wants a `bigint`. The output eventually
+  reaches an internal check requiring `typeof value === "bigint"`, so a
+  `90_000` that worked on v6 throws `Error adding output.` on v7.
 - Forgetting `bitcoin.initEccLib(ecc)` before Taproot ops -> runtime
   error: `No ecc library provided`.
 - Passing prev txid in wrong byte order. `addInput.hash` accepts the
@@ -103,12 +116,16 @@ witness input wastes signing material; on a legacy input only
 - `finalizeAllInputs` requires every input to have a complete signature
   set; partial signing leaves it un-finalisable until other signers add
   theirs.
-- Browser bundlers (Webpack 5+, Vite) need `Buffer` and `crypto` shims.
-  Use `vite-plugin-node-polyfills` or the `buffer` package.
+- Browser bundlers (Webpack 5+, Vite) historically needed `Buffer` and
+  `crypto` shims. 7.x returns `Uint8Array` from every public API and
+  leans on `uint8array-tools`, so a `Buffer` polyfill is only needed for
+  your own code that still hands `Buffer`s in. Use
+  `vite-plugin-node-polyfills` or the `buffer` package if so.
 
 ## References
 
 - Repo: https://github.com/bitcoinjs/bitcoinjs-lib
 - BIP174 (PSBT): https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki
 - ecpair: https://github.com/bitcoinjs/ecpair
+- 7.0.0 breaking changes: https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/CHANGELOG.md
 - Companion: [scure-btc-signer/SKILL.md](../scure-btc-signer/SKILL.md), [bolt11-decoder/SKILL.md](../bolt11-decoder/SKILL.md)

@@ -1,8 +1,32 @@
 # JoinMarket Mechanics - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/privacy/coinjoin`.
-> Canonical source: https://github.com/JoinMarket-Org/joinmarket-clientserver
+> Canonical source: https://github.com/joinmarket-ng/joinmarket-ng
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/privacy/coinjoin/SKILL.md
+
+## Implementation status (September 2026)
+
+The maker/taker market described below is live, but the codebase
+behind it changed hands. `JoinMarket-Org/joinmarket-clientserver`,
+the reference implementation this article was originally written
+against, was archived read-only by its owner on 27 April 2026; its
+final release v0.9.12 (21 Apr 2026) carries a commitments-checking
+bugfix and the note that the repo "is now being archived" and that
+readers "may want to investigate joinmarket-ng as an alternative
+codebase for Joinmarket which is under active development".
+
+`joinmarket-ng/joinmarket-ng` is that codebase (0.39.2, 10 Sep
+2026). It is a separate implementation — modular typed Python,
+Bitcoin Core plus a Neutrino backend, Tor throughout — and it is
+**wire-compatible** with the reference implementation, so makers and
+takers from both meet in the same order book and liquidity is not
+fragmented. The Jam web UI also remains maintained (v2.0.0-beta.3,
+24 Aug 2026).
+
+Read the mechanics below as the protocol, which is unchanged. Treat
+the `joinmarket-clientserver` script names and paths as historical:
+check the NG docs for their current equivalents before running
+anything.
 
 ## Concept
 
@@ -118,6 +142,10 @@ amount across 3-5 destination addresses.
 
 ## References
 
-- JoinMarket repo: https://github.com/JoinMarket-Org/joinmarket-clientserver
-- PoDLE: https://github.com/AdamISZ/PoDLE
-- Tumbler guide: https://github.com/JoinMarket-Org/joinmarket-clientserver/blob/master/docs/tumblerguide.md
+- JoinMarket NG repo (maintained): https://github.com/joinmarket-ng/joinmarket-ng
+- JoinMarket NG docs: https://joinmarket-ng.github.io/joinmarket-ng/
+- Reference repo, archived 27 Apr 2026 (frozen, still readable): https://github.com/JoinMarket-Org/joinmarket-clientserver
+- Jam web UI: https://github.com/joinmarket-webui/jam
+- PoDLE commitment sourcing: https://github.com/JoinMarket-Org/joinmarket-clientserver/blob/master/docs/SOURCING-COMMITMENTS.md
+- Tumbler, NG: https://github.com/joinmarket-ng/joinmarket-ng/blob/master/docs/README-tumbler.md
+- Tumbler guide (frozen `master` of the archived repo): https://github.com/JoinMarket-Org/joinmarket-clientserver/blob/master/docs/tumblerguide.md

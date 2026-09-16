@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Core Lightning (CLN, formerly c-lightning) by Blockstream: lightningd, lightning-cli, plugin architecture (Python pyln-client, Rust cln-plugin, Go glightning), commando, BOLT12 leadership.
+Core Lightning (CLN, formerly c-lightning) by Blockstream: lightningd, lightning-cli, plugin architecture (Python pyln-client, Rust cln-plugin, Go glightning), commando, BOLT12 leadership, xpay/askrene payments.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

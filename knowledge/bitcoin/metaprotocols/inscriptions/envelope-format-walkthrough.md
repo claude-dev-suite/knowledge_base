@@ -105,11 +105,40 @@ virtual size 25_100 vB. At 50 sat/vB that is 1_255_000 sats
 - A reveal that fails CHECKSIG (wrong sig) cannot be mined, so the
   commit output is stuck until the dust limit makes it unspendable.
 - Bitcoin Knots and some other node implementations apply local
-  filters that reject inscription-shaped txs from their mempool. They
-  still relay if mined, since the pattern is consensus-valid.
+  filters that reject inscription-shaped txs from their mempool
+  (`-rejectparasites`, shipped on by default as of Knots
+  `v29.4.1.knots20260508`, September 2026). On Core's chain that is
+  relay policy only — the pattern stays consensus-valid, so it still
+  relays once mined.
+- Bitcoin Core 30.0 (October 2025) moved the other way, but only for
+  the *non-witness* data channel: `-datacarriersize` default 83 ->
+  100_000 bytes (aggregate across outputs), multiple `OP_RETURN`
+  outputs per tx now relayed and mined, and `-minrelaytxfee` /
+  `-incrementalrelayfee` defaults dropped to 0.1 sat/vB. Still the
+  defaults in 31.1 (July 2026). None of this touches witness
+  envelopes, and `OP_RETURN` bytes still cost 4 weight units against
+  the envelope's 1, so the witness stays the cheap bulk channel.
+
+The consensus-valid caveat above holds only on Core's chain. BIP-110
+("Reduced Data Temporary Softfork") makes Tapscripts that execute
+`OP_IF`/`OP_NOTIF`, pushdata payloads and script-argument witness items
+over 256 bytes, and Taproot annexes consensus-invalid, which covers the
+envelope itself. Its mandatory-signaling window opened on 8 August 2026,
+the chain split, the minority chain stalled, and the BIP was marked
+Closed in the BIPs repo days later (bips#2245, "following a chain split
+with stalled mining"). The rules instead took effect as a flag day at
+block 961,640 (30 August 2026), the first block of a separate BLAKE2b
+proof-of-work chain, and run to 1 September 2027; the change shipped in
+the `v29.4.1.knots20260508` line (rc1 tagged 21 August 2026, final
+release 2 September 2026). UTXOs created before the flag-day height are
+grandfathered, so earlier inscriptions stay spendable there. As of
+September 2026 a new envelope is consensus-invalid on that chain, not
+merely unrelayed.
 
 ## References
 
 - ord envelope spec: https://docs.ordinals.com/inscriptions.html#fields
 - BIP341 (Taproot): https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki
 - Push opcodes: https://en.bitcoin.it/wiki/Script
+- BIP-110 (RDTS, Closed): https://github.com/bitcoin/bips/blob/master/bip-0110.mediawiki
+- Knots BLAKE2b flag day: https://bitcoin-blake2b.org/

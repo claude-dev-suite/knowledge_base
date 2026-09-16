@@ -24,13 +24,17 @@ Payload by topic:
 |---|---|---|
 | `rawblock` | full serialized block (varies, often >1 MB) | every new tip, including reorg replays |
 | `rawtx` | full serialized tx | mempool entry + every block inclusion |
-| `hashblock` | 32 raw bytes (block hash little-endian on the wire) | every new tip |
-| `hashtx` | 32 raw bytes (txid little-endian) | mempool entry + every block inclusion |
-| `sequence` | 32 bytes hash + 1 byte status + (8 bytes mempool seq if A/R) | mempool churn + block connect/disconnect |
+| `hashblock` | 32 raw bytes, already in reversed (RPC/display) byte order | every new tip |
+| `hashtx` | 32 raw bytes, already in reversed (RPC/display) byte order | mempool entry + every block inclusion |
+| `sequence` | 32 bytes hash (reversed, as above) + 1 byte status + (8 bytes mempool seq if A/R) | mempool churn + block connect/disconnect |
+
+Every hash on the wire - `hashblock`, `hashtx` and the hash prefix of `sequence` - is already byte-reversed by the publisher before it is sent, so it matches what RPC and block explorers display. `doc/zmq.md` calls this "_reversed byte order_ ... the same format as the RPC interface and block explorers use"; `src/zmq/zmqpublishnotifier.cpp` does the reversal in `data[31 - i] = hash.begin()[i]` (verified against Bitcoin Core v31.1, July 2026). Hex-encode the bytes as received; do not reverse them again.
 
 `sequence` status byte values are ASCII characters: `'A'` (mempool add), `'R'` (mempool remove, includes both eviction and confirmation), `'C'` (block connect), `'D'` (block disconnect, reorg). For `'A'` and `'R'` the trailing 8 bytes are a per-mempool monotonic counter the client can use to detect missed mempool transitions independently of the per-topic frame counter.
 
 Notable: `rawtx` fires twice per confirmed transaction (once on mempool entry, once on block inclusion). `rawblock` does NOT fire on reorg-removed blocks, only on the new tip after the reorg, so reorg detection requires `sequence`.
+
+Also notable: when assumeutxo is in use, neither `rawblock` nor `hashblock` is issued for historical blocks connected to the background validation chainstate. Documented in `doc/zmq.md` since Bitcoin Core 26.0 (December 2023); still stated there in v31.1 (July 2026).
 
 ## Worked example
 
@@ -72,7 +76,7 @@ sock.setsockopt(zmq.SUBSCRIBE, b"sequence")
 last_mempool_seq = None
 while True:
     topic, body, frame_counter = sock.recv_multipart()
-    h = body[:32][::-1].hex()  # hash, big-endian for human display
+    h = body[:32].hex()  # already in RPC/display order - do NOT reverse
     status = chr(body[32])
     seq = struct.unpack("<Q", body[33:41])[0] if status in "AR" else None
     fc  = int.from_bytes(frame_counter, "little")
@@ -100,7 +104,7 @@ while True:
 - Subscribing without setting a topic filter (`SUBSCRIBE = b""`). You will receive every topic the publisher emits, and a slow consumer is fed unbounded data.
 - Treating per-topic order as cross-topic order. A `hashblock` for height N may arrive before or after a `rawtx` for a tx in that block's mempool ancestry. Use `sequence` for ordering.
 - Ignoring HWM. Default is 1000 messages buffered per subscriber. A few seconds of slow consumption during a block storm and bitcoind starts dropping. Either tune HWM or use `ipc://` for local low-latency consumers.
-- Reading the hash bytes as displayed-form txid without reversing endianness. ZMQ payload is little-endian internal form; UI / RPC always shows big-endian.
+- Reversing the hash bytes before hex-encoding them. Core already reversed them on the wire, so `body[:32][::-1].hex()` un-reverses back to internal order and yields a hash no RPC lookup will ever match. The correct form is `body[:32].hex()`, which is what Core's own `contrib/zmq/zmq_sub.py` does.
 - Assuming `'R'` means "mempool eviction". It also fires when the tx was confirmed in a block. Distinguish by also subscribing `'C'` and matching txids.
 - Believing reconnection is enough. ZMQ reconnects on TCP loss but does NOT replay missed messages. Catch up by querying RPC after reconnect (compare `getbestblockhash` to last `'C'` you saw).
 

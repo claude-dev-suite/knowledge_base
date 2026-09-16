@@ -4,6 +4,11 @@
 > Canonical source: https://github.com/lightning/bolts/blob/master/proposals/route-blinding.md (PTLC research)
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/lightning/submarine-swaps/SKILL.md
 
+> Note (2026-09-15): "Boltz-PTLC" below is a naming device used to make
+> the flow concrete, not a shipped product - PTLCs are not in mainline
+> BOLT, and the real Boltz swap service has been offline since
+> 2026-08-03 (see `boltz-protocol-walkthrough.md`).
+
 ## Concept
 
 A **PTLC** (Point Time-Locked Contract) replaces the SHA256 hash in an

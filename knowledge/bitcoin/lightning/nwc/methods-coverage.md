@@ -6,34 +6,53 @@
 
 ## Concept
 
-NIP-47 standardizes ten or so JSON-RPC methods for wallet remote control,
-ranging from full payment send / receive to read-only balance and
-transaction listing. Wallets selectively support subsets; clients MUST
-inspect the kind 13194 capability event before assuming a method works.
-This article documents each method's params, results, common error codes,
-and which Lightning impls support what.
+NIP-47 standardizes JSON-RPC methods for wallet remote control, ranging
+from full payment send / receive to read-only balance and transaction
+listing. On 2026-08-01 (nostr-protocol/nips#2419) the spec was split: the
+core NIP-47 command set is now just `pay_invoice`, `make_invoice`,
+`lookup_invoice`, `get_balance` and `get_info`, and everything else moved
+into optional NWC extension specs kept at
+`github.com/nostr-wallet-connect/nwc`. Wallets selectively support
+subsets; clients MUST inspect the kind 13194 capability event - both its
+`content` method list and its `extensions` tag - before assuming a method
+works. This article documents each method's params, results, common error
+codes, and which Lightning impls support what.
 
 ## Walkthrough / mechanics
 
-Method matrix (selected):
+Method matrix (selected). The `spec` column is the document that defines
+the method as of September 2026:
 
-| Method               | Params (key)                        | Result                 |
-|----------------------|-------------------------------------|------------------------|
-| `pay_invoice`        | `invoice`, optional `amount` msat   | `{ preimage, fees_paid }` |
-| `multi_pay_invoice`  | `invoices: [{id, invoice, amount}]` | `[ { id, preimage } ]` |
-| `pay_keysend`        | `amount`, `pubkey`, `preimage?`, `tlv_records?` | `{ preimage }` |
-| `multi_pay_keysend`  | `keysends: [...]`                   | `[ ... ]`             |
-| `make_invoice`       | `amount`, `description?`, `description_hash?`, `expiry?` | `{ type:"incoming", invoice, payment_hash, ...}` |
-| `make_hold_invoice`  | `amount`, `payment_hash`, `description?` | `{ invoice }`         |
-| `lookup_invoice`     | `payment_hash` or `invoice`         | full transaction obj   |
-| `list_transactions`  | `from`, `until`, `limit`, `offset`, `unpaid?`, `type?` | `{ transactions:[...] }` |
-| `get_balance`        | `{}`                                | `{ balance: msat }`    |
-| `get_info`           | `{}`                                | wallet info struct     |
-| `sign_message`       | `message`                           | `{ signature, message }` |
+| Method               | Spec    | Params (key)                        | Result                 |
+|----------------------|---------|-------------------------------------|------------------------|
+| `pay_invoice`        | core    | `invoice`, optional `amount` msat, `metadata?` | `{ preimage, fees_paid }` |
+| `make_invoice`       | core    | `amount`, `description?`, `description_hash?`, `expiry?`, `metadata?` | `{ type:"incoming", invoice, payment_hash, ...}` |
+| `lookup_invoice`     | core    | `payment_hash` or `invoice`         | full transaction obj   |
+| `get_balance`        | core    | `{}`                                | `{ balance: msat }`    |
+| `get_info`           | core    | `{}`                                | wallet info struct, incl. `methods[]` + `extensions[]` |
+| `make_hold_invoice`  | NWC-03  | `amount`, `payment_hash`, `description?` | `{ invoice }`         |
+| `pay_keysend`        | NWC-04  | `amount`, `pubkey`, `preimage?`, `tlv_records?` | `{ preimage }` |
+| `list_transactions`  | NWC-05  | `from`, `until`, `limit`, `offset`, `unpaid?`, `type?` | `{ transactions:[...] }` |
+| `lookup_payment`     | NWC-09  | payment-type selectors              | payment record envelope |
+| `make_offer`         | NWC-12  | `amount?`, `description?`, `issuer?`, `single_use?`, `expires_at?` | `{ offer_id, offer, amount, single_use, ... }` |
+| `pay` / `receive`    | NWC-321 | BIP-321 payment instruction         | type-dependent         |
+
+`multi_pay_invoice` and `multi_pay_keysend` were core NIP-47 commands
+until nostr-protocol/nips#2210 (merged 2026-02-11) removed them, six
+months ahead of the August 2026 split. `sign_message` was never specified
+in NIP-47 at all - it appeared only inside the appendix example info
+event's content string, and is a wallet-level extension (Alby Hub
+implements one). None of the three is defined in the core spec or in any
+current NWC extension spec. Wallets that shipped them may still answer;
+treat them as non-standard as of September 2026 and gate on the capability
+event rather than on this table.
 
 Each method has standard error codes; most-common are
 `INSUFFICIENT_BALANCE`, `RESTRICTED` (method not granted by user),
 `NOT_IMPLEMENTED`, `RATE_LIMITED`, `QUOTA_EXCEEDED`, `INTERNAL`.
+Method-specific codes in the core spec: `PAYMENT_FAILED` (`pay_invoice`),
+`NOT_FOUND` (`lookup_invoice`), plus `UNSUPPORTED_ENCRYPTION` when the
+request's `encryption` tag names a scheme the wallet service lacks.
 
 ### list_transactions schema
 
@@ -55,11 +74,31 @@ Each method has standard error codes; most-common are
 
 ### Permission scoping
 
-NWC URIs may carry `&methods=pay_invoice,make_invoice,get_balance` to
-restrict which methods the app can use. Wallets enforce: a request for
-a non-listed method returns `RESTRICTED`. Some wallets layer additional
-budget caps (e.g. `&budget=10000/daily`) - Alby NWC supports per-day
-sat budgets.
+Scope is bound to the connection secret on the wallet side, not carried
+on the connection URI: NIP-47's `nostr+walletconnect://` query
+parameters are only `relay`, `secret` and `lud16` as of September 2026.
+A request for a method the connection was not granted returns
+`RESTRICTED`; the client learns what it actually holds from the kind
+13194 content list and from `get_info`.
+
+A client can ask for a scope up front only under NWC-08
+(client-initiated connections), whose authorization request carries
+`request_methods` / `optional_request_methods` (URL-encoded,
+space-separated) plus `max_amount` in msat with `renewal_period`
+(`never` | `daily` | `weekly` | `monthly` | `yearly`):
+
+```
+nostr+walletauth://<client_pubkey>?relay=wss%3A%2F%2Frelay.example.com
+  &state=<128-bit-hex>&request_methods=pay_invoice%20get_balance
+  &max_amount=1000000&renewal_period=monthly
+```
+
+If `request_methods` is present the wallet service MUST grant every
+listed method or decline the request; if `max_amount` is present it MUST
+enforce it over that period or decline. `&methods=` and `&budget=` are
+in no spec - per-app budgets outside NWC-08 are a wallet feature (Alby
+Hub sets a spending budget per app connection in its own UI, as of
+September 2026).
 
 ## Worked example
 
@@ -71,11 +110,15 @@ async pay(invoice, amount_msat):
         "method": "pay_invoice",
         "params": { "invoice": invoice, "amount": amount_msat }
     }
-    event = nip04_encrypt_and_sign(secret, wallet_pubkey, req)
+    # NIP-44 v2 is the encryption to use. NIP-04 only for wallets whose
+    # info event lacks nip44_v2 in its `encryption` tag.
+    event = nip44_encrypt_and_sign(secret, wallet_pubkey, req,
+                                   tags=[["encryption", "nip44_v2"],
+                                         ["p", wallet_pubkey]])
     publish_to_relay(event)
 
     wait_for(kind=23195, e_tag=event.id, timeout=30s):
-        resp = nip04_decrypt(secret, wallet_pubkey, content)
+        resp = nip44_decrypt(secret, wallet_pubkey, content)
         if resp.error:
             raise NwcError(resp.error.code, resp.error.message)
         return resp.result.preimage
@@ -88,6 +131,15 @@ get_info_event = fetch_kind(13194, author=wallet_pubkey, latest=1)
 methods = get_info_event.content.split(' ')
 if "pay_invoice" not in methods:
     raise UnsupportedMethod
+
+# Non-core methods additionally need their extension advertised.
+exts = tag_value(get_info_event, "extensions", default="").split(' ')
+if "05" not in exts:
+    raise UnsupportedMethod        # no list_transactions
+
+# The same event carries the encryption negotiation.
+enc = tag_value(get_info_event, "encryption", default="nip04").split(' ')
+scheme = "nip44_v2" if "nip44_v2" in enc else "nip04"
 ```
 
 Coverage by wallet (late 2025):
@@ -118,6 +170,7 @@ Coverage by wallet (late 2025):
 ## References
 
 - NIP-47 method specs: https://github.com/nostr-protocol/nips/blob/master/47.md
+- NWC extension specs (02-321): https://github.com/nostr-wallet-connect/nwc
 - Alby OAuth NWC docs
 - LNbits NWC extension source
 - nostr-wallet-connect-rust: https://github.com/getAlby/nwc-rust

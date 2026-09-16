@@ -111,7 +111,13 @@ exactly. libsecp256k1's `bench_internal` exercises this constantly.
   mask derived from sign).
 - **Using endomorphism for ECDSA verification only**: it's safe everywhere -
   there is no patent issue (the original GLV patent expired in 2020), and
-  Bitcoin Core enabled `--with-ecmult-gen-precision=ecmult-gen` by default.
+  libsecp256k1 applies the lambda split unconditionally - there is no
+  `--enable-endomorphism` switch any more, and `ecmult_impl.h` calls
+  `secp256k1_scalar_split_lambda` with no feature guard (checked against
+  master, September 2026). The table-size knob that does still exist is
+  unrelated to the endomorphism: `--with-ecmult-gen-precision` was replaced
+  by `--with-ecmult-gen-kb` in v0.5.0 (2024-05-06), accepting 2, 22 or 86
+  KiB, and the default became 86 KiB in v0.5.1 (2024-08-01).
 - **Skipping the lattice round**: naive `round(b2*k/n)` with floats loses
   precision around 2^256; must use exact integer arithmetic with bias
   correction (libsecp256k1 uses Lemire-style high-low split).

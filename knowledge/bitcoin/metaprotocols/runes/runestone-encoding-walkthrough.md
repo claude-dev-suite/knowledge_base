@@ -135,9 +135,27 @@ has 32-byte payload, fee ~5_000 sats at 50 sat/vB.
 - **Divisibility max**: 38. Larger values are cenotaph.
 - **Amount overflow**: amounts are u128. Sums during processing can
   saturate; spec requires saturating semantics, not wrapping.
+- **Relay policy, not just encoding**: a byte-perfect runestone still
+  has to be relayed. Bitcoin Core 30.0 (October 2025) raised the
+  `-datacarriersize` default from 83 bytes to 100_000, applied to the
+  aggregate scriptPubKey size of all nulldata outputs, and began
+  relaying and mining multiple OP_RETURN outputs per tx; both still
+  hold in 31.1 (July 2026), where `MAX_OP_RETURN_RELAY` is
+  `MAX_STANDARD_TX_WEIGHT / WITNESS_SCALE_FACTOR` = 100_000. Bitcoin
+  Knots goes the other way: at `v29.4.1.knots20260508` (Sept 2026)
+  `-rejecttokens` defaults to 1 and `IsStandardTx` rejects any
+  nulldata output whose second byte is `OP_13` with reason
+  `tokens-runes` - that is the `6a 5d` marker above, so every
+  runestone is non-standard on a default Knots node regardless of
+  size. Knots also keeps `MAX_OP_RETURN_RELAY = 83` and the single-
+  nulldata-output rule (`multi-op-return`). A transfer that vanishes
+  without confirming is as likely a Knots peer as an encoder bug -
+  read the reject reason first.
 
 ## References
 
 - Runes spec: https://docs.ordinals.com/runes/specification.html
 - ord runestone parser: https://github.com/ordinals/ord/blob/master/crates/ordinals/src/runestone.rs
 - LEB128 varint: https://docs.ordinals.com/runes/varint.html
+- Core 30.0 datacarrier change: https://github.com/bitcoin/bitcoin/blob/v30.0/doc/release-notes.md
+- Knots runestone rejection: https://github.com/bitcoinknots/bitcoin/blob/v29.4.1.knots20260508/src/policy/policy.cpp

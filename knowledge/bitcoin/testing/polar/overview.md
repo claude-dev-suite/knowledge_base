@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Polar: GUI for spinning up Lightning regtest networks. Supports LND, CLN, Eclair, LDK Node. Per-node config, payment simulation, channel topology editor.
+Polar: GUI for spinning up Lightning regtest networks. Supports LND, Core Lightning, Eclair, plus Lightning Terminal (litd) and Taproot Assets. Per-node config, payment simulation, channel topology editor, sim-ln activity, MCP server for AI agents.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

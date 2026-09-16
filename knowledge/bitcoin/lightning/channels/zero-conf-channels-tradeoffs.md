@@ -1,7 +1,7 @@
 # Zero-Conf Channels - Tradeoffs Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/lightning/channels`.
-> Canonical source: BOLT 2 (`option_zeroconf` bits 38/39, `option_scid_alias` bits 40/41)
+> Canonical source: BOLT 2 (`option_zeroconf` bits 50/51, `option_scid_alias` bits 46/47)
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/lightning/channels/SKILL.md
 
 ## Concept
@@ -25,7 +25,7 @@ B -> A: channel_ready (with scid_alias)
 A -> B: channel_ready (with scid_alias)
 ```
 
-`scid_alias` (BOLT 2 + BOLT 9 bits 40/41) is the missing piece: a
+`scid_alias` (BOLT 2 + BOLT 9 bits 46/47) is the missing piece: a
 short_channel_id is normally derived from `block_height|tx_index|output_index`,
 which doesn't exist yet. The alias is a synthetic SCID chosen by the
 peer in the format `0xfe<random>` (the high bits avoid collision with
@@ -127,7 +127,7 @@ event_handler.handle_open_channel_request(... ZERO_CONF);
 ## References
 
 - BOLT 2 channel_ready: https://github.com/lightning/bolts/blob/master/02-peer-protocol.md#the-channel_ready-message
-- BOLT 9 bits 38/39 + 40/41: https://github.com/lightning/bolts/blob/master/09-features.md
+- BOLT 9 bits 50/51 + 46/47: https://github.com/lightning/bolts/blob/master/09-features.md
 - Zero-conf PR (BOLT): https://github.com/lightning/bolts/pull/910
 - Phoenix on-the-fly channel design: https://acinq.co/blog/phoenix-splicing-update
 - LDK zero-conf example: `lightning/src/util/config.rs` (`UserChannelConfig::manually_accept_inbound_channels`)

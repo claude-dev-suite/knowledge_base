@@ -5,7 +5,7 @@
 
 ## What this covers
 
-BitBox02 (Shift Crypto, Switzerland): Multi Edition (BTC + altcoins), Bitcoin-Only Edition. BitBoxApp, side-channel-resistant SE, NFC, USB-C.
+BitBox02 and BitBox02 Nova (Shift Crypto, Switzerland): Multi Edition (BTC + altcoins), Bitcoin-Only Edition. BitBoxApp, dual-chip secure element, USB-C; Nova adds an EAL6+ secure chip and Bluetooth LE for iPhone/iPad.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

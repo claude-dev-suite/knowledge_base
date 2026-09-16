@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Babylon: native BTC staking protocol securing PoS chains. Trustless Bitcoin Vaults via BitVM3, integration with Cosmos chains. No bridging / wrapping required.
+Babylon: native BTC staking protocol securing PoS chains. Trustless Bitcoin Vaults (public testnet as of September 2026), integration with Cosmos chains. No bridging / wrapping required.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

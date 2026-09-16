@@ -27,6 +27,7 @@ patterns repeat.
 | 2016 | 68/112/113 | Relative locktime suite | versionbits (BIP9) | nSequence-based timelocks; foundation for Lightning. |
 | 2017 | 141/143/144 | SegWit | versionbits + UASF threat | Witness segregation, BIP143 sighash, weight discount. Activated August 2017 after 17-month standoff. |
 | 2021 | 340/341/342 | Taproot | Speedy Trial (BIP9 variant) | Schnorr signatures, taptweak, Tapscript. Activated November 2021. |
+| 2026 | 110 | Reduced Data Temporary Softfork | Modified BIP9 + BIP8-style mandatory signaling | Failed. Signaling seldom exceeded ~2.5% against a 55% threshold; enforcing nodes split onto a chain that stalled after two blocks (August 2026). BIP status now Closed. |
 
 **Activation mechanisms over time:**
 
@@ -39,9 +40,11 @@ patterns repeat.
 - **BIP148 / BIP91 (UASF)**: user-activated soft fork - economic nodes
   reject blocks NOT signaling the new rule after a date. Used to
   pressure miners into SegWit signaling in mid-2017.
-- **BIP8** (proposed, never used on mainnet): versionbits with
+- **BIP8** (proposed, never used on mainnet as such): versionbits with
   mandatory `lockinontimeout=true`, which would activate even without
-  miner signaling at the deadline.
+  miner signaling at the deadline. BIP110 (2026) borrowed its
+  mandatory-signaling window while otherwise remaining a modified BIP9
+  deployment.
 - **Speedy Trial** (BIP9 variant for Taproot): 90% signaling threshold,
   90-day window. If activated, lock-in. If not, no UASF fallback -
   proposers go back to drawing board. Worked smoothly for Taproot.
@@ -83,10 +86,46 @@ Taproot   : ~3.5 years from initial concept, 4 months from spec to activation,
             no controversy, "Speedy Trial" worked.
 ```
 
+**BIP110 activation timeline (2026, failed):**
+
+```
+2025 Dec 03 : BIP110 "Reduced Data Temporary Softfork" assigned (author Dathon Ohm).
+2026 Jun 25 : BIP110 advanced to Complete status (BIP Changelog v1.0.0; the
+              repo commit landed 2026-06-24).
+2026 Aug 08 : Block 961,632 (19:35 UTC) opens the mandatory-signaling window
+              (961,632-963,647). Enforcing nodes reject blocks not signaling bit 4.
+2026 Aug 08 : The block the network actually mined at 961,632 does not signal
+              bit 4. Enforcing nodes split onto their own chain.
+2026 Aug    : That minority chain produces two blocks and stalls.
+2026 Aug 10 : BIPs repo sets BIP110 status to Closed (PR #2245). Luke Dashjr, who
+              championed the proposal, is removed as a BIP Editor (PR #2248,
+              motioned by Mark "Murch" Erhardt the previous day).
+```
+
+BIP110's declared parameters: signaling bit 4, threshold 1109/2016
+(55%), `timeout` disabled in favor of a BIP8-style
+`max_activation_height` of 965,664 (~1 September 2026), and an
+`active_duration` of 52,416 blocks (~1 year) after which the rules
+would have expired. Miner signaling seldom exceeded ~2.5% (CoinDesk,
+August 2026). Note that bip110.org still presents the deployment as a
+successful activation - that is the minority chain's own view, not the
+state of the chain the economic majority follows.
+
+The editor removal is a governance data point, not a consensus one: as
+of September 2026 the BIP Editors are Bryan Bishop, Jon Atack, Mark
+"Murch" Erhardt, Olaoluwa Osuntokun and Ruben Somsen.
+
 The community lesson: activation mechanism design matters. BIP9 alone
-without an explicit "what if it stalls" plan invites stalemate. Future
-soft forks (CTV, OP_CAT, OP_VAULT) face the unresolved question of
-which mechanism replaces "Speedy Trial".
+without an explicit "what if it stalls" plan invites stalemate, and
+BIP110 demonstrated the opposite failure - mandatory signaling against
+a threshold the economic majority never intended to meet simply ejects
+the enforcing nodes onto a dead chain. Future soft forks (CTV/BIP119,
+still Draft; OP_CAT/BIP347, Complete; Consensus Cleanup/BIP54,
+Complete) still face the unresolved question of which mechanism
+replaces "Speedy Trial"; as of September 2026 no replacement has
+consensus. Note that OP_VAULT (BIP345) is no longer on that list: the
+BIPs repo marks it **Closed** with `Proposed-Replacement: 443`
+(`OP_CHECKCONTRACTVERIFY`, Draft) as of September 2026.
 
 ## Common bugs / pitfalls
 
@@ -108,6 +147,14 @@ which mechanism replaces "Speedy Trial".
 5. **Quoting "BIP" when meaning "consensus rule".** Not all BIPs are
    consensus changes. BIP21 (URI scheme) is an interface BIP. BIP125
    (RBF) is policy-only, not consensus. Always check status field.
+6. **Using the pre-2026 BIP status vocabulary.** BIP3 (Deployed since
+   January 2026) replaced BIP2's Draft/Proposed/Final/Active/Replaced/
+   Withdrawn set with exactly four statuses: Draft, Complete, Deployed,
+   Closed. As of September 2026 the README status column holds no
+   "Active" or "Final" entries at all (78 Deployed, 57 Closed, 54 Draft,
+   22 Complete). Closed also does not mean "was once deployed" - BIP110
+   is Closed and never activated on the chain the economic majority
+   follows.
 
 ## References
 
@@ -116,3 +163,5 @@ which mechanism replaces "Speedy Trial".
 - SegWit history: https://en.bitcoin.it/wiki/SegWit
 - Taproot activation: https://taproot.watch/
 - BIP90: https://github.com/bitcoin/bips/blob/master/bip-0090.mediawiki
+- BIP110: https://github.com/bitcoin/bips/blob/master/bip-0110.mediawiki
+- BIP3 (current BIP process): https://github.com/bitcoin/bips/blob/master/bip-0003.md

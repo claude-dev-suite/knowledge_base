@@ -156,6 +156,64 @@ def make_filter(items, block_hash, P=19):
     ...
 ```
 
+## Alternative designs and measurements (2026)
+
+BIP157/158 is the deployed answer, but it is not the settled one. Four
+lines of work as of September 2026, none of them shipped:
+
+| Proposal | Changes | Where discussed |
+|----------|---------|-----------------|
+| Binary fuse (Fuse16) filters | Replaces the GCS encoding above | Delving Bitcoin, Optech #403 (2026-05-01) |
+| Block-range filters | Adds a hierarchical filter layer above per-block filters | Delving Bitcoin RFC, Optech #420 (2026-08-28) |
+| BlindBit Oracle v2 | Drops filters entirely for silent payments | Bitcoin-Dev, Optech #422 (2026-09-11) |
+| UTXO set over P2P | Unrelated to filters; serves assumeUTXO snapshots | Bitcoin-Dev draft BIP, Optech #405 (2026-05-15) |
+
+**Binary fuse filters.** Csaba Purszki's research replaces the
+Golomb-Rice coded set with a Fuse16 binary fuse filter: a probabilistic
+set-membership structure with O(1) query time (a GCS is O(N) - it must
+be decoded sequentially), zero false negatives and a false-positive
+rate of 1/2^k for k bits. Measured over 10 wallet use cases (24 up to
+480 scripts) on 50,000 mainnet blocks and two CPUs, it gave a 9x-80x
+query speedup on desktop x86_64 and 6x-45x on ARM, at a bandwidth cost
+of 0%-3%.
+
+**Block-range filters.** Optout's RFC keeps BIP157 intact and adds a
+filter per *range* of blocks. A client downloads only range filters;
+when a script matches a range it then downloads that range's individual
+block filters and proceeds exactly as described above. Both range and
+block filters are fetched for matching ranges, so the saving comes from
+never fetching per-block filters for non-matching ranges. Simulations
+on ~30k blocks with two script sets (one at 4-6 transactions, one at
+20-30) found the total range-filter size falls as the range grows but
+that most of the saving is cancelled if the range grows too far; the
+best trade-off measured was a 256-block range, reducing total download
+size by roughly 70-80% for the tested sets.
+
+**Filters vs. per-output streaming (silent payments).** Rob Segers
+benchmarked BlindBit Oracle v2 - a BIP352 indexing server that drops
+filters completely and instead streams per-output data (txid, tweak,
+and an 8-byte output prefix) - against BIP158 filters and taproot-only
+filters. On unsampled block data from taproot activation through block
+965,089 (255,434 blocks), the streaming approach downloads about 2.1x
+as many bytes as a taproot-only filter plus the raw tweak data a filter
+client still needs, and that comparison excludes the full block a
+filter client must fetch on every match. What the extra bytes buy is no
+false positives and no per-match block fetches. Segers also noted an
+unsolved integrity gap: a client cannot tell that a server *omitted* a
+tweak for a block, which silently loses the receiver money. His server
+publishes per-block commitments over the sorted tweak set and
+checkpoints them to nostr every six hours, which makes omissions
+attributable after the fact but does not prevent them - clients should
+still fetch the full block on a match. For the per-transaction scanning
+cost these bandwidth numbers trade against, see
+`../../privacy/silent-payments/scan-cost-analysis.md`.
+
+**UTXO set over P2P.** Not a filter scheme, but the other 2026 proposal
+for getting bulk chain data from peers: Fabian Jahr's draft BIP defines
+a new service bit, four new P2P messages and a UTXO-set merkle root
+known to the requester, so a new node can obtain an assumeUTXO snapshot
+from peers rather than an external download. See the p2p SKILL.md.
+
 ## Common bugs / pitfalls
 
 1. **Not authenticating filter headers.** A single peer can lie about
@@ -185,3 +243,11 @@ def make_filter(items, block_hash, P=19):
 - LDK Neutrino: https://github.com/lightninglabs/neutrino
 - btcsuite/btcwallet filter scan: https://github.com/btcsuite/btcwallet
 - BDK chain sync: https://docs.rs/bdk_chain/latest/
+- Binary fuse filters vs GCS (Optech #403, 2026-05-01):
+  https://bitcoinops.org/en/newsletters/2026/05/01/
+- Block-range filters RFC (Optech #420, 2026-08-28):
+  https://bitcoinops.org/en/newsletters/2026/08/28/
+- Silent-payments light-client benchmarks (Optech #422, 2026-09-11):
+  https://bitcoinops.org/en/newsletters/2026/09/11/
+- UTXO set sharing over P2P draft BIP (Optech #405, 2026-05-15):
+  https://bitcoinops.org/en/newsletters/2026/05/15/

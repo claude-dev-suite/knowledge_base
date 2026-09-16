@@ -6,12 +6,15 @@
 
 ## Concept
 
-Jade does not have a Secure Element. It runs on an ESP32, whose
-encrypted-memory protections are good but not certified to fend off
-sophisticated physical attacks (glitching, side channels). To compensate,
-Blockstream designed a **Pinserver**: a remote service that participates
-in the unlock protocol so that even if the attacker has the device, they
-cannot brute-force the PIN locally.
+No Jade model has a certified Secure Element. Jade 1.0/1.1 run on an
+ESP32 and Jade Plus / Jade Core on an ESP32-S3 (Jade Plus launched
+3 January 2025), whose encrypted-memory protections are good but not
+certified to fend off sophisticated physical attacks (glitching, side
+channels). To compensate, Blockstream designed a **Pinserver**: a remote
+service that participates in the unlock protocol so that even if the
+attacker has the device, they cannot brute-force the PIN locally.
+Blockstream markets this scheme as Jade's **"Virtual Secure Element"**
+(blockstream.com/jade wording, as of September 2026).
 
 The Pinserver is **blind**: it never learns the seed, the PIN, or even
 whether a PIN attempt was correct. It just stores a per-device encrypted
@@ -109,4 +112,4 @@ Skip the Pinserver entirely:
 
 - Blind Pinserver: https://github.com/Blockstream/blind_pin_server
 - Jade firmware repo: https://github.com/Blockstream/Jade
-- Jade hardware paper: https://help.blockstream.com/hc/en-us/articles/4406560791833
+- Jade security model FAQs: https://help.blockstream.com/blockstream-jade/faqs/jade-security-model-faqs

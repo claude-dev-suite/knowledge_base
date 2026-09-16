@@ -6,6 +6,10 @@
 
 ## Concept
 
+This article describes **Bisq 1** (the `bisq-network/bisq` desktop app).
+Bisq 2's Bisq Easy protocol is a separate codebase with no multisig
+escrow - see the skill.
+
 Bisq is a **decentralized P2P fiat <-> BTC exchange** built on Tor and a
 2-of-2 + arbitrator multisig scheme. There is no custody and no server:
 order books propagate via gossip across Tor, and trades are escrowed on
@@ -26,6 +30,43 @@ otherwise the protocol is fully peer-to-peer.
 Both parties lock a **security deposit** (typically 15 % of trade value)
 into the multisig along with the trade amount. Lost-by-default if a party
 acts in bad faith.
+
+### Trade limits
+
+`TradeLimits.MAX_TRADE_AMOUNT` is a hard network cap that clamps the DAO
+`MAX_TRADE_LIMIT` parameter (default 2 BTC); per-payment-method limits are
+derived from the clamped value, and a local `userDefinedTradeLimit`
+(default 0.1 BTC) can only lower it further. The constant is new in the
+1.10 line - v1.9.21 has no `MAX_TRADE_AMOUNT` at all, and before it the
+ceiling came from the DAO parameter alone. It was introduced at
+**0.125 BTC** in v1.10.0 as part of the May 2026 incident response and
+raised to **0.250 BTC** in v1.10.1, where it still stands in v1.10.7
+(25 August 2026). Buyers paying with a chargeback-risk fiat method in a
+mature-market currency are additionally held to 0.002 BTC until their
+account witness is signed; selling BTC is never reduced by signing state.
+
+### 1 May 2026 exploit and hardening
+
+The taker defines the miner fee for the trade transactions and passes
+that value to the maker. It was not validated against negative numbers,
+so an attacker could make the maker compute an incorrect multisig output
+value. **11.59104 BTC was lost across 10 users**, all on altcoin trades -
+fiat trades were protected by the account-age witness signing system.
+Refund Angels advanced 10.98538295 BTC (~890,387 USD at the reference
+rate of 81,052 USD/BTC for 15 May 2026) to reimburse victims. Repayment
+is *proposed*, not ratified: part of the BTC fees that would otherwise go
+to Burning Men would be redirected to the Refund Angels via the Filter
+object, phased in over successive DAO cycles at 25 % / 50 % / 75 %. The
+post calls a 12-18 month settlement horizon realistic and states that no
+fee parameter change is finalized by it (Bisq blog, 16 June 2026); each
+change still has to pass the normal DAO proposal and vote.
+
+`v1.10.0` added validation across deposit, payout, delayed-payout and
+mediated-payout transactions, trade amounts and prices, maker/taker fees,
+miner fees, multisig public keys, raw inputs and canonical transaction
+structure; capped acceptable price deviation at 25 %; and disabled XMR
+auto-confirmation by network filter pending a security audit. Bisq 2 /
+Bisq Easy were unaffected.
 
 ### Trade tx structure
 
@@ -103,4 +144,7 @@ Bob's deposit (split between mediator pool and Alice).
 
 - Bisq wiki (https://bisq.wiki).
 - Bisq whitepaper v2.0.
-- bisq-network/bisq GitHub: trade-protocol.proto.
+- bisq-network/bisq GitHub: trade-protocol.proto, docs/trade-limits.md,
+  release-notes/1.10.0/notable-changes.md.
+- Bisq blog: security incident post-mortem, and "Where Bisq stands after
+  the security incident" (16 June 2026).

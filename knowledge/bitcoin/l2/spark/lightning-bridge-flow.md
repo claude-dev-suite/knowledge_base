@@ -105,8 +105,9 @@ T+475  Alice's leaf still 100000 sats.  Wallet shows "payment failed".
   will require asset-on-LN protocols (Taproot Assets, RGB) for through-routing.
 - **Privacy**: payer/payee unlinked on the LN side via onion routing, but Spark
   coordinator sees the full Spark-leg metadata (sender leaf, amount, invoice).
-- **Compared to LN custodial wallets**: similar UX, but Spark's k-of-n SO security
-  model is stronger than 1-of-1 custodial. User can always exit on-chain.
+- **Compared to LN custodial wallets**: similar UX, but Spark's 1-of-n SO honesty
+  model -- 1-of-3 as of September 2026 -- is stronger than 1-of-1 custodial. User can
+  always exit on-chain.
 
 ## References
 

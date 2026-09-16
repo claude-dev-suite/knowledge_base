@@ -7,6 +7,8 @@
 
 HWI (Hardware Wallet Interface): standardized Python API across HW vendors (Trezor, Ledger, Coldcard, BitBox02, Jade, etc.). Used by Bitcoin Core, Sparrow, Specter for cross-vendor signing.
 
+Status as of September 2026: latest release is 3.2.0 (10 February 2026). HWI is winding down - [issue #850](https://github.com/bitcoin-core/HWI/issues/850) (18 August 2026) announced maintenance-only status, no new features or device support, and eventual archival once a replacement is ready; [BHWI](https://github.com/wizardsardine/bhwi) (Rust, Wizardsardine, WIP) is named as the successor.
+
 ## When to use
 
 This is a Phase A overview - quick orientation only. The full deep-dive
@@ -17,6 +19,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

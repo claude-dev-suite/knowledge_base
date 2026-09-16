@@ -53,37 +53,64 @@ descriptor wrapper -> per-index scripts.
 
 ```rust
 use miniscript::policy::Concrete;
-use miniscript::Descriptor;
+use miniscript::{Descriptor, Segwitv0};
 use miniscript::bitcoin::PublicKey;
 use std::str::FromStr;
 
 let pol_str = "thresh(2,pk(02aaaa...),pk(02bbbb...),and(pk(02cccc...),older(144)))";
 let policy: Concrete<PublicKey> = pol_str.parse()?;
-let ms = policy.compile_to_miniscript_segwit_v0()?;
+let ms = policy.compile::<Segwitv0>()?;    // needs the `compiler` feature
 let desc = Descriptor::new_wsh(ms)?;
 println!("descriptor: {}", desc);
 println!("address:    {}", desc.address(miniscript::bitcoin::Network::Bitcoin)?);
 ```
 
-`compile_to_miniscript_segwit_v0` picks the smallest correct script
-under the segwit-v0 fragment set. For Tapscript leaves, use
-`compile_to_miniscript_tap()` which exposes a different fragment
-set including `multi_a` (BIP342).
+`compile::<Segwitv0>` picks the smallest correct script under the
+segwit-v0 fragment set. For Tapscript leaves, `compile::<Tap>()`
+targets a different fragment set including `multi_a` (BIP342), and
+`compile_tr(unspendable_key)` builds a whole `tr()` descriptor with a
+Huffman-weighted TapTree. All three are gated on the non-default
+`compiler` cargo feature (verified against rust-miniscript 13.1.0,
+June 2026).
 
 ## Common pitfalls
 
 - Checksum drift: editing a descriptor by hand invalidates the `#xxxx`
   suffix. Recompute with `desc.to_string_with_secret(...)` or
   `Descriptor::to_string` (which adds a fresh checksum).
-- Mixing rust-bitcoin versions: miniscript 11 -> 12 each pin
-  rust-bitcoin majors. A type from `bitcoin = "0.31"` won't satisfy a
-  miniscript 12 trait bound expecting `0.32`.
+- Mixing rust-bitcoin versions: each miniscript major pins one
+  rust-bitcoin release range, and a type from the wrong one won't
+  satisfy the trait bound -- `bitcoin = "0.31"` types will not
+  satisfy a miniscript 12 or 13 bound expecting `0.32`. See the
+  pairing table below.
 - Tapscript miniscript fragment set differs from segwit-v0; copying
   `older(144)` wrappings between contexts can fail to compile.
 - `at_derivation_index` requires a wildcard descriptor -- a fixed
   descriptor will return an error rather than ignore the index.
 - `multipath` (`<0;1>`) returns a `Vec<Descriptor>`; iterate both
   branches or extract one with `into_single_descriptors()`.
+
+## Version pairing with rust-bitcoin
+
+As of September 2026, from each major's published `Cargo.toml`:
+
+| miniscript | rust-bitcoin dependency |
+|------------|-------------------------|
+| 13.x (13.1.0, June 2026) | `^0.32.6` |
+| 12.x (12.3.7, May 2026)  | `^0.32`   |
+| 11.x (11.2.3, July 2025) | `^0.31`   |
+| 10.x                     | `^0.30`   |
+
+13.x therefore shares rust-bitcoin 0.32 with 12.x: the 13.0.0 break
+(October 2025) was miniscript's own API, not a rust-bitcoin bump. That
+release eliminated recursion throughout the library, rewrote the
+Taproot API, replaced stringly-typed errors, removed
+`Ctx::check_witness`, renamed `Miniscript::parse_insane` to
+`decode_consensus` and `parse_with_ext` to `decode_with_ext`. 13.1.0
+adds only one change: `Plan`'s `descriptor` field is now public.
+
+The 12.x line is still maintained in parallel (12.3.6 April 2026,
+12.3.7 May 2026) for crates that cannot take the 13.0.0 API break.
 
 ## References
 

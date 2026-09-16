@@ -126,7 +126,7 @@ witness = [
 
 ## Common bugs / anti-patterns
 
-- Using `OP_CHECKMULTISIG` in Tapscript: it is `OP_SUCCESS` there; tx becomes anyone-can-spend (script-path).
+- Using `OP_CHECKMULTISIG` in Tapscript: it is **disabled** there (BIP342), so the script fails when the opcode executes and that leaf is unspendable - use chained `OP_CHECKSIGADD` instead.
 - Forgetting the `OP_0` dummy in CHECKMULTISIG spends; no error message - script just fails.
 - Sorting public keys after generating address but signing with original order; signatures become invalid.
 - Hitting the 520-byte witness item limit for N around 16-of-16 in P2WSH; switch to taproot.

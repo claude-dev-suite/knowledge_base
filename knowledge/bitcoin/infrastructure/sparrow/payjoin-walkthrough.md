@@ -118,6 +118,11 @@ ambiguity that makes PayJoin effective.
 | Joinmarket | yes | yes (Pay-to-Endpoint) |
 | LND on-chain | no (use external) | no |
 
+Matrix checked September 2026. Wasabi 2 is still sender-only: 2.8.3
+(14 September 2026) extended its PayJoin sender to Taproot (P2TR)
+addresses and now requires Tor for PayJoin, but ships no receiver-side
+endpoint.
+
 ## Common pitfalls
 
 - HTTPS required - BIP78 mandates HTTPS for the `pj=` endpoint; HTTP-only

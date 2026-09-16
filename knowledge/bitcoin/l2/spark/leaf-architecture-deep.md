@@ -9,10 +9,11 @@
 A Spark **leaf** is the atomic off-chain ownership unit. Where Ark uses a per-round
 binary tree of VTXOs and Mercury uses a single 2-of-2 UTXO per position, Spark uses
 *hierarchical leaves under a continuously-maintained tree*. Each leaf is an off-chain
-UTXO under a FROST k-of-n threshold key held by Spark Operators (SOs), with a
-relative-timelock unilateral-exit transaction baked in. Leaves can be split or merged
-at any time without waiting for a round, which is what gives Spark its "instant
-continuous transfer" property.
+UTXO under an aggregate key `Y = pk_owner + pk_so`, where `pk_so` is a FROST k-of-n
+threshold key held by Spark Operators (SOs), with a relative-timelock unilateral-exit
+transaction baked in. The owner's half is mandatory, so the SO set cannot move a leaf
+on its own at any threshold. Leaves can be split or merged at any time without waiting
+for a round, which is what gives Spark its "instant continuous transfer" property.
 
 ## Walkthrough / mechanics
 
@@ -33,7 +34,8 @@ continuous transfer" property.
 - Internal branches are off-chain pre-signed splits, refreshed cooperatively as users
   transfer.
 - Leaves are owned by individual users. Each leaf carries:
-  - A FROST-aggregated public key authorising cooperative spends.
+  - An aggregate public key (owner key + FROST-threshold SO key) authorising
+    cooperative spends.
   - A *unilateral exit script*: relative-timelock path spendable by the user alone.
 
 ### FROST signing
@@ -41,8 +43,11 @@ continuous transfer" property.
 Spark uses **FROST (Flexible Round-Optimised Schnorr Threshold)** rather than MuSig2
 because FROST allows k-of-n with k < n, supports robust signing (continuing without
 non-responsive parties), and produces standard Schnorr signatures indistinguishable
-from single-sig on chain. A typical Spark configuration is 2-of-2 (Lightspark + Flashnet)
-during beta; the roadmap expands this to 5-of-7 or 7-of-11 across jurisdictions.
+from single-sig on chain. As of September 2026 mainnet beta runs three SOs --
+Lightspark, Breez and Flashnet -- and the SDK's mainnet wallet config signs at a
+threshold of 2, i.e. FROST 2-of-3 over the SO half of the key. Spark's docs state that
+the operator count and threshold are configurable and that further SOs will join as
+the network scales; no target set has been published.
 
 ### Continuous transfer
 
@@ -72,7 +77,7 @@ once the FROST collective signs the replacement. This is the property that makes
 
 ```
 Initial state:
-  Root UTXO: 0.5 BTC on-chain at FROST(2-of-2)
+  Root UTXO: 0.5 BTC on-chain at owner_key + FROST(2-of-3 SOs)
   Tree:
     Root
       L: Branch1 -> [ Alice 0.1 BTC, Bob 0.05 BTC ]
@@ -94,11 +99,16 @@ Alice pays a Lightning invoice for 0.01 BTC:
 
 ## Trade-offs and security
 
-- **k-of-n trust on SO collective**: secure as long as at least n-k+1 honest SOs refuse
-  to collude. Beta with 2-of-2 means *both* must be honest -- weaker than a 5-of-7
-  setup but stronger than statechain 1-of-1.
-- **FROST liveness**: requires at least k operators online. Spark targets >99.99% by
-  geo-distributing SOs.
+- **1-of-n honesty on the SO collective**: Spark describes a "moment-in-time" trust
+  model. After a transfer, safety holds as long as *at least one* SO deletes its old
+  key share -- that is what gives perfect forward security, because a prior owner can
+  only reclaim a leaf if *every* SO retains and colludes with its stale share. With
+  the September 2026 set that is 1-of-3, strictly stronger than statechain 1-of-1. The
+  2-of-3 FROST threshold is a liveness parameter, not the honesty assumption.
+- **FROST liveness**: requires at least k operators online -- 2 of 3 as of September
+  2026, so one SO may be down without halting transfers. Spark's limitations page
+  notes that if the configured threshold of SOs loses liveness or loses keys,
+  off-chain payments stop; users can still withdraw via unilateral exit.
 - **Exit-tree refresh costs**: every transfer requires re-pre-signing of the relevant
   subtree branches. This is bounded by FROST cost (~tens of ms per signature) and is the
   main throughput limit.
@@ -111,7 +121,11 @@ Alice pays a Lightning invoice for 0.01 BTC:
 
 ## References
 
-- Lightspark, "Spark Architecture" - https://docs.spark.money/architecture
+- Spark, "TLDR" - https://docs.spark.money/learn/tldr
+- Spark, "Trust Model" - https://docs.spark.money/learn/trust-model
+- Spark, "Limitations / Attacks" - https://docs.spark.money/learn/limitations
+- Mainnet operator set and threshold - `sdks/js/packages/spark-sdk/src/services/wallet-config.ts`
+  in https://github.com/buildonspark/spark
 - Spark whitepaper, April 2025
 - David Marcus interview, Bitcoin Magazine 2025
 - FROST RFC - https://datatracker.ietf.org/doc/draft-irtf-cfrg-frost/

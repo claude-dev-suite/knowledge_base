@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Electrs: Romanmandryk's Electrum-protocol indexer in Rust. Lightweight, serves Electrum clients + LN nodes (filter-based scan).
+Electrs: Roman Zeyde's Electrum-protocol indexer in Rust. Lightweight, serves Electrum clients; BIP157 filter scan stays on Bitcoin Core.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

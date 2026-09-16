@@ -134,6 +134,76 @@ A node can advertise v2 support via `NODE_P2P_V2` (service flag
 `0x800`). Outbound connections to peers without this flag should
 either fall back to v1 immediately or attempt v2 with retry.
 
+## Post-quantum successor - discussion only (as of September 2026)
+
+Everything above rests on ECDH over secp256k1, which a sufficiently
+large quantum computer would break. Worse, the break is retroactive: an
+adversary can record v2 handshakes and ciphertext today and decrypt them
+once such a machine exists ("harvest now, decrypt later").
+
+Olaoluwa Osuntokun raised this on the Bitcoin Development Mailing List
+in "A Post-Quantum Path for BIP 324" (2026-05-05; summarised in Optech
+Newsletter #408, 2026-06-05). The post is explicitly not a draft BIP -
+it puts two design questions to the list, and as of September 2026 no
+BIP has been assigned and nothing is implemented in Bitcoin Core. The
+thread ran to 2026-08-27 and holds 7 messages.
+
+**Question 1: hybrid KEM or pure post-quantum KEM?**
+
+ECDH is itself a key-encapsulation mechanism (KeyGen / Encaps / Decaps),
+which makes ML-KEM (Module-Lattice-Based KEM, FIPS 203) a drop-in
+replacement in shape if not in size.
+
+- *Pure ML-KEM.* ElligatorSwift is dropped entirely; the ~1.1 KB
+  ML-KEM-768 encapsulation key is sent in its place, with the trailing
+  garbage and terminator kept as today. `v2_ecdh` is replaced by a
+  tagged hash over the transcript, sketched in the post as
+  `sha256_tagged("bip324_ml_kem", ml_kem_secret, alice_encaps,
+  ml_kem_capsule)`.
+- *Hybrid.* The ellswift key and the encapsulation key are both sent,
+  and the shared secret combines both, e.g.
+  `sha256_tagged("bip324_ellswift_xonly_ecdh_mlkem_768", ml_kem_ss,
+  ecdh_point_x32, ...)`. The channel then survives either primitive
+  being broken - relevant because ECDH is the one with a known quantum
+  attack while the lattice schemes are the ones that are not yet
+  battle-tested.
+
+**Question 2: must the handshake still look uniformly random?**
+
+An ML-KEM encapsulation key is a vector of polynomial coefficients mod
+3329 and is trivially recognisable on the wire, so naively adding it
+destroys the indistinguishability property ElligatorSwift exists to
+provide. Kemeleon is the ML-KEM analogue of ElligatorSwift - rejection
+sampling an ML-KEM key into one large integer, applied to both
+encapsulation keys and capsule ciphertexts - but its guarantee is
+computational (a Module-LWE assumption) where ElligatorSwift's is
+statistical, because every 512-bit string is a valid ellswift encoding.
+Concatenating the two is therefore only as obfuscated as the weaker
+half. Kemeleon key generation is also roughly 3x slower than plain
+ML-KEM key generation.
+
+If the property is kept, the post sketches three routes:
+
+1. **Classical-then-PQ-upgrade.** Run the existing BIP324 handshake
+   unchanged, negotiate a PQ KEM inside that encrypted channel, run
+   ML-KEM there, derive a hybrid secret, then rekey. No Bitcoin P2P
+   message is sent before the rekey. Costs an extra round trip; the
+   outer handshake is untouched and still looks random.
+2. **OEINC ("OINK"), outer-encrypts-inner nested combiner.** The
+   ellswift secp256k1 DHKEM is the outer KEM (its encoding being
+   statistically uniform) and ML-Kemeleon the inner one; the outer
+   shared secret encrypts the inner capsule, and both feed a hybrid
+   combiner. One round trip instead of two.
+3. **Drivel**, noted but judged a poor fit: it assumes the initiator
+   already knows a long-term static responder key, whereas BIP324
+   exchanges only ephemeral keys. Supplying one would mean gossiping
+   signed KEM keys and would drag identity authentication into a
+   protocol that deliberately excludes it (see pitfall 7 below).
+
+Osuntokun's own read is that classical-then-PQ-upgrade is the simplest
+route, and that because a transport change needs no consensus agreement
+it is a shorter walk than the signature-layer migration.
+
 ## Common bugs / pitfalls
 
 1. **Assuming the garbage is empty.** Some implementations send
@@ -168,3 +238,9 @@ either fall back to v1 immediately or attempt v2 with retry.
 - BIP324 reference (Bitcoin Core): https://github.com/bitcoin/bitcoin/blob/master/src/net_processing.cpp
 - ellswift squared encoding: https://github.com/sipa/secp256k1/pull/1129
 - BIP340 Schnorr (tagged hash): https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
+- "A Post-Quantum Path for BIP 324", Olaoluwa Osuntokun, bitcoin-dev,
+  2026-05-05: https://gnusha.org/pi/bitcoindev/d4b87b2c-63c2-488b-9e76-4e3dbeedb0c2n@googlegroups.com/T/
+- Optech Newsletter #408 (2026-06-05):
+  https://bitcoinops.org/en/newsletters/2026/06/05/
+- ML-KEM (FIPS 203): https://csrc.nist.gov/pubs/fips/203/final
+- Kemeleon / OEINC / Drivel: https://eprint.iacr.org/2024/1086

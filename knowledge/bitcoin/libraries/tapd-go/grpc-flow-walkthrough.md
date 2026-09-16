@@ -46,7 +46,7 @@ func dialTapd(host, tlsPath, macPath string) (*grpc.ClientConn, error) {
     macCred, err := macaroons.NewMacaroonCredential(mac)
     if err != nil { return nil, err }
 
-    return grpc.Dial(host,
+    return grpc.NewClient(host,
         grpc.WithTransportCredentials(creds),
         grpc.WithPerRPCCredentials(macCred))
 }
@@ -128,6 +128,15 @@ To **receive** assets, the recipient generates a `taprpc.Addr` via
 - Asset-aware Lightning channels need both peers running `tapd` plus
   a compatible LND; mismatched versions silently fall back to BTC
   routing.
+- `grpc.Dial`/`grpc.DialContext` are deprecated in favour of
+  `grpc.NewClient` (grpc-go v1.63.0, April 2024); they still
+  compile and are promised support "throughout 1.x" as of grpc-go
+  v1.83.2 (August 2026). `tapcli` itself still calls `grpc.Dial` in
+  `cmd/commands/conn.go` as of taproot-assets v0.8.4 (September 2026),
+  so vendored examples lag. `NewClient` resolves via `dns` rather than
+  `passthrough`, so a custom dialer (Tor SOCKS) needs a
+  `passthrough:target` target, and `WithBlock` is ignored -- failures
+  surface on the first RPC, not at dial time.
 - API churn: `taprpc` is still pre-1.0; pin Go module versions
   exactly and read release notes between bumps.
 

@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Merlin Chain: largest Bitcoin L2 by TVL (2026), ZK rollup with EVM, 150+ dApps. Federation peg with planned trust-minimization.
+Merlin Chain: Polygon-CDK Bitcoin L2 with EVM and a federation peg; its Bitcoin fraud-proof module is still unshipped as of September 2026. Was the TVL leader in 2024; DeFi TVL is down ~98% from that peak as of September 2026.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

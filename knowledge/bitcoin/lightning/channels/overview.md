@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Lightning channel mechanics: funding tx, commitment tx, anchor outputs, to_local / to_remote outputs, dual-funded (v2), zero-conf, wumbo, taproot channels, splicing. Quick refs: state machine, commitment tx structure, force-close flow.
+Lightning channel mechanics: funding tx, commitment tx, anchor outputs, zero-fee commitments (v3/TRUC), to_local / to_remote outputs, dual-funded (v2), zero-conf, wumbo, taproot channels, splicing. Quick refs: state machine, commitment tx structure, force-close flow.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

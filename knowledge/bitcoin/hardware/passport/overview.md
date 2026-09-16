@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Foundation Passport: QR-only airgap HW wallet. No USB connectivity for signing. Camera + microSD only. Open-source firmware.
+Foundation Passport: Passport Core is the QR-only airgap HW wallet - no USB connectivity for signing, camera + microSD only. Passport Prime (GA 2026) is the connected KeyOS security platform. Open-source firmware.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

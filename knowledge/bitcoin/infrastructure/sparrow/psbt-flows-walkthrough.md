@@ -144,9 +144,13 @@ bitcoin-cli finalizepsbt '<combined>'
 
 ## Common pitfalls
 
-- Saving as PSBT v0 vs v2 - some firmware (older Coldcard, certain
-  ColdCard MK3 builds) reject v2; Settings -> Wallet -> "PSBT version 0"
-  if signing fails.
+- PSBT v0 vs v2 - since 2.4.0 (10 February 2026) Sparrow holds
+  transactions internally as PSBTv2 (BIP370), but there is no
+  user-facing version setting: every export (file, QR, clipboard,
+  PayJoin) is converted back to PSBTv0 unless the PSBT carries
+  silent-payment fields, so firmware that rejects v2 is unaffected
+  outside Silent Payments. BIP322 message-signing PSBT exports were
+  pinned back to v0 in 2.5.0 (21 May 2026).
 - Wrong derivation in multisig - after rebuilding a wallet, Sparrow
   defaults to native segwit P2WSH at `m/48'/0'/0'/2'`; do not mix with a
   device exported at `m/48'/0'/0'/1'` (P2SH-P2WSH).

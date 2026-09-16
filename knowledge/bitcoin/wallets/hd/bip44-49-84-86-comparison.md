@@ -23,6 +23,14 @@ metadata to prevent users from importing a v0-segwit account into a legacy
 wallet and seeing zero balance. Modern descriptor wallets use plain `xpub` plus
 the `wpkh()`/`tr()` script wrapper to encode intent unambiguously.
 
+A fifth purpose tree exists but does not fit this table: BIP352 silent payments
+use `m/352'` and derive a hardened *scan* branch (`1'/0`) and *spend* branch
+(`0'/0`) rather than a `change/index` leaf, producing a static `sp1q...` bech32m
+address whose on-chain outputs are plain BIP341 P2TR. BIP392 wraps that key
+material in an `sp()` descriptor; it was merged to the BIPs repo 2026-03-05 and
+is still Draft as of September 2026. See the dev-suite skill for the descriptor
+grammar.
+
 ## Walkthrough / mechanics
 
 Index `0'` of each tree is the canonical "first account". For one mnemonic, you

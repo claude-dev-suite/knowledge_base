@@ -1,14 +1,24 @@
 # Babylon BitVM3 Vaults Walkthrough - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/l2/babylon`.
-> Canonical source: https://docs.babylonchain.io/ (BitVM3 / Genesis vaults)
+> Canonical source: https://docs.babylonlabs.io/trustless-bitcoin-vault/
+> (the old docs.babylonchain.io domain no longer resolves, checked
+> 16 Sep 2026)
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/l2/babylon/SKILL.md
+
+> **Superseded design — read the status note first.** This article
+> describes the BitVM3-framed vault sketch from Babylon's 6 August 2025
+> announcement. The Trustless Bitcoin Vaults (TBV) that actually reached
+> public testnet use a different proof system (BABE) and serve a
+> different purpose (Ethereum DeFi collateral, not staking vaults). See
+> [Status: what actually shipped](#status-what-actually-shipped-as-of-september-2026)
+> before relying on the mechanics below.
 
 ## Concept
 
-BitVM3 (a Babylon team specification building on Linus's BitVM2) is the
+BitVM3 (a Babylon team specification building on Linus's BitVM2) was the
 proposed framework for **Bitcoin-secured vaults** in Babylon's
-Genesis-era staking. It uses general-purpose Bitcoin script computation
+Genesis-era staking. It used general-purpose Bitcoin script computation
 to enforce slashing, withdrawal delays, and yield-distribution rules
 without trusting any covenant emulator.
 
@@ -74,10 +84,47 @@ If a finality provider misbehaves:
   (logarithmic bisection over states).
 - **Stateless verification** of slashing rules in single Bitcoin tx.
 
-### Status (as of 2026)
+### Status: what actually shipped (as of September 2026)
 
-BitVM3 is a research roadmap item; production Babylon uses covenant
-emulator. Genesis-era vaults aim to deploy BitVM3 in 2026 testnet.
+The staking protocol on Babylon Genesis mainnet still uses the covenant
+emulator quorum; BitVM3-based staking vaults were never deployed. What
+Babylon shipped under the "Trustless Bitcoin Vaults" name is a different
+product, on public testnet as of 16 September 2026:
+
+- **Networks**: Bitcoin signet + Ethereum testnet. Borrowed assets are
+  mock tokens on Sepolia. No mainnet; the 7 October 2025 vault-first
+  roadmap post targeted vault mainnet for "early next year" and that
+  has not happened.
+- **Purpose**: native BTC as collateral for Ethereum DeFi, not
+  liquidity for BTC-secured PoS. The only registered application is the
+  Aave v4 borrowing adapter.
+- **Proof system**: **BABE**, not BitVM3. The paper — "BABE: Verifying
+  Proofs on Bitcoin Made 1000x Cheaper" (Garg, Kolonelos, Sergeevitch,
+  Sridhar, Tse; UC Berkeley / Babylon Labs / Byzantine Research /
+  Stanford, January 2026) — keeps BitVM3's on-chain cost but cuts
+  off-chain storage and setup by three orders of magnitude, against
+  BitVM3's ~42 GiB per garbled circuit. BABE combines witness
+  encryption for linear pairing relations with a garbled circuit for EC
+  scalar multiplication, making Groth16 verification practical in
+  existing Bitcoin script with no fork.
+- **Roles**: depositor, one Vault Provider per vault, App Keepers,
+  Universal Challengers, and a *transitional* Security Council. None
+  custodies BTC; every claim is challengeable and the depositor is
+  always an authorized claimer.
+- **Redemption**: an SP1 proof of the Ethereum redemption event is
+  verified on Bitcoin via BABE, then a challenge window of 432 BTC
+  blocks (~3 days) runs before payout; the claimer gets 108 BTC blocks
+  (~18 hours) to disprove a challenge.
+- **Depositor fallbacks**: self-claim with a Winternitz one-time
+  signature (WOTS) committed at peg-in, and a relative-CSV refund on
+  the Pre-PegIn output (2016 BTC blocks, ~14 days, for the current
+  parameter version) if activation never completes.
+- **Testnet caps**: 0.01–0.4 BTC per vault, 0.4 BTC per position and
+  per address, 10 BTC total across the Aave v4 application, 78 %
+  collateral factor.
+
+Source: https://docs.babylonlabs.io/trustless-bitcoin-vault/ (fetched
+16 September 2026).
 
 ## Worked example
 
@@ -123,4 +170,8 @@ Slashing example: FP Jacqueline equivocates at height 1234.
 
 - Linus, Aumayr, Maffei. "BitVM2: Permissionless Verification" 2024.
 - Babylon BitVM3 design notes.
+- Garg, Kolonelos, Sergeevitch, Sridhar, Tse. "BABE: Verifying Proofs on
+  Bitcoin Made 1000x Cheaper", January 2026 — the construction TBV
+  actually shipped on:
+  https://docs.babylonlabs.io/trustless-bitcoin-vault/research/babe_verification/
 - "EOTS for finality providers" research note.

@@ -95,10 +95,15 @@ Mixing twice and never combining: effective set ~50 (best per round).
 Combining two outputs from set-50 rounds: set drops to 1 against
 their common owner.
 
-Whirlpool (Samourai, now defunct) enforced "post-mix wallet
-separation" by giving the user a distinct seed/account for post-mix
-funds. Wasabi 2.0 enforces label-aware coin selection. Sparrow
-manual labelling is available but user-driven.
+Whirlpool enforced "post-mix wallet separation" by giving the user
+a distinct seed/account for post-mix funds. Samourai itself shut
+down in 2024, but the design is still reachable: the Ashigaru
+project relaunched a ZeroLink Whirlpool coordinator on 23 June 2025
+with Ashigaru Terminal v1.0.0 as the desktop client, and both pools
+were still operating as of mid-2026, so the separation rule applies
+to live coins, not just to history.
+Wasabi 2.0 enforces label-aware coin selection. Sparrow manual
+labelling is available but user-driven.
 
 ## Trade-offs / pitfalls
 
@@ -128,5 +133,7 @@ manual labelling is available but user-driven.
 ## References
 
 - Privacy heuristics catalogue: https://en.bitcoin.it/wiki/Privacy
+- Ashigaru Whirlpool coordinator announcement (23 Jun 2025): https://ashigaru.rs/news/announcement-whirlpool/
+- Both Ashigaru pools reported active (CoinJoin tool comparison, 10 Jun 2026): https://atlas21.com/coinjoin-comparison-of-tools-to-improve-privacy-on-bitcoin/
 - Wasabi labelling: https://docs.wasabiwallet.io/using-wasabi/Labels.html
 - Toxic change discussion: https://gist.github.com/RubenSomsen/c9f0a92493e06b0e29acced59ca1f4fa

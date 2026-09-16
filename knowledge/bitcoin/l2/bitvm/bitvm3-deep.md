@@ -13,8 +13,32 @@ introduces **succinct disprove proofs** based on SNARK-style verifiers
 with fewer revealed bits, and **N-party stateful vaults** suitable for
 staking and bridges with thousands of participants.
 
-As of 2026, BitVM3 is largely a research/roadmap item; multiple teams
-(Babylon, Citrea, Strata) are prototyping variants.
+As of September 2026, BitVM3 is still a research item; multiple teams
+(Babylon, Citrea) are prototyping variants, and no BitVM3 deployment is
+confirmed on Bitcoin mainnet. Babylon's Trustless Vaults, announced on
+BitVM3 in August 2025, are public testnet as of September 2026.
+
+**Alpen Labs / Strata left that list in July 2025.** Alpen's post
+"Glock: A new standard for verification on Bitcoin" (15 July 2025)
+states that Liam Eagen and Fairgate Labs "recently reported separate
+core flaws in its RSA-based construction, rendering it unsafe to build
+upon", and that the "company's direction now fully orients towards
+Glock in the development of the Alpen ZK rollup and the Strata bridge".
+Glock is written up as "Glock: Garbled Locks for Bitcoin" (Liam Eagen
+and Alpen Labs, IACR eprint 2025/1485, received August 2025). Treat
+older sources listing Strata as a BitVM3 adopter as historical.
+
+**Design note (September 2026).** The academic write-up - "BitVM3:
+Efficient Bitcoin Bridges via Garbled Circuits" (Robin Linus Woll,
+Alexopoulos, Aumayr, Avarikioti, Maffei, Tse; IACR eprint 2026/933,
+received May 2026, revised June 2026) - settles on a different
+primitive from the SNARK/KZG sketch described below: in BitVM3-CORE the
+challenger evaluates a **garbled circuit** entirely off-chain, which
+the paper reports as a nearly 1000x on-chain saving (total on-chain
+cost ~$9, with the challenge transaction itself ~$0.20, against a
+~$16,000 worst-case dispute cost under BitVM2). Read the KZG-flavoured
+mechanics below as one line from the 2025 working drafts rather than as
+the design in the 2026 paper.
 
 ## Walkthrough / mechanics
 
@@ -104,7 +128,16 @@ Babylon vault with 1000 stakers, total 1000 BTC. Staker #437 unstakes.
 
 ## References
 
-- bitvm.org research drafts (BitVM3 work-in-progress).
+- Robin Linus Woll, Alexopoulos, Aumayr, Avarikioti, Maffei, Tse.
+  "BitVM3: Efficient Bitcoin Bridges via Garbled Circuits", IACR eprint
+  2026/933 (received May 2026, revised June 2026).
+- bitvm.org research drafts (BitVM3 work-in-progress), including the
+  line whose RSA-based construction Liam Eagen and Fairgate Labs had
+  reported broken as of July 2025.
+- Liam Eagen and Alpen Labs. "Glock: Garbled Locks for Bitcoin", IACR
+  eprint 2025/1485 (received August 2025).
+- Alpen Labs. "Glock: A new standard for verification on Bitcoin",
+  15 July 2025. https://www.alpen.org/blog/glock-verification-on-bitcoin
 - "MATT - Merkleize All The Things" (Salvatore Ingala 2023).
 - Poseidon hash function (Grassi et al. 2019).
 - KZG polynomial commitments (Kate, Zaverucha, Goldberg 2010).

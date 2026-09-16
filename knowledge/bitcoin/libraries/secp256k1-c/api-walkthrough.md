@@ -13,14 +13,23 @@ of every language binding (`rust-secp256k1`, `nbitcoin`'s native code,
 endomorphism-optimised, and structured so unused modules can be
 compiled out for embedded targets.
 
-Modules are opt-in at build time:
+Modules are selected at build time. The full set as of v0.8.0
+(August 2026), with everything except `recovery` defaulting to on:
 
 - default: ECDSA sign / verify, pubkey derivation.
 - `extrakeys` + `schnorrsig`: BIP340 (x-only pubkeys + Schnorr).
-- `recovery`: ECDSA with public-key recovery.
+- `recovery`: ECDSA with public-key recovery (default off).
 - `ecdh`: Diffie-Hellman.
-- `musig`: BIP327 MuSig2.
-- `frost`: experimental FROST.
+- `ellswift`: ElligatorSwift encoding + x-only DH, added in v0.4.0
+  (September 2023); the primitive behind BIP324 v2 transport.
+- `musig`: BIP327 MuSig2, added in v0.6.0 (November 2024).
+- `silentpayments`: BIP352 silent payments, added in v0.8.0
+  (August 2026) -- sending plus recipient scanning over full
+  transaction data; light-client scanning is not implemented.
+
+There is no FROST module upstream. As of September 2026 FROST for
+this codebase exists only as open pull requests against
+`BlockstreamResearch/secp256k1-zkp` (#138, #278).
 
 ## Build
 
@@ -28,14 +37,19 @@ Modules are opt-in at build time:
 git clone https://github.com/bitcoin-core/secp256k1
 cd secp256k1
 ./autogen.sh
-./configure \
-    --enable-module-recovery \
-    --enable-module-schnorrsig \
-    --enable-module-extrakeys \
-    --enable-module-musig \
-    --enable-experimental
+./configure --enable-module-recovery   # the rest are on by default
 make -j
 sudo make install                     # libsecp256k1.so + headers
+```
+
+`--enable-experimental` is no longer needed for any module: as of
+v0.8.0 (August 2026) it only gates the experimental arm32 assembly
+backend. CMake is a supported, non-experimental build path since
+v0.7.0 (July 2025) and needs CMake 3.22 or newer:
+
+```bash
+cmake -B build -DSECP256K1_ENABLE_MODULE_RECOVERY=ON
+cmake --build build
 ```
 
 ## API walkthrough
@@ -132,6 +146,12 @@ void recover_demo(secp256k1_context *ctx, const unsigned char seckey[32],
 - **Context reuse**: contexts are expensive to create. Create one
   global context at process start (`SECP256K1_CONTEXT_NONE` for
   modern builds; older builds split sign / verify) and pass references.
+- **Symbols removed in v0.8.0** (August 2026): `secp256k1_context_no_precomp`
+  (use `secp256k1_context_static`) and the alias `secp256k1_schnorrsig_sign`
+  (use `secp256k1_schnorrsig_sign32`) are gone, so older call sites fail
+  to link against a 0.8.x build. v0.7.0 (July 2025) had already dropped
+  `secp256k1_ec_privkey_negate` / `_tweak_add` / `_tweak_mul` in favour of
+  the `_seckey_` spellings.
 - **`secp256k1_context_randomize`**: call once after creation with 32
   random bytes for side-channel hardening. Skipping it doesn't break
   correctness but weakens the timing model.
@@ -147,5 +167,7 @@ void recover_demo(secp256k1_context *ctx, const unsigned char seckey[32],
 - Repo: https://github.com/bitcoin-core/secp256k1
 - BIP340 (Schnorr): https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
 - BIP327 (MuSig2): https://github.com/bitcoin/bips/blob/master/bip-0327.mediawiki
+- BIP352 (Silent Payments): https://github.com/bitcoin/bips/blob/master/bip-0352.mediawiki
+- CHANGELOG: https://github.com/bitcoin-core/secp256k1/blob/master/CHANGELOG.md
 - Examples directory: https://github.com/bitcoin-core/secp256k1/tree/master/examples
 - Companion: [secp256k1-rs/SKILL.md](../secp256k1-rs/SKILL.md), [../../cryptography/secp256k1/SKILL.md](../../cryptography/secp256k1/SKILL.md)

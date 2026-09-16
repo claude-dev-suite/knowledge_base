@@ -18,6 +18,12 @@ This trades a paper backup that's vulnerable to "rubber-hose" coercion
 for a digital backup that requires both the SD and the password to
 restore. Loss of one of the two is recoverable from the other.
 
+The BitBox02 Nova (shipping since summer 2025) uses the same microSD
+backup and recovery workflow, and Shift documents restoring an existing
+BitBox02 wallet onto a Nova from either the microSD backup or the
+recovery words. See `nova-whisper-deep.md` for how the two models
+differ.
+
 ## Walkthrough
 
 ### Initial setup

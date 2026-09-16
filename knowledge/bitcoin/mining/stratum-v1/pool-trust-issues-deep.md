@@ -43,9 +43,35 @@ template; they can only abandon the job. This means the pool decides:
   propagation.
 
 Concrete public examples:
-- Multiple US-based pools have admitted to filtering OFAC-listed addresses
-  since 2022.
-- MARA Pool published an "OFAC-compliant" empty-block experiment in 2023.
+- MARA Pool (Marathon Digital) ran an "OFAC-compliant" filtered template:
+  it began pointing its hashrate at the pool on 1 May 2021 and put out a
+  press release on 5 May 2021. The blocks were *not* empty - block
+  682,170, mined 6 May 2021 with the coinbase tag
+  `\ MARA Pool - OFAC Compliant Block \`, carried 178 transactions and
+  was near-full at 3,993,010 WU. What changed was the composition:
+  far fewer but much larger transactions than its neighbours (178
+  against 1,096 / 1,180 / 1,839 in blocks 682,169 / 682,171 / 682,172)
+  earning about a sixth of their fee income (0.051 BTC against
+  0.31 / 0.31 / 0.48 BTC), because transactions touching the US
+  Treasury SDN list were screened out. Marathon dropped the filter on
+  2 June 2021 after community backlash and moved back to stock
+  Bitcoin Core 0.21.1.
+- F2Pool filtered quietly and admitted it only after being caught.
+  0xB10C's miningpool-observer flagged four F2Pool blocks in October
+  2023 that omitted OFAC-sanctioned transactions despite having space
+  and time to include them (published 20 November 2023); co-founder
+  Chun Wang confirmed the patch and said it would be disabled. A
+  follow-up on 16 January 2025 found 15 sanctioned transactions missing
+  from 14 blocks, 11 of them F2Pool's, and concluded F2Pool "might be
+  filtering ... again". No later write-up has appeared on that site as
+  of September 2026.
+- Single missing-transaction reports against ViaBTC and Foundry USA in the
+  2023 dataset were judged likely false positives - fee-based displacement
+  and late propagation, not filtering.
+
+Note the geography does not run the way people assume: the pool caught
+filtering OFAC-sanctioned transactions is Asian-founded, while the
+US-based pool that filtered did so for one month in 2021 and stopped.
 
 The miner has no way to override these policies short of switching pools.
 
@@ -65,10 +91,20 @@ commitments.
 ### Trust 4 - Honest payout
 
 The pool promises to pay out per its stated reward scheme (PPS, FPPS, PPLNS).
-Off-chain accounting is opaque; some pools have absconded with deposits
-(historically, ICCMiner, OZcoin, etc., though never on the scale of an
-exchange exit). Modern major pools have track records but are still
-custodial.
+Off-chain accounting is opaque, and an unpaid miner balance is an unsecured
+claim on the operator. Two documented ways that has gone wrong:
+
+- **Breach.** OzCoin lost 923 BTC (~$135k at the time) to a server
+  compromise in April 2013. The web wallet StrongCoin traced and returned
+  part of it; 354.06 BTC was never recovered. Theft, not an exit scam -
+  but the loss landed on pool-held funds.
+- **Insolvency.** Poolin, once the largest pool by hashrate, suspended
+  Poolin Wallet withdrawals on 5 September 2022 citing liquidity, issued
+  ~$163.7M of 1:1 "IOU" tokens to ~11,700 customers on 13 September 2022,
+  and filed Chapter 11 in New Jersey on 22 July 2026 with roughly $173M
+  of debts.
+
+Modern major pools have track records but are still custodial.
 
 ### Trust 5 - Worker identity
 
@@ -81,8 +117,12 @@ connection can swap your worker name and route your hashrate.
 If a single pool exceeds 25-33% of the network hashrate, classical
 selfish-mining attacks become profitable. Stratum V1 makes consolidation
 easy because miners only need a TCP endpoint - no template work, no
-bandwidth scaling. This is partly why hashrate pooled into Foundry and
-AntPool reaches >50% combined as of 2025.
+bandwidth scaling. On the 7-day window ending 16 September 2026
+(mempool.space, 1071 blocks) the split is Foundry USA 26.3%, AntPool
+18.9%, F2Pool 13.8%, ViaBTC 9.4%, SpiderPool 8.8%. Foundry plus
+AntPool is 45.2% combined - below the >50% the pair reached in 2025 -
+but the top four pools still hold 68.4% and the top five 77.2%, and
+Foundry alone sits inside the 25-33% selfish-mining band.
 
 ## Worked example
 
@@ -130,7 +170,19 @@ from hiding the block from the network.
 ## References
 
 - "Stratum V2: A Specification" - Braiins Pool whitepaper (2019)
-- Bitcoin Optech newsletter coverage of OFAC pool filtering (2022-2023)
+- Marathon press release, 5 May 2021 (MARA OFAC Pool)
+  <https://www.globenewswire.com/news-release/2021/05/05/2223800/0/en/Marathon-Digital-Holdings-Becomes-the-First-North-American-Enterprise-Miner-to-Produce-Fully-AML-and-OFAC-Compliant-Bitcoin.html>
+- The Block, 2 June 2021 - Marathon stops filtering
+  <https://www.theblock.co/linked/106865/marathon-ofac-bitcoin-mining-pool-taproot>
+- 0xB10C, "Six OFAC-sanctioned transactions missing", 20 November 2023
+  <https://b10c.me/observations/08-missing-sanctioned-transactions/>
+- 0xB10C, "Fifteen OFAC-sanctioned transactions missing from blocks",
+  16 January 2025
+  <https://b10c.me/observations/13-missing-sanctioned-transactions-2024-12/>
+- Bitcoin Magazine, 24 April 2013 - OzCoin hack and StrongCoin recovery
+  <https://bitcoinmagazine.com/business/ozcoin-hacked-stolen-funds-seized-and-returned-by-strongcoin-1366822516>
+- CoinDesk, 24 July 2026 - Poolin Chapter 11 filing
+  <https://www.coindesk.com/markets/2026/07/24/poolin-was-bitcoin-s-biggest-mining-pool-and-now-it-s-filing-for-bankruptcy>
 - "Block Withholding Attacks" - Eyal & Sirer (2014)
 - Skill: `bitcoin/mining/stratum-v2`
 - Skill: `bitcoin/mining/decentralized-pools`

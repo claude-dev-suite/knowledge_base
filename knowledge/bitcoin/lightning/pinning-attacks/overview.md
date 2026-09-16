@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Pinning attacks: low-fee descendant txs block honest fee-bumping by exploiting mempool descendant policy. Anchor outputs (BOLT-3), TRUC v3 (BIP431), and ephemeral anchors as defenses.
+Pinning attacks: low-fee descendant txs block honest fee-bumping by exploiting mempool descendant policy. Anchor outputs (BOLT-3), TRUC v3 (BIP431), P2A + ephemeral dust, and the single shared anchor of `zero_fee_commitments` as defenses.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

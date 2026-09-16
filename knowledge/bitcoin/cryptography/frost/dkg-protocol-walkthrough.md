@@ -1,7 +1,7 @@
 # FROST DKG Protocol Walkthrough - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/cryptography/frost`.
-> Canonical source: Pedersen DKG (1991) + draft-irtf-cfrg-frost / ZF FROST spec
+> Canonical source: Pedersen DKG (1991) + RFC 9591 (IRTF FROST) / ZF FROST spec
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/cryptography/frost/SKILL.md
 
 ## Concept
@@ -169,11 +169,26 @@ plugs each `s_l * lambda_l` into the partial-signature aggregation.
 - **Insecure share transport.** Pedersen DKG assumes pairwise authenticated
   encrypted channels. Sending shares in plaintext over a coordinator is a
   total break.
+- **Taking RFC 9591 as the Bitcoin spec.** RFC 9591 (June 2024) defines a
+  `FROST(secp256k1, SHA-256)` ciphersuite, but its signatures are not
+  BIP340-compatible — BIP340 uses x-only public keys — and it specifies no
+  key tweaking, so no BIP32 derivation and no BIP341 Taproot. For Bitcoin,
+  signing follows BIP 445, which leaves key generation out of scope and
+  points at either ChillDKG or RFC 9591's trusted-dealer setup (Appendix C).
 
 ## References
 
 - Gennaro, Jarecki, Krawczyk, Rabin (1999) "Secure Distributed Key Generation":
   https://link.springer.com/chapter/10.1007/3-540-48910-X_21
 - ZF FROST DKG spec: https://github.com/ZcashFoundation/frost/blob/main/book/src/dkg.md
-- chillDKG (Ruffing): https://github.com/BlockstreamResearch/bip-frost-dkg
-- draft-irtf-cfrg-frost: https://datatracker.ietf.org/doc/draft-irtf-cfrg-frost/
+- ChillDKG (Ruffing, Nick, Melnyk, Zhvanko, Dhakshinamoorthy) — dev repo
+  https://github.com/BlockstreamResearch/bip-frost-dkg ; submitted as a BIP
+  draft (`Requires: 445`, no number assigned) in bitcoin/bips#2227 on
+  2026-07-30, still open as of September 2026:
+  https://github.com/bitcoin/bips/pull/2227
+- BIP 445, "FROST Signing Protocol for BIP340 Signatures" (Draft, number
+  assigned 2026-01-30, spec v0.10.0; PR bitcoin/bips#2070 open as of
+  September 2026): https://github.com/bitcoin/bips/pull/2070
+- RFC 9591, "The Flexible Round-Optimized Schnorr Threshold (FROST) Protocol
+  for Two-Round Schnorr Signatures" (IRTF, June 2024; supersedes
+  draft-irtf-cfrg-frost): https://www.rfc-editor.org/rfc/rfc9591.html

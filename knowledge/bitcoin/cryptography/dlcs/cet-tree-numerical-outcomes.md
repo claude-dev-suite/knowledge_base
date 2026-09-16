@@ -234,3 +234,6 @@ the math more robust to partial oracle outages.
   https://github.com/p2pderivatives/rust-dlc/tree/master/dlc-trie
 - Atomic Finance, "Practical DLC Range Contracts":
   https://atomic.finance/blog
+  Dead link: the domain stopped resolving after the Atomic Finance
+  consumer app was sunset in 2025 (NXDOMAIN as of September 2026); the
+  team and DLC stack moved to Lygos.

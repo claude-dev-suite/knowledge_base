@@ -9,10 +9,20 @@
 **Anchor outputs** were introduced to BOLT-03 (channel transactions
 v2) specifically to mitigate pinning attacks and enable reliable
 fee-bumping. Each commitment transaction has two small **anchor
-outputs** (one per peer) that any party can spend with their key, but
-only via CPFP after a 1-block CSV. This gives each peer a guaranteed
-way to attach a child transaction bumping the commitment's fee, even
-if the commitment itself is pinned by an opponent.
+outputs** (one per peer), each locked to that peer's funding key and
+spendable by them immediately. Every *non*-anchor output on the
+commitment carries a CSV lock, so the anchor is the only CPFP handle.
+This gives each peer a guaranteed way to attach a child transaction
+bumping the commitment's fee, even if the commitment itself is pinned
+by an opponent.
+
+> Scope note (September 2026): this article describes the
+> `option_anchors` commitment type, which is still what LND and CLN
+> ship. The BOLT spec has since merged `zero_fee_commitments`
+> (2026-05-04, lightning/bolts PR #1228), which replaces the two keyed
+> anchors with a single keyless `shared_anchor` — see
+> [Zero-fee commitments supersede the two-anchor
+> design](#zero-fee-commitments-supersede-the-two-anchor-design) below.
 
 ## Walkthrough / mechanics
 
@@ -80,6 +90,37 @@ Honest node detects commitment in mempool, immediately:
 
 Watchtowers running BOLT-03 v2 do this on operator's behalf.
 
+### Zero-fee commitments supersede the two-anchor design
+
+The `zero_fee_commitments` channel type (BOLT-9 feature bits 40/41,
+merged into the spec on 2026-05-04) drops the per-peer keyed anchors
+entirely:
+
+- The commitment tx has `version` 3 (TRUC) and `feerate_per_kw` 0, so
+  the commitment and both 2nd-stage HTLC txs pay no base fee and
+  `update_fee` is never sent.
+- A single **`shared_anchor`** output carries the standard P2A script
+  `OP_1 <0x4e73>` (BIP-433), spent by anyone with an empty witness.
+- Its amount is the sum of trimmed outputs plus rounded-down msat.
+  Below the 240-sat P2A dust limit this is only legal under Bitcoin
+  Core's ephemeral-dust rule (Core 29.0+), which applies precisely
+  because the parent pays zero fee. Above 240 sat the anchor caps at
+  240 and the excess becomes a real mining fee.
+- The 1-block CSV is scoped to `option_anchors`, so `to_remote` here is
+  a plain P2WPKH: you can CPFP a *remote* commitment from your own
+  channel outputs without an external wallet UTXO.
+
+One keyless anchor is safe here only because TRUC (BIP-431) caps the
+parent at a single unconfirmed descendant and allows sibling eviction:
+whatever child an attacker attaches can be replaced by a
+higher-feerate sibling, so there is no descendant limit to monopolise.
+That is exactly the property the two keyed anchors were invented to
+provide.
+
+As of September 2026 this is shipped in LDK (`lightning` 0.2,
+2025-12-02) and Eclair (v0.14.0, 2026-05-21); the LND and CLN source
+trees contain no `zero_fee_commitments` support.
+
 ### Dust limit concerns
 
 Anchors at 330 sat are above standard dust threshold for P2WSH outputs.
@@ -137,12 +178,18 @@ package feerate 100 sat/vB).
   anchor. Stale commitments don't dust the chain.
 - **Commitment fee static**: legacy channels use a fixed fee schedule;
   anchor channels effectively have flexible feerate via CPFP.
-- **Mempool acceptance**: package relay must be enabled on all
-  intermediate nodes for packages to propagate; older nodes may reject.
+- **Mempool acceptance**: there is no negotiated package-relay
+  protocol on the wire. BIP-331 is still Status: Draft and has never
+  been deployed (verified September 2026); Bitcoin Core 28.0 shipped
+  only *opportunistic 1-parent-1-child relay* over the ordinary
+  tx-relay protocol, plus the local `submitpackage` RPC (Core 26.0).
+  Propagation therefore depends on the relay path running Core 28.0+,
+  and on 29.0+ once ephemeral dust is involved.
 
 ## References
 
 - BOLT-03 anchor output spec.
-- BIP-329 — Package relay.
+- BIP-331 — Ancestor package relay (Status: Draft, never deployed).
+- BIP-433 — Pay to Anchor (P2A), the `shared_anchor` script.
 - "Anchor outputs proposal" — Conner Fromknecht, 2019 lightning-dev.
 - BIP-431 (TRUC) — fixes cycling that anchors alone don't.

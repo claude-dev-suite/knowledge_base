@@ -1,8 +1,43 @@
 # MAP Protocol Interop Architecture - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/l2/map-protocol`.
-> Canonical source: https://docs.maplabs.io/
+> Canonical source: https://docs.mapprotocol.io/
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/l2/map-protocol/SKILL.md
+
+## Status: Butter Bridge V3.1 exploit (20 May 2026)
+
+Everything below describes the intended design. As of 15 September
+2026 that design should be read as a case study, not as deployment
+guidance:
+
+- On **20 May 2026** MAP Protocol shut down the bridge connecting
+  MAPO ERC-20 on Ethereum to the MAPO mainnet after a reported
+  exploit of **Butter Bridge V3.1**, paused mainnet operations, and
+  began a migration to new token contracts.
+- As of 15 September 2026 no post-mortem appears on mapprotocol.io
+  or docs.mapprotocol.io; neither carries a notice of the incident,
+  and MAP's Medium account has published nothing since April 2022.
+  Press reporting on 20 May 2026 said the exploit mechanism and the
+  extent of losses had not been disclosed.
+- Press reporting on 20-21 May 2026, **not confirmed by MAP**,
+  describes an attacker deploying a contract that manipulated an
+  oracle multisig-signed message to mint roughly a quadrillion MAPO
+  and dump ~1B of them on Uniswap for ~52 ETH (~$180k). Treat the
+  figures as press-reported.
+- Independent corroboration of the date: CoinGecko records MAPO's
+  all-time low of $0.00034224 on 20 May 2026.
+- The 1:1 swap to new Ethereum and BNB Chain token contracts has
+  since completed; CoinGecko lists both at
+  `0x7046933234A82AF77F14625e8d0fA9Bcc5044a7E` as of 15 September
+  2026, and mapprotocol.io again advertises live cross-chain
+  traffic. Whether the Ethereum <-> mainnet bridge itself reopened
+  could not be independently confirmed.
+
+Design lesson: the light-client/ZK path described below constrains
+*header* validity, but the minting authority on the destination side
+is a separate trust surface. A bridge that mints wrapped supply on
+the strength of an oracle-signed message inherits that oracle's
+failure modes no matter how well the header chain is proven.
 
 ## Concept
 
@@ -99,9 +134,16 @@ User then trades wMBC on Polygon DEXes; later burns to redeem BTC.
 - **Maintainer misconduct**: malicious maintainer submitting fake proofs
   is slashed, but if a quorum colludes, lookups can be temporarily
   poisoned. Multiple maintainers + on-chain verification mitigates.
+- **Mint authority is not the light client**: the 20 May 2026 Butter
+  Bridge V3.1 incident (see status section above) was reported as
+  unauthorized minting via a manipulated oracle-signed message, not
+  as a break of header verification. Audit the wrapper's mint path
+  separately from the proof path.
 
 ## References
 
 - MAP Protocol whitepaper.
-- MAP docs (docs.maplabs.io).
+- MAP docs (docs.mapprotocol.io; docs.maplabs.io now redirects there).
+- Butter MOS contracts: https://github.com/butternetwork/butter-mos-contracts
+  (v3.1.x tag line).
 - BIP-152 SPV (compact block) for relay efficiency.

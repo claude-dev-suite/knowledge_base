@@ -5,7 +5,7 @@
 
 ## What this covers
 
-ASIC mining firmware: Braiins OS+, Vnish, BUMa, stock firmware, custom firmware tradeoffs. Overclocking, undervolting, autotuning, efficiency curves.
+ASIC mining firmware: Braiins OS+, Vnish, BUMa, ESP-Miner/AxeOS (Bitaxe), stock firmware, custom firmware tradeoffs. Overclocking, undervolting, autotuning, efficiency curves.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

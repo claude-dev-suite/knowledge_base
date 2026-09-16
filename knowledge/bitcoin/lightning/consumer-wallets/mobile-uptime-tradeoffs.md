@@ -67,6 +67,38 @@ naively because they don't sign for the HTLC.
 
 Most modern self-custodial mobile wallets use this pattern.
 
+#### Standardising the wakeup: BLIP-55 / LSPS5
+
+The wakeup half of Patterns A and C is specified as **BLIP-55 / LSPS5:
+Webhook Registration** (bLIP-55 `Status: Active`, created 2024-12-02;
+LSPS5 `webhook_registration` version 1, status "For Implementation" —
+both checked September 2026):
+
+- The client registers an HTTPS webhook over the existing LSPS0 BOLT 8
+  transport: `lsps5.set_webhook` (`app_name` + `webhook` URL),
+  `lsps5.list_webhooks`, `lsps5.remove_webhook`.
+- The LSP `POST`s to that webhook, which belongs to a *notification
+  delivery service* the app developer runs; that service, not the LSP,
+  holds the APNS/FCM credentials and makes the actual push.
+- The LSP calls the webhooks only when the client has no BOLT 8 tunnel
+  open — the suspended-app case this article is about.
+- Notification methods: `lsps5.webhook_registered`,
+  `lsps5.payment_incoming` (Pattern A/C), `lsps5.expiry_soon` (params
+  `timeout`, the block height of the forced close; sent within 24
+  blocks of the timeout — the force-close-while-asleep case below),
+  `lsps5.liquidity_management_request`,
+  `lsps5.onion_message_incoming`.
+- Each notification carries an ISO8601 timestamp and an LSPS0
+  `ln_signature` (zbase32) over it from the LSP node id, so the
+  delivery service can drop forged or replayed wakeups.
+- Reference implementation: the `lsps5` module of LDK's
+  `lightning-liquidity` crate (rust-lightning tree, checked
+  September 2026).
+
+The spec says nothing about how long the LSP holds the HTLC; that is
+still per-LSP policy ("a reasonable time that allows the client to
+awaken").
+
 ### Channel monitoring on mobile
 
 - **Watchtowers**: third-party services watch the chain on user's
@@ -143,3 +175,7 @@ If push delivery fails:
 - ACINQ "Phoenix on Mobile" blog series.
 - BOLT-04 onion + BOLT-02 timing requirements.
 - Apple Push Notification Service APNS docs.
+- bLIP-55: https://github.com/lightning/blips/blob/master/blip-0055.md
+- LSPS5: https://github.com/BitcoinAndLightningLayerSpecs/lsp/blob/main/LSPS5/README.md
+- [`../lsp/blip-50-flow-walkthrough.md`](../lsp/blip-50-flow-walkthrough.md)
+  for the LSPS0 transport these calls ride on.

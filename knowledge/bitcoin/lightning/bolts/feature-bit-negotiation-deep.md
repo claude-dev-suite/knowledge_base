@@ -56,11 +56,12 @@ multi-year process. `var_onion_optin` (bits 8/9) crossed this threshold in
 
 ## Worked example
 
-Real init from CLN 24.05 to LDK 0.0.124:
+Example init from a CLN peer to an LDK peer, with bit numbers as assigned
+by BOLT 9 on lightning/bolts master as of September 2026:
 
 ```
 init
-  features: 0x000000088a525a1ea
+  features: 0x0000a0000a82a282
   networks_tlv: { chain_hashes: [bitcoin_genesis] }
   remote_addr_tlv: { addr: 198.51.100.5:9735 }
 ```
@@ -70,19 +71,26 @@ Decoding bits set (LSB first per BOLT 1 "Bit Numbering"):
 bit 1   option_data_loss_protect (odd)
 bit 7   gossip_queries (odd)
 bit 9   var_onion_optin (odd)
-bit 13  static_remotekey (odd)
-bit 17  payment_secret (odd)
-bit 19  basic_mpp (odd)
-bit 21  option_anchors_zero_fee_htlc_tx (odd)
+bit 13  option_static_remotekey (odd)
+bit 15  payment_secret (odd)
+bit 17  basic_mpp (odd)
+bit 23  option_anchors (odd)
+bit 25  option_route_blinding (odd)
 bit 27  option_shutdown_anysegwit (odd)
-bit 45  option_route_blinding (odd)
-bit 51  option_keysend (odd)
+bit 45  option_channel_type (odd)
+bit 47  option_scid_alias (odd)
 ```
 
 LDK responds with a partially overlapping set. Both sides take the
 intersection. Notably, neither asserts an even bit — this is typical:
 even bits are reserved for hard-required protocol breaks, and current
 production traffic uses only odd bits.
+
+Watch the pairs: `payment_secret` is 14/15 and `basic_mpp` 16/17, not the
+other way round, and anchors are 22/23 — legacy `option_anchor_outputs` at
+20/21 was deleted from BOLT 9 in 2024 and the surviving zero-fee-HTLC
+feature renamed `option_anchors`. Keysend has never had a BOLT 9 bit at
+all; LND advertises it at 54/55 off-spec.
 
 Probing peer features non-destructively (LND CLI):
 ```

@@ -17,8 +17,10 @@ tag is present, which contains it explicitly).
 
 The `bolt11` JavaScript package is the most commonly used decoder/encoder
 in the JS ecosystem; equivalents exist in Python (`bolt11`),
-Rust (`lightning-invoice` from LDK), and Go (`zpay32` from LND or
-`bolt11` from various LSP repos).
+Rust (`lightning-invoice` from LDK), and Go (`zpay32` from LND, which is
+the canonical Go implementation). Note the maintenance picture as of
+September 2026: npm `bolt11` has been frozen at 1.4.1 since 2023-03-22,
+so "most commonly used" is about installed base, not release activity.
 
 ## API walkthrough
 
@@ -87,7 +89,12 @@ print(inv.amount_msat, inv.payment_hash, inv.payee)
 ```
 
 ```rust
-// lightning-invoice = "0.32"
+// lightning-invoice = "0.34"
+// 0.34.1 is the current stable (2026-06-19); 0.35.0-rc1 (2026-08-31) is
+// still a prerelease as of September 2026. The crate is released from the
+// rust-lightning repo but versioned independently of the `lightning` crate
+// (0.2.6, September 2026) -- it depends on `lightning-types`, not on
+// `lightning`, so the two pins move separately.
 use lightning_invoice::Bolt11Invoice;
 use std::str::FromStr;
 

@@ -91,7 +91,12 @@ If the oracle never publishes, the refund tx becomes spendable after
   before broadcasting funding -- otherwise you fund a contract you can't
   actually settle.
 - **Version pinning**: `dlc`, `dlc-manager`, `dlc-messages` must match
-  the same minor; mixed versions silently break wire compatibility.
+  the same minor; mixed versions silently break wire compatibility. The
+  workspace releases all crates in lockstep -- 0.8.0 (13 December 2025)
+  is the current line as of September 2026, superseding 0.7.1
+  (12 December 2024). 0.8.0 builds against `rust-bitcoin` 0.32.x and
+  `lightning` 0.0.125, so your own `bitcoin` dependency must resolve to
+  that same 0.32 line or the types will not unify.
 
 ## References
 

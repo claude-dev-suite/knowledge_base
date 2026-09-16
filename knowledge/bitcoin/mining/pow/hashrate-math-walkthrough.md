@@ -61,6 +61,31 @@ Pool dashboards typically use a 5-minute or 1-hour rolling window for this
 estimate. Variance is high at short windows; standard deviation of the
 estimate is `H / sqrt(n)`.
 
+### Nonce-space exhaustion
+
+The 32-bit header nonce is only `2^32 ~= 4.295e9` hashes. At `H` hashes per
+second a device burns through it in `2^32 / H`:
+
+```
+200 TH/s : 4.295e9 / 2e14 = 2.15e-5 s  ~= 21.5 microseconds
+1 PH/s   : 4.295e9 / 1e15 = 4.30e-6 s  ~=  4.3 microseconds
+```
+
+So the nonce alone cannot keep an ASIC busy between jobs. The rest of the
+headers-only search space comes from the reserved `nVersion` bits and from
+`nTime`, which only advances once per second. Per second of wall clock:
+
+```
+BIP 320 (16 bits, 13-28): 2^32 * 2^16 = 2^48 ~= 2.81e14 hashes
+BIP 323 (24 bits,  5-28): 2^32 * 2^24 = 2^56 ~= 7.21e16 hashes
+```
+
+A single 200 TH/s unit already eats ~71% of the BIP 320 budget, which is why
+some firmware began borrowing bits from `nTime` and why BIP 323 (merged into
+the BIPs repo 12 May 2026) widened the reservation to 24 bits. Past that
+point the miner has to bump `extranonce2`, rebuild the coinbase and
+recompute the merkle root - controller work, not hash-core work.
+
 ### Time to find a block (variance)
 
 Block discovery is a Poisson process. With expected time `mu = D * 2^32 / H`,
@@ -77,6 +102,10 @@ So `P(no_block_in_2*mu) = exp(-2) ~= 13.5%`. The probability of going
 
 A miner runs an Antminer S21 rated at 200 TH/s = `2 * 10^14` H/s. Network
 difficulty is `D = 95_000_000_000_000` (95 T).
+
+> Round figures are used here so the arithmetic stays checkable by hand. For
+> scale, the live values on 15 September 2026 were difficulty 127.45 T and a
+> network hashrate of ~0.98 ZH/s (mempool.space mining API).
 
 Expected solo block time:
 
@@ -129,6 +158,8 @@ Plus fees, minus pool fee.
 ## References
 
 - Bitcoin Core `src/rpc/blockchain.cpp` GetNetworkHashPS
+- BIP 320: nVersion bits for general purpose use <https://github.com/bitcoin/bips/blob/master/bip-0320.mediawiki>
+- BIP 323: 24 nVersion bits for general purpose use <https://github.com/bitcoin/bips/blob/master/bip-0323.mediawiki>
 - "Bitcoin Mining Math" - Braiins blog series
 - Slush Pool Vardiff analysis
 - Skill: `bitcoin/mining/difficulty`

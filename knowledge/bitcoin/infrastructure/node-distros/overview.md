@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Self-hosted Bitcoin node distros: Umbrel, Start9 Embassy, RaspiBlitz, MyNode, Citadel. Pre-configured Bitcoin + Lightning + apps.
+Self-hosted Bitcoin node distros: Umbrel, Start9 StartOS, RaspiBlitz, MyNode, Citadel. Pre-configured Bitcoin + Lightning + apps.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

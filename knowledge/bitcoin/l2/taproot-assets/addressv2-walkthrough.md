@@ -1,13 +1,14 @@
 # Taproot Assets AddressV2 Walkthrough - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/l2/taproot-assets`.
-> Canonical source: tapd v0.7 release notes (Dec 2025) and BIP-PROTO-006
+> Canonical source: tapd v0.7 release notes (Nov 2025) and BIP-PROTO-006.
+> Current tapd release line as of September 2026: v0.8.3.
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/l2/taproot-assets/SKILL.md
 
 ## Concept
 
 AddressV2 is the static, reusable Taproot Assets address format introduced in tapd v0.7
-(December 2025). The original AddressV1 was a one-shot per-payment address bound to a
+(November 2025). The original AddressV1 was a one-shot per-payment address bound to a
 specific asset_id and amount; AddressV2 is reusable, supports **grouped assets**, and
 allows **zero-amount-friendly** receive flows (the receiver picks the amount per
 incoming payment, or accepts any amount). This solves the practical UX problem of
@@ -112,9 +113,13 @@ Bob never had to publish two addresses or pre-coordinate the asset.
 ## Trade-offs and security
 
 - **Universe reliance**: AddressV2 effectively requires an online universe service to
-  mediate. If the universe is down at send time, the sender can fall back to a fresh
-  AddressV1 (if the receiver supports it) or wait. This is a UX regression for fully-
-  offline scenarios.
+  mediate. Concretely, the sender needs a proof courier speaking the
+  `authmailbox+universerpc://` protocol; any tapd v0.7.0 or later running with
+  `universe.public-access=rw` serves it, and the v0.7.0 release notes state the
+  default/standard universe servers would be updated after that release (November
+  2025), so default configurations need no change. If the universe is down at send
+  time, the sender can fall back to a fresh AddressV1 (if the receiver supports it) or
+  wait. This is a UX regression for fully-offline scenarios.
 - **Receiver policy enforcement**: receiver can refuse a payment via the universe
   before broadcast, but cannot refuse after broadcast. Adversarial sender can ignore
   the handshake and broadcast anyway with a known script_key (still requires getting
@@ -129,6 +134,7 @@ Bob never had to publish two addresses or pre-coordinate the asset.
 
 ## References
 
-- tapd v0.7 release notes - https://github.com/lightninglabs/taproot-assets/releases/tag/v0.7.0
+- tapd v0.7 release notes (Nov 2025) - https://github.com/lightninglabs/taproot-assets/releases/tag/v0.7.0
+- tapd v0.8.3 release (Sept 2026) - https://github.com/lightninglabs/taproot-assets/releases/tag/v0.8.3
 - BIP-PROTO-006 (AddressV2 spec) - https://github.com/lightninglabs/taproot-assets/blob/main/docs/bip-proto-006.md
 - Lightning Labs blog, "Address V2 unlocks set-and-forget" (Dec 2025)

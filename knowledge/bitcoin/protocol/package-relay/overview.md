@@ -5,7 +5,7 @@
 
 ## What this covers
 
-BIP331 package relay + accompanying mempool policy: package validation, ancestor/descendant limits, submitpackage RPC, package CPFP, sibling eviction with TRUC v3 (BIP431), ephemeral anchors. Critical for Lightning fee bumping and any multi-tx workflow.
+Package relay and the mempool policy Bitcoin Core actually ships: opportunistic 1p1c relay, package validation, cluster limits, submitpackage RPC, package CPFP, sibling eviction with TRUC v3 (BIP431), P2A anchors (BIP433) and ephemeral dust. Critical for Lightning fee bumping and any multi-tx workflow.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

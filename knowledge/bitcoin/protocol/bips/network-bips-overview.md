@@ -35,13 +35,29 @@ bugs.
 | BIP | Purpose |
 |-----|---------|
 | 152 | Compact blocks - send 6-byte short txids instead of full txs |
-| 330 | Erlay - reconciliation-based tx announcement |
-| 331 | Package relay - submit related txs atomically |
+| 330 | Erlay - reconciliation-based tx announcement (Draft, not shipped) |
+| 331 | Ancestor package relay - announce related txs as a unit (Draft, not shipped) |
 
 BIP152 saved ~200ms per block hop in 2016, critical for mining latency.
-BIP330 is proposed; reduces O(n*peers) tx-announcement bandwidth to
-O(n*sqrt(peers)) via set reconciliation (sketches). BIP331 lets
-mempool see parent+child as a unit (covered in package-relay/ articles).
+
+BIP330 *would* reduce O(n*peers) tx-announcement bandwidth to
+O(n*sqrt(peers)) via set reconciliation (sketches), but as of September
+2026 it is still **Draft** and no reconciliation round trip ships in any
+release up to and including Bitcoin Core 31.1 (July 2026). Only the
+negotiation half is merged: the `sendtxrcncl` signaling message
+(PR #23443, October 2022), gated behind the hidden, debug-only
+`-txreconciliation` flag - `src/net_processing.h` at v31.1 still has
+`DEFAULT_TXRECONCILIATION_ENABLE{false}`. The full implementation
+(PR #35591, opened June 2026) is open and titled `[DO NOT MERGE]`;
+umbrella tracking issue #30249.
+
+BIP331 is also still **Draft** as of September 2026 and its wire
+messages (`sendpackages`, `ancpkginfo`, `pkgtxns`) are absent from
+Bitcoin Core 31.1. What does ship is mempool-side package evaluation -
+the `submitpackage` RPC and opportunistic 1p1c orphan resolution
+(`Find1P1CPackage` in `src/node/txdownloadman_impl.cpp`) - so a
+parent+child pair can be validated as a unit locally, but packages are
+not announced over P2P (covered in package-relay/ articles).
 
 **Filtering and SPV:**
 
@@ -61,10 +77,17 @@ cannot learn which addresses the client cares about.
 | BIP | Purpose |
 |-----|---------|
 | 155 | `addrv2` - new address message supporting Tor v3, I2P, CJDNS |
-| 156 | Dandelion++ relay (proposed) |
+| 156 | Dandelion - stem/fluff privacy relay (Closed, never shipped) |
 
 `addrv2` extends the legacy `addr` to encode network type as a
 discriminated union; legacy `addr` could only carry IPv4/IPv6.
+
+BIP156 ("Dandelion - Privacy Enhancing Routing") would have relayed a
+new transaction down a random stem path before diffusing it, breaking
+the symmetry that lets spy nodes infer the origin IP. It was never
+implemented in Bitcoin Core - there is no Dandelion code at v31.1 (July
+2026) - and the BIPs index carries it as **Closed** as of September
+2026. Treat it as design history, not as pending work.
 
 **Encryption:**
 
@@ -103,7 +126,7 @@ deliberate (no key infrastructure needed).
 
 7. (BIP155) `getaddr` -> peer responds with `addrv2` (mixed IP/Tor/I2P).
 
-8. (BIP331) When submitting a low-fee parent + high-fee child:
+8. (submitpackage RPC, not BIP331) Low-fee parent + high-fee child:
      submitpackage [parent, child]
      mempool evaluates as a set.
 ```

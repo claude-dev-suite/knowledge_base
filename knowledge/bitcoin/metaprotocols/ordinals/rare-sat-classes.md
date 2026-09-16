@@ -69,7 +69,9 @@ that input range is "Pizza-class" by convention. There are 9_989_991
 such sats; tracking them requires walking every spend of that
 coinbase.
 
-ord client lookup:
+ord client lookup (the six-class hierarchy and the `wallet sats`
+subcommand are both unchanged as of ord 0.29.0, 5 August 2026 - the
+latest release as of September 2026):
 
 ```
 $ ord wallet sats

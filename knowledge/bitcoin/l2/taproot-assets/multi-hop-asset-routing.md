@@ -63,11 +63,25 @@ Sender:           accepts.  Pays 100 USDT to Edge1, who routes 102,500 sat onwar
 The rate quote is signed by edge1 and pinned to a payment_hash; if the HTLC fails the
 quote can be refreshed.
 
-### v0.6 / v0.7 features
+### v0.6 / v0.7 / v0.8 features
 
 - **v0.6 (Jun 2025)**: stable multi-hop routing for fungible assets. RFQ stable.
-- **v0.7 (Dec 2025)**: AddressV2 (reusable static asset addresses with grouped assets);
+- **v0.7 (Nov 2025)**: AddressV2 (reusable static asset addresses with grouped assets);
   zero-amount-friendly invoices for refunds and probing.
+- **v0.8 (v0.8.0 Jun 2026; current line v0.8.3, Sept 2026)**: RFQ gains limit-order
+  constraints - a limit price (`asset_rate_limit`) and minimum fill sizes
+  (`asset_min_amt` / `payment_min_amt`) - plus an explicit execution policy (IOC by
+  default, or FOK for all-or-nothing) and a fill quantity in the accept message that
+  caps the forwarding HTLC policy. Routing nodes get asset forwarding history
+  (`tapcli rfq forwardinghistory`, filterable by peer / asset / time; wants lnd's
+  `--store-final-htlc-resolutions`). PortfolioPilot moves RFQ pricing, hedging and
+  acceptance policy to an external service configured with
+  `experimental.rfq.portfoliopilotaddress`.
+- **v0.8 breaking changes** (Jun 2026): the RFQ option
+  `experimental.rfq.skipacceptquotepricecheck` is renamed
+  `experimental.rfq.skipquoteacceptverify`, and every v0.8.x release applies a one-way
+  DB migration - downgrading tapd afterwards is unsupported, so snapshot the database
+  before upgrading.
 
 ## Worked example
 
@@ -105,7 +119,9 @@ the FX spread.
   high-liquidity edge nodes (Voltage, Lemon, Olympus). Censorship resistance is weaker
   than vanilla LN.
 - **Rate slippage**: quotes are bilateral; sender must compose rates across edges.
-  Failed payments waste probing traffic.
+  Failed payments waste probing traffic. From v0.8 (Jun 2026) the sender can bound
+  this explicitly with `asset_rate_limit` and a FOK policy instead of accepting
+  whatever the edge quotes back.
 - **Inventory imbalance**: edge nodes need both sats and asset liquidity. Persistent
   one-way flow drains the asset side; rebalancing is via on-chain TAP transfers
   (expensive) or peer trades.
@@ -119,6 +135,7 @@ the FX spread.
 ## References
 
 - Lightning Labs v0.4 announcement - https://lightning.engineering/posts/2024-05-01-taproot-assets-v0.4
-- v0.6 / v0.7 release notes - https://github.com/lightninglabs/taproot-assets/releases
-- TAP RFQ spec - https://github.com/lightninglabs/taproot-assets/blob/main/docs/RFQ.md
+- v0.6 - v0.8 release notes - https://github.com/lightninglabs/taproot-assets/releases
+- tapd v0.8.0 release notes (Jun 2026) - https://github.com/lightninglabs/taproot-assets/blob/main/docs/release-notes/release-notes-0.8.0.md
+- TAP RFQ spec - https://github.com/lightninglabs/taproot-assets/blob/main/docs/rfq.md
 - BOLT11 / BOLT12 - https://github.com/lightning/bolts

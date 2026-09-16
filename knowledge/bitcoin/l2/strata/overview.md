@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Strata by Alpen Labs: ZK rollup on Bitcoin, BitVM-based bridge, EVM-compatible execution. Emerging Bitcoin L2 in 2025-2026.
+Strata by Alpen Labs: ZK rollup on Bitcoin, glock (garbled lock) bridge, EVM-compatible execution. Emerging Bitcoin L2 in 2025-2026.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

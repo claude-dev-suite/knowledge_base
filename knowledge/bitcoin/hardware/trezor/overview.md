@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Trezor hardware wallets: Model T, Model One, Trezor Safe 3, Safe 5. Trezor Suite, trezorctl, USB protocol, BIP32 derivation, passphrase support, Shamir Backup.
+Trezor hardware wallets: Model T, Model One, Trezor Safe 3, Safe 5, Safe 7. Trezor Suite, trezorctl, USB protocol, BIP32 derivation, passphrase support, Shamir Backup.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

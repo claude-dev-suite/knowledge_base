@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Submarine swaps: atomic on-chain ↔ Lightning conversions via shared HTLC preimage. Boltz protocol, Loop protocol, Peerswap (P2P), trustless variants with adaptor signatures.
+Submarine swaps: atomic on-chain ↔ Lightning conversions via shared HTLC preimage. Boltz protocol, Loop protocol, Peerswap (P2P), trustless variants with adaptor signatures. Boltz swaps have been offline since 2026-08-03; Loop, Peerswap (Bitcoin only) and Blockstream Swaps (beta) are the live options as of September 2026.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Lightning Dev Kit (LDK): modular Rust crates for embedding Lightning in apps. ldk-node for opinionated quick-start. Bindings to Swift / Kotlin / JS.
+Lightning Dev Kit (LDK): modular Rust crates for embedding Lightning in apps. ldk-node for opinionated quick-start. Bindings to Swift / Kotlin / Python.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

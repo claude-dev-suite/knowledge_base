@@ -48,6 +48,18 @@ export BTCPAY_ENABLE_SSH=true
 export LETSENCRYPT_EMAIL=admin@example.com
 ```
 
+Version floor (as of September 2026): deploy BTCPay Server >= 2.4.2 with
+NBXplorer >= 2.6.10; 2.4.4 (7 September 2026) is current. Every release
+before 2.4.2 (7 August 2026), release candidates included, let an
+unauthenticated remote attacker read LND `.macaroon` files and take over
+the node - BTCPay confirmed the flaw was exploited in the wild and funds
+were stolen. BTCPay's own on-chain wallets (hot wallets included) and
+CLN/Eclair backends were not exposed - but funds held in LND's internal
+on-chain wallet are part of the affected node and may still be at risk -
+and the `BTCPAYGEN_LIGHTNING=lnd` above puts this deployment squarely in
+scope. Advisory:
+https://blog.btcpayserver.org/security-advisory-btcpay-server-2-4-2/
+
 Run the installer (as root for systemd integration):
 
 ```bash
@@ -92,12 +104,19 @@ Verify a fresh deployment end-to-end. From the BTCPay UI:
 3. Save -> address verification page shows BIP21 URI for first receive
    address; cross-check in Sparrow.
 4. Set Lightning -> Internal LND -> Save.
-5. Create an invoice via API:
+5. Create an invoice via API. `POST .../invoices` needs
+   `btcpay.store.cancreateinvoice`, and the payment-methods read below
+   needs `btcpay.store.canviewinvoices`. Since 2.4.2 (August 2026)
+   Greenfield Basic authentication is disabled by default five minutes
+   after account creation, so unless the admin account was created in the
+   last five minutes the `curl -u` below is rejected - mint the key in
+   the UI (Account -> API Keys) or opt Basic auth back in under account
+   settings:
 
 ```bash
 TOKEN=$(curl -s -u "admin@example.com:<pw>" \
    https://btcpay.example.com/api/v1/api-keys \
-   -d '{"label":"deploy-test","permissions":["btcpay.store.canviewstoresettings"]}' \
+   -d '{"label":"deploy-test","permissions":["btcpay.store.cancreateinvoice","btcpay.store.canviewinvoices"]}' \
    -H 'Content-Type: application/json' | jq -r .apiKey)
 
 curl -s -X POST https://btcpay.example.com/api/v1/stores/<STORE_ID>/invoices \
@@ -106,10 +125,29 @@ curl -s -X POST https://btcpay.example.com/api/v1/stores/<STORE_ID>/invoices \
   -d '{"amount":"5","currency":"USD","metadata":{"orderId":"TEST-1"}}' | jq
 ```
 
-Expected: invoice with `checkoutLink`, `paymentMethods.BTC.destination`
-(an on-chain address) and `paymentMethods.BTC-LightningNetwork.destination`
-(a BOLT11). Pay the LN invoice from a phone, watch the BTCPay UI flip to
-"Settled" within seconds.
+Expected: an invoice object with `checkoutLink`. The create response
+carries no payment-method data at all, so fetch the destinations with a
+second call:
+
+```bash
+curl -s https://btcpay.example.com/api/v1/invoices/<INVOICE_ID>/payment-methods \
+  -H "Authorization: token $TOKEN" \
+  | jq '.[] | {paymentMethodId, destination, paymentMethodFee}'
+```
+
+That returns a JSON *array*, one entry per enabled payment method: an
+entry with `paymentMethodId: "BTC-CHAIN"` whose `destination` is an
+on-chain address, and one with `paymentMethodId: "BTC-LN"` whose
+`destination` is a BOLT11. Pay the LN invoice from a phone, watch the
+BTCPay UI flip to "Settled" within seconds.
+
+Greenfield 2.0 (30 October 2024) did the renaming here: `paymentMethod` ->
+`paymentMethodId`, `cryptoCode` -> `currency`, `networkFee` ->
+`paymentMethodFee`, and the ids `BTC-OnChain` -> `BTC-CHAIN`,
+`BTC-LightningNetwork` -> `BTC-LN`, `BTC-LNURLPAY` -> `BTC-LNURL`. Old ids
+are still accepted as input but never returned. The parallel
+`paymentMethod` -> `payoutMethodId` rename hit the refund, payout and
+payout-processor endpoints.
 
 | Component | Container name | Port (host) |
 |-----------|----------------|-------------|
@@ -135,6 +173,16 @@ Expected: invoice with `checkoutLink`, `paymentMethods.BTC.destination`
   page before upgrading.
 - LND channel backups - back up `channel.backup` regularly; on-host it
   lives at `/var/lib/docker/volumes/.../lnd/data/chain/bitcoin/mainnet/`.
+- Inheriting a pre-2.4.2 stack - update first, then rotate LND macaroons
+  and audit the node for payments you did not make, unexpected channel
+  closures and unfamiliar peers; reconcile on-chain and channel balances
+  against your own records. If you cannot update immediately, take the
+  server offline.
+- External LN wallet access - 2.4.2 temporarily removed public LND API
+  exposure on Docker deployments, so Zeus and similar wallets can no
+  longer connect through the BTCPay domain or onion address; BTCPay plans
+  to restore the option when it is safe to do so, and it is still removed
+  as of September 2026.
 
 ## References
 
@@ -142,3 +190,5 @@ Expected: invoice with `checkoutLink`, `paymentMethods.BTC.destination`
 - Setup docs: https://docs.btcpayserver.org/Deployment/
 - Manual deployment: https://docs.btcpayserver.org/Deployment/ManualDeployment/
 - Greenfield API: https://docs.btcpayserver.org/API/Greenfield/v1/
+- Greenfield 2.0 breaking changes: https://github.com/btcpayserver/btcpayserver/issues/5964
+- 2.4.2 security advisory: https://blog.btcpayserver.org/security-advisory-btcpay-server-2-4-2/

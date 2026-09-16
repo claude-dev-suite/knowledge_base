@@ -17,6 +17,16 @@ Bitcoin Core uses HWI as its **external signer**: Core RPC calls
 shell out to `hwi.exe`/`hwi` for signing operations, letting
 `bitcoin-cli walletprocesspsbt` work with hardware wallets seamlessly.
 
+> **Lifecycle note (September 2026).** HWI is winding down. In issue
+> [#850](https://github.com/bitcoin-core/HWI/issues/850) (18 August 2026)
+> Ava Chow announced that HWI will finish MuSig2, cut a likely final
+> release, then hold in minimal maintenance mode until a replacement is
+> ready and be archived. No new features and no new device support are
+> being accepted. Wizardsardine's Rust
+> [BHWI](https://github.com/wizardsardine/bhwi) (WIP as of September 2026)
+> is named as the successor. Everything below describes HWI 3.2.0
+> (10 February 2026), the current release.
+
 ## Walkthrough
 
 ### Installation
@@ -31,15 +41,20 @@ cd HWI
 pip install -e .
 
 # Standalone binary (no Python needed)
-# Download from GitHub releases
-wget https://github.com/bitcoin-core/HWI/releases/download/2.4.0/hwi-2.4.0-linux-amd64.tar.gz
+# Download from GitHub releases; 3.2.0 is the current release (Feb 2026)
+wget https://github.com/bitcoin-core/HWI/releases/download/3.2.0/hwi-3.2.0-linux-x86_64.tar.gz
+# Also published: linux-aarch64, mac-arm64, mac-x86_64 (.tar.gz) and
+# windows-x86_64 (.zip), plus SHA256SUMS.txt.asc for GPG verification.
 ```
 
 ### Linux udev rules
 
 ```bash
-# Required for non-root USB access
-sudo cp hwi/udev/*.rules /etc/udev/rules.d/
+# Simplest: let HWI do it
+sudo hwi installudevrules
+
+# Or by hand, from a source checkout
+sudo cp hwilib/udev/*.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 sudo usermod -aG plugdev $USER
@@ -50,6 +65,8 @@ sudo usermod -aG plugdev $USER
 
 ```bash
 hwi enumerate
+# Since 3.0.0 (April 2024) emulators and simulators are ignored by
+# default; pass --emulators to have them enumerated too.
 [
     {
         "type": "trezor",
@@ -148,9 +165,14 @@ bitcoin-cli -rpcwallet=hw_signer walletprocesspsbt <psbt>
 - **PIN/passphrase**: Trezor blocks until user types PIN on device or
   via host (Trezor One uses host matrix; Model T device-only). HWI
   surfaces a `needs_pin_sent` flag.
-- **Wallet policy registration for Ledger multisig**: HWI 2.x supports
-  this via `--wallet-name` and `--wallet-hmac` arguments. Without
-  them, Ledger rejects multisig PSBTs.
+- **Wallet policy registration for Ledger multisig**: released HWI
+  (through 3.2.0) has *no* registration subcommand and no
+  `--wallet-name` / `--wallet-hmac` flags. The Ledger driver rebuilds
+  the wallet policy from the PSBT and registers it inline on each
+  `signtx` / `displayaddress`, so the user re-confirms the policy on the
+  device every run. An explicit `hwi registerdescriptor` plus
+  `--registration` on `signtx` / `displayaddress` is merged on master
+  (PRs #841, #792, August 2026) but unreleased as of September 2026.
 - **Stale HWI version**: Bitcoin Core's bundled HWI may lag. Install a
   newer HWI and point Core's `external_signer` at the new path.
 - **Bridge daemons**: Trezor Bridge or BitBoxBridge running on host
@@ -161,5 +183,12 @@ bitcoin-cli -rpcwallet=hw_signer walletprocesspsbt <psbt>
 ## References
 
 - HWI repo: https://github.com/bitcoin-core/HWI
+- HWI releases: https://github.com/bitcoin-core/HWI/releases
+  (3.2.0, 10 Feb 2026 - Jade Plus, BitBox02 Nova, Testnet4, native Jade
+  PSBT signing, PSBT MuSig2 fields; 3.1.0, 17 Sep 2024 - Trezor Safe 5,
+  new Ledger udev rules/model IDs, `tr()` single-leaf parsing fix;
+  3.0.0, 6 Apr 2024 - `--emulators`, emulators ignored by default)
+- HWI wind-down announcement: https://github.com/bitcoin-core/HWI/issues/850
+- BHWI (Rust successor, WIP): https://github.com/wizardsardine/bhwi
 - HWI docs: https://hwi.readthedocs.io
 - Bitcoin Core external signer doc: `doc/external-signer.md`

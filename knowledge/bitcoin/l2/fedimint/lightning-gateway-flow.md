@@ -16,8 +16,8 @@ the federation.
 
 ### Roles
 
-- **Federation**: holds e-cash, runs HBBFT consensus, controls on-chain
-  peg.
+- **Federation**: holds e-cash, runs AlephBFT consensus (v0.12.0,
+  August 2026), controls on-chain peg.
 - **Gateway**: external entity (often a federation guardian, but can be
   third-party) running an LND/CLN node + the `gatewayd` daemon.
 
@@ -58,7 +58,7 @@ User receives a Lightning payment as new e-cash:
 - Federation does NOT trust gateway — gateway must escrow correct amount
   in the federation contract before Lightning settlement.
 - Gateway's risk: user could double-spend e-cash before federation
-  recognises it; mitigated by HBBFT atomic state transitions per round.
+  recognises it; mitigated by atomic BFT state transitions per round.
 
 ### Multi-gateway routing
 
@@ -102,12 +102,23 @@ End state:
   publishes preimage to federation BEFORE LN HTLC settles, attacker
   could double-spend. Modern gatewayd uses HODL with explicit settle on
   preimage publish.
-- **Federation downtime**: if HBBFT halts mid-payment, gateway's funds
-  may be locked in contract awaiting settlement. Long expiries +
+- **Federation downtime**: if consensus halts mid-payment, gateway's
+  funds may be locked in contract awaiting settlement. Long expiries +
   monitoring required.
+- **Run a patched gatewayd**: the gateway's payment handling has had
+  real bugs. Fedimint v0.12.1 and v0.11.3 (both 12 September 2026)
+  are a gateway security release fixing a bug in the gateway's LNv1
+  payment handling and hardening the payment paths across the LNv2
+  module and the LND and LDK backends. Details were withheld at
+  release time under coordinated disclosure. It is a drop-in upgrade
+  — no protocol, consensus, API or database format change — and only
+  gateway operators need to act; guardians and wallet users do not.
+  Gateways on 0.10 or older must move to a supported release.
 
 ## References
 
 - fedimint/fedimint `gateway/` directory.
+- Fedimint v0.12.1 release notes (12 September 2026) —
+  https://github.com/fedimint/fedimint/releases/tag/v0.12.1
 - BOLT11 spec (Lightning invoices).
 - LND `invoicesrpc` HodlInvoice + AddHoldInvoice docs.

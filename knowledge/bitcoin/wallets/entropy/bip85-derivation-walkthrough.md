@@ -118,6 +118,7 @@ m/83696968'/2'/0'
 - Using the wrong HMAC key. The literal string is `b"bip-entropy-from-k"` (18 bytes); typoing it ("bip-entropy-from-key", capitalization) produces a different but innocent-looking output, silently desynchronizing wallets.
 - Confusing app args. `m/83696968'/39'/0'/12'/0'` is "English 12 words"; `m/83696968'/39'/12'/0'/0'` swaps `lang` and `words` and produces a wholly different mnemonic.
 - Treating BIP85 children as cryptographically independent backups. They are reproducible from the parent. Compromising the parent compromises every child. The benefit is operational (no second piece of paper), not security isolation.
+- Auditing the child paths but not the parent. BIP85 output entropy is capped by the parent seed's entropy. The COLDCARD advisory of 30 July 2026 (below) is the worked example; masters mixed with 50+ fair, independent, private dice rolls are exempt.
 - Re-deriving with a different lang and assuming "same seed". A mnemonic in English at index 0 has no relationship to a mnemonic at the Spanish index 0 path.
 - Storing only the child mnemonic and losing the parent. The child works on its own, but you have lost the BIP85 reproducibility benefit.
 
@@ -126,5 +127,7 @@ m/83696968'/2'/0'
 - BIP85: https://github.com/bitcoin/bips/blob/master/bip-0085.mediawiki
 - Reference implementation (Python): https://github.com/scgbckbone/bip32utils/blob/master/bip85.py
 - Coldcard BIP85 docs: https://coldcard.com/docs/bip85
+- COLDCARD seed-entropy advisory (30 July 2026): https://blog.coinkite.com/coldcard-mk3-seed-generation-warning/
+- COLDCARD entropy technical backgrounder: https://blog.coinkite.com/entropy-technical-backgrounder/
 - Trezor Suite BIP85 support
 - iancoleman.io/bip39: https://iancoleman.io/bip39/ (audit-only; never use online with real seeds)
