@@ -19,7 +19,7 @@ notif_pub   = notif_priv * G
 notif_addr  = base58check(0x00 || hash160(notif_pub))
 ```
 
-The notification address is a Base58 P2PKH address (legacy on purpose: it must be publicly indexable and was specified before SegWit was widespread). Receivers monitor it via Electrum scripthash subscription, BIP158 filter scan, or Bitcoin Core's `importaddress` + `rescanblockchain`.
+The notification address is a Base58 P2PKH address (legacy on purpose: it must be publicly indexable and was specified before SegWit was widespread). Receivers monitor it via Electrum scripthash subscription, BIP158 filter scan, or a Bitcoin Core watch-only wallet. Bitcoin Core 30.0 (October 2025) removed `importaddress` along with the rest of the legacy wallet RPCs, so the Core recipe is now `createwallet "notif" true` (private keys disabled) followed by `importdescriptors '[{"desc":"addr(<notif_addr>)#<checksum>","timestamp":<payment_code_creation_time>}]'` - the descriptor checksum is mandatory and the import itself triggers the rescan from that timestamp. `rescanblockchain` still exists in 30.x/31.x (as of September 2026) for a later re-scan over an explicit height range.
 
 Notification transaction shape:
 

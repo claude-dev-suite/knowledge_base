@@ -67,8 +67,13 @@ fee_child = 32_200 - fee_commitment = 32_200 - 720 = 31_480 sats
 
 The vanilla anchor design is vulnerable to pinning: a malicious
 counterparty can broadcast their copy of the commitment with their own
-high-feerate-low-amount child spending the *other* anchor (rule 5 of
-BIP125: max 100 replaced) blocking honest fee bumps.
+child spending the *other* anchor, so that an honest fee bump has to
+replace that child and pay the whole conflicting set's fees plus the
+incremental-relay surcharge. Cluster mempool (Core 31.0, April 2026)
+bounds how big such a pin can grow — 64 transactions and 101 kB of
+virtual size per cluster — but does not change that arithmetic, and its
+rule 6 (the replacement must strictly improve the mempool's feerate
+diagram) is one more way the honest bump can be refused.
 
 BIP431 ("v3 transactions") fixes this with:
 
@@ -145,9 +150,16 @@ LDK's `OnchainTxHandler` orchestrates this state machine; CLN's
   up old anchors much later, a wallet helper may try the 1-sig path and
   fail because the remote key has been wiped from memory. Use the
   16-block fallback.
-- **Pre-BIP331 nodes**: if your bitcoind is < v25, `submitpackage` is
-  unavailable and you fall back to broadcasting child first (orphan)
-  hoping the parent shows up. Modern LN daemons require v25+.
+- **Backend too old for `submitpackage`**: the RPC landed in Bitcoin Core
+  **26.0 (December 2023)**, not v25, and it is not BIP331 — BIP331
+  ("Ancestor Package Relay") is still Status: Draft as of September 2026
+  and its P2P messages have never shipped. On an older backend you fall
+  back to broadcasting the child first (orphan) and hoping the parent
+  shows up. Separately, for a below-floor parent to propagate over P2P
+  your peers need Core 28.0+ (October 2024) opportunistic 1p1c relay.
+  On the daemon side, LND exposed a `walletrpc.SubmitPackage` RPC and an
+  `lncli wallet submitpackage` command in its 0.22.0 release notes
+  (unreleased as of September 2026; 0.21.3 is current).
 - **TRUC interaction with non-v3 mempool**: a v3 commitment can only be
   bumped with a v3 child. Misconfigured wallets that produce v2 children
   will see "v3-tx-nonstandard" rejection.

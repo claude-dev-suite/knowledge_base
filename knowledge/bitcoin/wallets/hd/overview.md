@@ -5,7 +5,7 @@
 
 ## What this covers
 
-HD wallet implementation: BIP32 derivation, BIP39 mnemonic seed (with passphrase), BIP44/49/84/86 derivation paths, account structure, gap limit, watch-only via xpub.
+HD wallet implementation: BIP32 derivation, BIP39 mnemonic seed (with passphrase), BIP44/49/84/86 derivation paths, account structure, gap limit, watch-only via xpub, BIP352 silent payment scan/spend derivation and BIP392 sp() descriptors.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.
