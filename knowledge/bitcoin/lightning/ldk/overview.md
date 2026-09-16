@@ -5,7 +5,7 @@
 
 ## What this covers
 
-LDK (Lightning Dev Kit) by Lightning Labs: modular Rust crates for building custom Lightning apps. ldk-node for opinionated quick-start. ChannelManager, ChainMonitor, Router, async signer, persistence.
+LDK (Lightning Dev Kit): modular Rust crates for building custom Lightning apps. ldk-node for opinionated quick-start. ChannelManager, ChainMonitor, Router, async signer, persistence.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

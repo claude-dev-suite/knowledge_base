@@ -5,7 +5,7 @@
 
 ## What this covers
 
-LSP (Lightning Service Provider) specifications: BLIPs, JIT channels, on-pay channel open, MPP-trampoline, BOLT12 hosted invoice. Major LSPs: ACINQ (Phoenix backend), Voltage, Olympus, Megalith, Flashsats.
+LSP (Lightning Service Provider) specifications: BLIPs, JIT channels, on-pay channel open, MPP-trampoline, BOLT12 hosted invoice. Major LSPs: ACINQ (Phoenix backend), Olympus by ZEUS, Megalith, Flashsats, Magma.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

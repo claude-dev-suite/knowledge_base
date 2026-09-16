@@ -42,7 +42,10 @@ Fee rate dynamics on a large channel:
 - But: each HTLC adds ~172 vbytes. At 483 HTLCs and 50 sat/vB the
   commitment alone costs ~415,000 sats just to bump.
 - `update_fee` is the only way to change the on-chain fee for the
-  pre-signed commitment. The funder is responsible.
+  pre-signed commitment. The funder is responsible. This applies to
+  `option_anchors` channels; the `zero_fee_commitments` type (BOLT 9
+  bits 40/41, merged 2026-05-04) pins `feerate_per_kw` at 0 and drops
+  `update_fee` entirely, so the fee is set by the CPFP child instead.
 
 Capacity reservation rules (BOLT 2 "channel reserve"):
 
@@ -115,7 +118,9 @@ lightning-cli bumpchannelopen <txid>:<vout> 100  # bump anchor CPFP
 - **`update_fee` mismatch on idle channels**: if mempool spikes while
   channel is idle, the commitment fee may be far below market rate. A
   force-close at that moment can stick in mempool indefinitely without
-  CPFP via anchors.
+  CPFP via anchors. This failure mode is what `zero_fee_commitments`
+  removes: with no commitment fee there is nothing to get stale, and
+  the child sets the rate at broadcast time.
 
 ## References
 

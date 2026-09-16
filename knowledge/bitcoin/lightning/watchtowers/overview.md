@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Watchtower architecture: encrypted breach blob storage, justice transactions, monitoring outsourced for offline channels. Eltoo proposal alternatives, BOLT 13 (proposed).
+Watchtower architecture: encrypted breach blob storage, justice transactions, monitoring outsourced for offline channels. LN-Symmetry (eltoo, BIP 448) alternatives.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

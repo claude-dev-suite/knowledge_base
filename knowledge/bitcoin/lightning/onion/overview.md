@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Sphinx onion routing for Lightning (BOLT 4): packet structure, per-hop encryption, payload TLV, blinded paths, onion messages.
+Sphinx onion routing for Lightning (BOLT 4): packet structure, per-hop encryption, payload TLV, blinded paths, attribution data, onion messages.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

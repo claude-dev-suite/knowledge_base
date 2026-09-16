@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Consumer Lightning wallet integration patterns: Phoenix, Breez SDK, Mutiny, Zeus, BlueWallet (LN), Aqua. Custodial vs non-custodial, LSP partnerships, mobile-specific UX (push notifications, background sync).
+Consumer Lightning wallet integration patterns: Phoenix, Breez SDK, Zeus, BlueWallet (LN), Aqua, Bitkit. Custodial vs non-custodial, LSP partnerships, mobile-specific UX (push notifications, background sync).
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

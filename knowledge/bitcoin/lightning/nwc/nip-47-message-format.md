@@ -6,12 +6,15 @@
 
 ## Concept
 
-NIP-47 (Nostr Wallet Connect) defines two Nostr event kinds that ferry
+NIP-47 (Nostr Wallet Connect) defines three Nostr event kinds that ferry
 JSON-RPC-style messages between an app and a remote Lightning wallet
 through standard Nostr relays. The wallet and app each hold a Nostr
-keypair; messages are end-to-end encrypted (NIP-04) so relays cannot read
-them. The format is intentionally small: kind 23194 for requests, kind
-23195 for responses, kind 13194 for capability advertisement.
+keypair; messages are end-to-end encrypted so relays cannot read them.
+NIP-44 v2 is the encryption; NIP-04 is deprecated and kept only for peers
+that have not migrated, with the two sides negotiating via an `encryption`
+tag (see below). The format is intentionally small: kind 23194 for
+requests, kind 23195 for responses, kind 13194 for capability
+advertisement.
 
 ## Walkthrough / mechanics
 
@@ -22,7 +25,14 @@ Three event kinds:
 | 13194 | wallet        | published once  | advertise supported methods   |
 | 23194 | app (client)  | request         | encrypted JSON-RPC request    |
 | 23195 | wallet        | response        | encrypted JSON-RPC response   |
-| 23196 | wallet        | notification    | encrypted async event (NIP-47.1) |
+| 23196 | wallet        | notification    | NIP-04-encrypted async event (NWC-02) |
+| 23197 | wallet        | notification    | NIP-44-encrypted async event (NWC-02) |
+
+Only 13194 / 23194 / 23195 are core. Notifications moved out of NIP-47
+into the optional NWC-02 extension spec in the 2026-08-01 split
+(nostr-protocol/nips#2419); a wallet supporting both encryption schemes
+publishes each notification twice, 23196 (NIP-04) and 23197 (NIP-44), and
+a NIP-44-only wallet publishes 23197 alone.
 
 ### Kind 13194 (info)
 
@@ -33,11 +43,19 @@ Public, unencrypted, content is a space-separated list of method names:
   "kind": 13194,
   "pubkey": "<wallet_service_pubkey>",
   "created_at": 1714400000,
-  "tags": [["notifications", "payment_received payment_sent"]],
-  "content": "pay_invoice get_balance make_invoice lookup_invoice list_transactions",
+  "tags": [
+    ["encryption", "nip44_v2 nip04"],
+    ["extensions", "02 03 04 06 07 08"],
+    ["notifications", "payment_received payment_sent"]
+  ],
+  "content": "pay_invoice get_balance make_invoice lookup_invoice get_info",
   "sig": "..."
 }
 ```
+
+The `encryption` tag lists the schemes the wallet accepts; its absence
+means NIP-04 only. The `extensions` tag lists the optional NWC extension
+specs the wallet implements - gate any non-core method on it.
 
 ### Kind 23194 (request)
 
@@ -46,11 +64,19 @@ Public, unencrypted, content is a space-separated list of method names:
   "kind": 23194,
   "pubkey": "<app_pubkey>",
   "created_at": 1714400123,
-  "tags": [["p", "<wallet_service_pubkey>"]],
-  "content": "<NIP-04 encrypted JSON>",
+  "tags": [
+    ["encryption", "nip44_v2"],
+    ["p", "<wallet_service_pubkey>"]
+  ],
+  "content": "<NIP-44 v2 encrypted JSON>",
   "sig": "..."
 }
 ```
+
+The request's `encryption` tag names the scheme used for `content` and
+MUST be one the info event advertised; omitting it means NIP-04. A
+request MAY also carry an `expiration` tag (unix seconds) after which the
+wallet service ignores it.
 
 Decrypted content shape:
 
@@ -69,7 +95,7 @@ Decrypted content shape:
   "pubkey": "<wallet_service_pubkey>",
   "created_at": 1714400125,
   "tags": [["p", "<app_pubkey>"], ["e", "<request_event_id>"]],
-  "content": "<NIP-04 encrypted JSON>",
+  "content": "<NIP-44 v2 encrypted JSON>",
   "sig": "..."
 }
 ```
@@ -93,7 +119,8 @@ Or error form:
 ```
 
 Standard error codes: `RATE_LIMITED`, `NOT_IMPLEMENTED`, `INSUFFICIENT_BALANCE`,
-`QUOTA_EXCEEDED`, `RESTRICTED`, `UNAUTHORIZED`, `INTERNAL`, `OTHER`.
+`QUOTA_EXCEEDED`, `RESTRICTED`, `UNAUTHORIZED`, `INTERNAL`,
+`UNSUPPORTED_ENCRYPTION`, `OTHER`.
 
 The `e`-tag on responses lets the client correlate without a parallel
 request id.
@@ -116,8 +143,8 @@ App publishes request to relay:
   "kind": 23194,
   "pubkey": "9af3...c7",   // = secret * G
   "created_at": 1714400123,
-  "tags": [["p","b3c0a8...e5d1"]],
-  "content": "fGh4...==",  // NIP-04(secret, b3c0a8...).encrypt(
+  "tags": [["encryption","nip44_v2"], ["p","b3c0a8...e5d1"]],
+  "content": "fGh4...==",  // nip44_v2(secret, b3c0a8...).encrypt(
                            //   '{"method":"pay_invoice",
                            //     "params":{"invoice":"lnbc100u..."}}')
   "id": "<sha256 of canonical>",
@@ -139,17 +166,23 @@ response, decrypts, returns to caller.
 - Replay protection absent in spec: a relay or eavesdropper cannot
   decrypt but can resubmit a 23194 to the wallet's subscription.
   Wallets MUST track event ids and reject duplicates.
-- 23196 notifications are optional; clients that subscribe blindly may
-  miss support and silently degrade.
-- NIP-04 is being deprecated in favor of NIP-44 (better AEAD); some
-  modern wallets prefer NIP-44 inside NWC. Negotiation is via 13194's
-  `tags` (`["encryption", "nip44_v2 nip04"]`).
+- 23196 / 23197 notifications are optional (NWC-02); clients that
+  subscribe blindly may miss support and silently degrade. Subscribing to
+  23196 only, against a NIP-44-only wallet, silently receives nothing.
+- Assuming NIP-04. As of the September 2026 spec NIP-04 is deprecated and
+  NIP-44 v2 is what to use; negotiation is via 13194's `encryption` tag
+  (`["encryption", "nip44_v2 nip04"]`) plus a matching `encryption` tag on
+  each request. Absence of the tag on the info event - and only then -
+  means the wallet is NIP-04-only. Sending a scheme the wallet did not
+  advertise returns `UNSUPPORTED_ENCRYPTION`.
 - Per-relay rate limits: high-volume apps must use multiple relays
   declared in the URI's `relay` query param.
 
 ## References
 
 - NIP-47: https://github.com/nostr-protocol/nips/blob/master/47.md
+- NWC extension specs (notifications, keysend, hold invoices, ...):
+  https://github.com/nostr-wallet-connect/nwc
 - NIP-04 encryption: https://github.com/nostr-protocol/nips/blob/master/04.md
 - NIP-44 encryption: https://github.com/nostr-protocol/nips/blob/master/44.md
 - NWC reference SDK: https://github.com/getAlby/js-sdk

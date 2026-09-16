@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Trampoline routing: outsource pathfinding to "trampoline" nodes for clients that lack full graph knowledge. Mobile-friendly. CLN and LDK lead implementation.
+Trampoline routing: outsource pathfinding to "trampoline" nodes for clients that lack full graph knowledge. Mobile-friendly. Eclair (ACINQ/Phoenix) is the reference deployment; LDK receives and forwards; still unmerged as BOLTs PR #836 (September 2026).
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

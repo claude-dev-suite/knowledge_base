@@ -1,7 +1,7 @@
 # MPP Trampoline Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/lightning/trampoline`.
-> Canonical source: https://github.com/lightning/bolts/blob/master/proposals/trampoline.md (multi-part section)
+> Canonical source: https://github.com/lightning/bolts/pull/836 (unmerged as of September 2026; multi-part section)
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/lightning/trampoline/SKILL.md
 
 ## Concept

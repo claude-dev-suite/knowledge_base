@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Lightning Address (LUD-16): email-style identifier resolving to LNURL-pay endpoint. user@domain.com → /.well-known/lnurlp/user.
+Lightning Address (LUD-16): email-style identifier resolving to LNURL-pay endpoint. user@domain.com → /.well-known/lnurlp/user. Also covers BIP 353 DNS payment instructions (₿user@domain, DNSSEC TXT record) and bLIP-32 onion-message DNS resolution.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

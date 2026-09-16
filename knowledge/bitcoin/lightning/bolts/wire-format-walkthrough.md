@@ -56,14 +56,19 @@ aa bb cc dd ee ff 00 11 22 33 44 55 66 77 88 99    # channel_id (32B)
 ab cd ... (32 bytes)                               # payment_hash
 00 0a 1b 2c                                        # cltv_expiry = 0x000a1b2c
 01 02 03 ... (1366 bytes)                          # onion_routing_packet
-fd 00 fe 41                                        # TLV: type=254, length=...
-...                                                # blinding_point TLV (BOLT 4)
+00 21                                              # TLV: type=0, length=33
+02 ab cd ... (33 bytes)                            # blinded_path.path_key
 ```
 
-The trailing `fd 00 fe` decodes as bigsize 254 (`option_route_blinding`
-extension carrying the `blinding_point`). A peer without route-blinding
-support must still parse past it because the type is even but the spec
-gates its presence behind the negotiated feature bit.
+The trailing `00` decodes as bigsize type 0, the sole record of
+`update_add_htlc_tlvs`: `blinded_path`, whose only field is the 33-byte
+`point` `path_key` (called `blinding_point` until BOLT 2/4 renamed it on
+2024-07-17). The type is **even**, so a receiver that does not understand
+it must fail rather than skip; in practice a sender only sets it toward a
+peer that advertised `option_route_blinding` (24/25), but no BOLT states a
+MUST NOT — BOLT 2's only sending requirement here is "if it is relaying a
+payment inside a blinded route: MUST set `path_key`". Layout per BOLT 2 at
+lightning/bolts master `1528972` (2026-08-26).
 
 In Go (LND `lnwire/update_add_htlc.go`) this is parsed by reading fixed
 fields then calling `tlvStream.Decode(r)`. CLN's `wire/peer_wire.csv`

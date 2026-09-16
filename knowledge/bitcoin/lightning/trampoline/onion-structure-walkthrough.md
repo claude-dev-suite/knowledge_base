@@ -1,17 +1,18 @@
 # Trampoline Onion Structure Walkthrough - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/lightning/trampoline`.
-> Canonical source: https://github.com/lightning/bolts/blob/master/proposals/trampoline.md
+> Canonical source: https://github.com/lightning/bolts/pull/836 (unmerged as of September 2026)
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/lightning/trampoline/SKILL.md
 
 ## Concept
 
 Trampoline routing solves a UX problem: mobile Lightning wallets cannot
-keep an up-to-date view of the entire 75 000-channel public graph. With
-trampoline, the wallet only knows a small set of well-connected
-**trampoline nodes** (e.g. ACINQ's, c=phoenix's). The wallet onion-routes
-to a trampoline; the trampoline computes the full payment route and
-forwards. The recipient still receives a normal HTLC.
+keep an up-to-date view of the entire public channel graph (~32 700
+channels, mempool.space, 30 August 2026). With trampoline, the wallet
+only knows a small set of well-connected **trampoline nodes** (e.g.
+ACINQ's, Phoenix's). The wallet onion-routes to a trampoline; the
+trampoline computes the full payment route and forwards. The recipient
+still receives a normal HTLC.
 
 The structure is an **onion within an onion**: the outer onion (BOLT-04)
 hops between channels, while the inner trampoline onion specifies a
@@ -47,10 +48,21 @@ Trampoline onion payload (TLV):
 
 | TLV type | Content |
 |----------|---------|
-| 4 | next_node_id (33 bytes) — next trampoline pubkey |
-| 14 | total_msat (vUint) — for MPP |
-| 33 | payment_metadata |
-| (others) | invoice features, route hints, etc. |
+| 14 | outgoing_node_id (33-byte point) — next trampoline pubkey |
+| 16 | payment_metadata |
+| 18 | total_amount_msat (tu64) — for MPP |
+| 21 / 22 | recipient_features / recipient_blinded_paths (BOLT 12 payees) |
+
+Types are those of lightning/bolts#836 as of September 2026;
+amt_to_forward (2) and outgoing_cltv_value (4) are the ordinary BOLT 4
+types and are required for every trampoline hop.
+
+The embedded onion itself is TLV type 20 (`trampoline_onion_packet`),
+and it rides in the **outer** onion, never inside the trampoline onion:
+a sender "MUST include the `trampoline_onion_packet` tlv in the _last_
+hop's payload of the `onion_packet`", and a relaying trampoline "MUST
+include the peeled `trampoline_onion_packet` in the `hop_payload` for
+the next trampoline node" (lightning/bolts#836).
 
 ### Recipient discovery
 

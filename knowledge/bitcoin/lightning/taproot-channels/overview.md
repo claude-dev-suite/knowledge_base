@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Simple Taproot Channels (BOLT 9 bit 56): MuSig2-aggregated funding output, Tapscript commitment leaves, taproot-native HTLCs.
+Simple Taproot Channels (feature bits 80/81): MuSig2-aggregated funding output, Tapscript commitment leaves, taproot-native HTLCs.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

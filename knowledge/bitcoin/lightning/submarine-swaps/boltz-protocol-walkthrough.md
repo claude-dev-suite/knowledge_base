@@ -1,16 +1,32 @@
 # Boltz Protocol Walkthrough - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/lightning/submarine-swaps`.
-> Canonical source: https://docs.boltz.exchange/api
+> Canonical source: https://api.docs.boltz.exchange/ (REST v2)
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/lightning/submarine-swaps/SKILL.md
+
+> **Status as of 2026-09-15: Boltz swaps are offline.** On 2026-08-03
+> Boltz disabled all mainchain, Lightning and Liquid swaps "until further
+> notice" (EVM-side swaps had gone on 2026-08-01), citing months of
+> automated, AI-assisted probing and several exploits it absorbed on its
+> own liquidity. No user funds were at risk: the design is non-custodial,
+> the refund API stayed live, and unilateral refunds never depended on
+> Boltz infrastructure. On 2026-08-12 the three founders announced their
+> departure and handed the project to an undisclosed group of Bitcoiners;
+> no relaunch date has been announced. ZEUS, Aqua (JAN3) and Bull Bitcoin
+> lost swap functionality. **Read this article as a protocol reference,
+> not as an integration guide against a live API.** Currently operating
+> alternatives: Lightning Labs Loop (v0.35.0-beta, 2026-08-25), Peerswap
+> (Bitcoin only since v7.0.1, 2026-09-07) and Blockstream Swaps (beta
+> since 2026-08-10).
 
 ## Concept
 
 Boltz is a non-custodial submarine swap exchange supporting BTC <->
-Lightning, Liquid, and other chains. Like Lightning Labs Loop, it
-uses HTLCs across two layers; unlike Loop, it has multiple swap
-directions (BTC mainchain, Liquid, even reverse swaps with delayed
-preimage release for privacy).
+Lightning, Liquid, and other chains (service suspended since 2026-08-03
+— see the status note above; the protocol below is unaffected). Like
+Lightning Labs Loop, it uses HTLCs across two layers; unlike Loop, it
+has multiple swap directions (BTC mainchain, Liquid, even reverse
+swaps with delayed preimage release for privacy).
 
 This article covers the **submarine swap** (Lightning -> BTC on chain)
 flow used by Boltz.
@@ -136,6 +152,11 @@ Bob broadcasts refund:
 
 ## References
 
-- Boltz API documentation (docs.boltz.exchange).
+- Boltz API documentation (api.docs.boltz.exchange; REST v2 current,
+  v1 deprecated).
+- Blockstream, "Announcing Blockstream Swaps", 2026-08-10 —
+  https://blog.blockstream.com/announcing-blockstream-swaps/
+- Boltz swap suspension coverage, 2026-08-03 —
+  https://www.tftc.io/boltz-bitcoin-swaps-suspended-ai-attacks
 - Submarine Swaps protocol — Bosworth 2018.
 - BOLT-03 (HTLC scripts).
