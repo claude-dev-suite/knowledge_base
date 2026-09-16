@@ -92,6 +92,30 @@ Frozen-bytecode builds shrink RAM use significantly; on ESP32-class
 devices, you typically freeze `embit.bip32`, `embit.bip39`, `embit.psbt`,
 `embit.script`, `embit.networks` and exclude the rest.
 
+## Which embit revision runs on which device
+
+embit's PyPI releases lag its git history: PyPI tops out at 0.8.0
+(uploaded 2024-05-30), while the repo has tagged `v0.8.1` (2026-06-02)
+and `v0.8.2` (2026-08-08) with no matching PyPI upload. As of September
+2026 the three signers therefore sit on different revisions:
+
+| Project | embit source (September 2026) |
+|---------|-------------------------------|
+| SeedSigner | `embit==0.8.0` from PyPI, hash-locked in `requirements.txt` |
+| Krux | git submodule `vendor/embit` at `fff7ffa4` (2026-06-02) |
+| Specter DIY | `f469-disco` submodule `libs/common/embit` at `eb6104fd` (v0.8.2) |
+
+This matters for the PSBT code above. Parsing of `PSBT_IN_TAP_KEY_SIG`
+(the Taproot key-spend signature field) landed in 0.8.1 -- in v0.8.0
+`psbt.py` that key is still a `# TODO: 0x13 - tap key signature`
+comment -- and the BIP 174 / BIP 370 PSBT version handling landed in
+0.8.2. A build on the PyPI 0.8.0 artifact has neither. When you need
+them, pin a git revision instead of the PyPI release:
+
+```bash
+pip install "embit @ git+https://github.com/diybitcoinhardware/embit@v0.8.2"
+```
+
 ## Common pitfalls
 
 - MicroPython's `int` is unbounded but slow for 256-bit math; embit

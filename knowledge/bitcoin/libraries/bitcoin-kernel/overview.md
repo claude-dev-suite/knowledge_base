@@ -1,11 +1,11 @@
-# Libraries - Secp256K1 C - Overview
+# Libraries - Bitcoin Kernel - Overview
 
-> Canonical content lives in the dev-suite skill: **`bitcoin/libraries/secp256k1-c`**
-> Source link: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/libraries/secp256k1-c/SKILL.md
+> Canonical content lives in the dev-suite skill: **`bitcoin/libraries/bitcoin-kernel`**
+> Source link: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/libraries/bitcoin-kernel/SKILL.md
 
 ## What this covers
 
-libsecp256k1: the canonical secp256k1 C library. Used by Bitcoin Core, rust-secp256k1, all major language bindings.
+libbitcoinkernel: Bitcoin Core's experimental C library exposing the validation engine (block/header validation, block index traversal, block + undo reads, script verification), and the `bitcoinkernel` Rust bindings over `libbitcoinkernel-sys`.
 
 ## When to use
 

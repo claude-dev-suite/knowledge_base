@@ -27,7 +27,7 @@ use bitcoin::{
     transaction::Version,
 };
 use bitcoin::secp256k1::{Secp256k1, SecretKey};
-use bitcoin::key::PrivateKey;
+use bitcoin::key::{CompressedPublicKey, PrivateKey};
 
 let secp = Secp256k1::new();
 
@@ -37,7 +37,8 @@ let priv_key = PrivateKey::new(sk, Network::Bitcoin);
 let pub_key = priv_key.public_key(&secp);
 
 // Address
-let addr = Address::p2wpkh(&pub_key.into(), Network::Bitcoin)?;
+let comp = CompressedPublicKey::try_from(pub_key)?;
+let addr = Address::p2wpkh(&comp, Network::Bitcoin);
 
 // Transaction
 let tx = Transaction {
@@ -56,6 +57,11 @@ let tx = Transaction {
 };
 println!("txid: {}", tx.compute_txid());
 ```
+
+`Address::p2wpkh(pk: &CompressedPublicKey, hrp: impl Into<KnownHrp>)`
+returns `Address` directly, so there is no `?` to apply. It takes a
+`CompressedPublicKey`, and a `bitcoin::PublicKey` may be uncompressed,
+so the narrowing conversion is `TryFrom`, not `From`.
 
 ## Worked example: derive an address from xpub at index 5
 
@@ -83,11 +89,21 @@ wtxid (witness-included) call `compute_wtxid()`. Always serialize via
 
 - API churn between 0.x minor versions (0.30 -> 0.31 -> 0.32 each
   reshuffled module paths). Pin the patch version and read CHANGELOG
-  before bumping.
+  before bumping. `0.33.0-beta` (2026-02-23) continues the pattern:
+  `Amount` now enforces a `MAX_MONEY` invariant, so `Amount::MAX` is
+  21 million BTC rather than `u64::MAX` and `Amount::from_sat` returns
+  `Result<Amount, OutOfRangeError>`; `Psbt`'s serde representation
+  changed; and the MSRV moved 1.63.0 -> 1.74.0. Upstream says it will
+  never publish a plain `0.33.0` -- the next tag is `0.34.0-beta`, and
+  the suffix drops once `bitcoin-units`, `bitcoin-primitives` and
+  `bitcoin-consensus-encoding` reach `1.0.0`. As of September 2026 only
+  `bitcoin-consensus-encoding` has (1.2.0, 2026-08-13).
 - Mixing `Script` and `ScriptBuf`: pass `&script_buf` (deref to `&Script`)
   rather than cloning. `script_pubkey()` already returns `ScriptBuf`.
-- `Amount::from_btc` panics on overflow; prefer `Amount::from_btc` only
-  for trusted constants and `Amount::from_str` for user input.
+- `Amount::from_btc` does not panic -- it returns
+  `Result<Amount, ParseAmountError>`, so handle the error rather than
+  assuming infallibility. It still takes an `f64`, so prefer it only
+  for trusted constants and use `Amount::from_str` for user input.
 - Network mismatch: `Address<NetworkUnchecked>` vs `Address<NetworkChecked>`
   type states catch this at compile time -- always call `.require_network`.
 

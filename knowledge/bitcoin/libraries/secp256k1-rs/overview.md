@@ -5,7 +5,7 @@
 
 ## What this covers
 
-rust-secp256k1: Rust bindings to libsecp256k1 (C). ECDSA, Schnorr, ECDH, key tweaking, MuSig2 (in newer versions).
+rust-secp256k1: Rust bindings to libsecp256k1 (C). ECDSA, Schnorr, ECDH, key tweaking, MuSig2 (BIP327, since 0.33).
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

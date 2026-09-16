@@ -7,6 +7,8 @@
 
 python-bitcoinlib by Peter Todd: low-level Bitcoin primitives in Python. Tx, Script, Address, key types, RPC client.
 
+Dormant as of September 2026 - last release 0.12.2 (June 2023), last commit March 2025, and no Taproot or PSBT support. See the skill's Status section before adopting it.
+
 ## When to use
 
 This is a Phase A overview - quick orientation only. The full deep-dive
@@ -17,6 +19,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

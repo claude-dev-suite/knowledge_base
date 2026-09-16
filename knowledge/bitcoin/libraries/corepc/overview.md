@@ -1,11 +1,11 @@
-# Libraries - Secp256K1 C - Overview
+# Libraries - Corepc - Overview
 
-> Canonical content lives in the dev-suite skill: **`bitcoin/libraries/secp256k1-c`**
-> Source link: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/libraries/secp256k1-c/SKILL.md
+> Canonical content lives in the dev-suite skill: **`bitcoin/libraries/corepc`**
+> Source link: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/libraries/corepc/SKILL.md
 
 ## What this covers
 
-libsecp256k1: the canonical secp256k1 C library. Used by Bitcoin Core, rust-secp256k1, all major language bindings.
+corepc: the rust-bitcoin org's Bitcoin Core JSON-RPC stack. `corepc-types` (per-Core-version response types plus version-agnostic `model` types), `corepc-client` (blocking/async test client), `bitcoind` (spin up regtest nodes for integration tests).
 
 ## When to use
 

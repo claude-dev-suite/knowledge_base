@@ -5,7 +5,7 @@
 
 ## What this covers
 
-hdwallet (Python): HD wallet generator + key derivation. Multi-coin, BIP32/39/44/49/84/86/85.
+hdwallet (Python): HD wallet generator + key derivation. Multi-coin, BIP32/39/44/49/84/86/141.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

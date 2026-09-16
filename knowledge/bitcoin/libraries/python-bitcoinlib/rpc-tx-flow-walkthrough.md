@@ -20,6 +20,35 @@ source of bugs.
 `SelectParams("mainnet" | "testnet" | "regtest" | "signet")` is global
 state -- pick once at process start.
 
+## Maintenance status (as of September 2026)
+
+The library is dormant. Its last PyPI release is **0.12.2 (3 June 2023)**
+and its last `master` commit is **14 March 2025**; `master` still declares
+`__version__ = '0.12.2'`. The repo is not archived (38 open issues and 23
+open pull requests as of September 2026) but nothing upstream has moved in
+eighteen months.
+
+Practical consequences for the flows below:
+
+- **Segwit v0 is the ceiling.** `bitcoin/core/script.py` defines only
+  `SIGVERSION_BASE` and `SIGVERSION_WITNESS_V0` -- there is no taproot
+  sighash and no `OP_CHECKSIGADD`. `bitcoin/wallet.py` has no P2TR
+  address class and `bitcoin/bech32.py` has no bech32m constant, so
+  `bc1p...` outputs cannot be parsed or constructed.
+- **No PSBT.** The package ships no BIP174 module, so a PSBT handoff to a
+  hardware signer has to go through `bitcoind` RPC or another library.
+- **RPC baseline is Core v24.0.** The upstream README states
+  `bitcoin.rpc` "should work with Bitcoin Core v24.0 or later" and has
+  not revised that since, so RPC shape changes in Core majors after v24
+  are untested upstream. `Proxy.call()` passes arguments through
+  verbatim, so a newer RPC still reaches the node -- it is the typed
+  convenience wrappers that carry the risk.
+
+For Taproot, PSBT or descriptor wallets, use `bdkpython` (3.1.0,
+9 September 2026). `python-bitcointx` (Simplexum) is the low-level fork
+with more taproot script handling, but it is dormant too -- last release
+1.1.5, 22 January 2024.
+
 ## API walkthrough
 
 ```python
@@ -105,6 +134,10 @@ the actual witness script.
 - The library is low-level: there's no built-in coin selection or fee
   estimation. For wallet-grade behaviour, layer `bdkpython` or
   `bitcoinlib` on top.
+- Anything taproot-shaped fails early rather than subtly:
+  `CBitcoinAddress` cannot decode a `bc1p...` string and there is no
+  witness-v1 sighash to sign with. Route P2TR work to another library
+  (as of September 2026).
 
 ## References
 

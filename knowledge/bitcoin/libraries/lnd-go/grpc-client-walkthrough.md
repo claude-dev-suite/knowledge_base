@@ -47,7 +47,7 @@ func dial(host, tlsPath, macPath string) (*grpc.ClientConn, error) {
     macCred, err := macaroons.NewMacaroonCredential(mac)
     if err != nil { return nil, err }
 
-    return grpc.Dial(host,
+    return grpc.NewClient(host,
         grpc.WithTransportCredentials(creds),
         grpc.WithPerRPCCredentials(macCred),
     )
@@ -130,8 +130,17 @@ streams payment progress and exposes proper failure reasons.
 - Streaming RPCs and goroutines: each `SubscribeInvoices` call holds a
   long-lived stream. Use `context.WithCancel` on shutdown to release
   it cleanly.
-- Connection multiplexing: don't open a fresh `grpc.Dial` per request;
-  reuse the connection across all sub-server clients.
+- Connection multiplexing: don't open a fresh `grpc.NewClient` per
+  request; reuse the connection across all sub-server clients.
+- `grpc.Dial`/`grpc.DialContext` are deprecated in favour of
+  `grpc.NewClient` (grpc-go v1.63.0); they still compile and are
+  promised support "throughout 1.x" as of grpc-go v1.83.2 (August
+  2026). LND's own `lncli` still calls `grpc.Dial` as of September
+  2026, so vendored examples lag.
+- Migrating to `NewClient`: it resolves via `dns`, not `passthrough`,
+  so a custom dialer (Tor SOCKS) needs a `passthrough:target` target --
+  `unix:///path` has its own resolver. `WithBlock` and friends are
+  ignored, so failures surface on the first RPC, not at dial time.
 - gRPC max message size defaults to 4 MiB; channel/route lookups can
   exceed it. Add `grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(50<<20))`
   if calls fail with `received message larger than max`.
