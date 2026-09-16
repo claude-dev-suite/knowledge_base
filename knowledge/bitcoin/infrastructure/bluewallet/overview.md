@@ -5,7 +5,7 @@
 
 ## What this covers
 
-BlueWallet: mobile Bitcoin + Lightning wallet (iOS/Android). LND on-device + LndHub backend variants. Multi-wallet support.
+BlueWallet: mobile Bitcoin + Lightning wallet (iOS/Android). Lightning via self-hosted LndHub, plus a gated Ark/Arkade wallet. Multi-wallet support.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

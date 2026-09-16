@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Fulcrum: cppbtc-team Electrum-protocol indexer in C++. Faster than electrs for high-volume queries. Serves Electrum clients + LN nodes.
+Fulcrum: Calin Culianu's Electrum-protocol indexer in C++. Faster than electrs for high-volume queries. Serves Electrum clients + LN nodes.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

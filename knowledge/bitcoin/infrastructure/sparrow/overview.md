@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Sparrow Wallet: power-user desktop wallet for Bitcoin. PSBT-first, HW wallet support, multisig coordination, CoinJoin (Whirlpool fork), PayJoin, BIP47.
+Sparrow Wallet: power-user desktop wallet for Bitcoin. PSBT-first, HW wallet support, multisig coordination, Silent Payments, PayJoin, BIP47.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.
