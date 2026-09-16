@@ -6,8 +6,14 @@
 
 ## Concept
 
-Passport eliminates the USB data attack surface entirely: there is no
-USB pin connected to the SE for signing data. The USB-C port is for
+Scope: this article describes **Passport Core** - the device Foundation
+renamed from plain "Passport" on 2025-03-17. Its sibling **Passport
+Prime** (general availability 2026-05-21) is a different product with
+USB-C data, NFC and QuantumLink Bluetooth, so none of the airgap
+reasoning below applies to it.
+
+Passport Core eliminates the USB data attack surface entirely: there is
+no USB pin connected to the SE for signing data. The USB-C port is for
 charging only. All wallet interaction happens via:
 
 1. The on-device camera reading animated QRs from a coordinator.

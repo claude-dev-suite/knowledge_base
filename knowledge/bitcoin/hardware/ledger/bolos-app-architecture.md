@@ -15,7 +15,8 @@ keys to a malicious altcoin app loaded later.
 
 Apps are written in C using the **Ledger SDK** and signed by Ledger's
 hardware-management key before being side-loaded by the user via Ledger
-Live or `ledgerctl`.
+Wallet (the desktop/mobile app renamed from Ledger Live in October 2025)
+or `ledgerctl`.
 
 ## Walkthrough
 

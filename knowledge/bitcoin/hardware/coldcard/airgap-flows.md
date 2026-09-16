@@ -11,7 +11,7 @@ attack surface vs a hot signing host:
 
 1. **USB** - direct, fastest, but PC malware can MITM input data.
 2. **microSD** - airgapped via FAT32 card; classic Coldcard flow.
-3. **NFC** - tap-to-transfer (Mk4 + Q); 4 kB chunks.
+3. **NFC** - tap-to-transfer (Mk4 / Mk5 / Q); 4 kB chunks.
 4. **QR** - animated bcur QR codes (Q only, with its color screen).
 
 All four share the same PSBT semantics; only the wire layer differs.
@@ -41,7 +41,7 @@ File naming: Coldcard appends `-signed`, `-final`, or `-part` per
 operation. Multisig signing rounds produce `-part.psbt`; the last signer
 sees `-final.psbt`.
 
-### NFC flow (Mk4 / Q)
+### NFC flow (Mk4 / Mk5 / Q)
 
 ```
 Phone wallet (Nunchuk / Sparrow Android)        Coldcard

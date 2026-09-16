@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Blockstream Jade: open-source HW wallet. Optional offline mode via QR / SD / USB, Liquid + Bitcoin support, "Pinserver" online mode for blind signing.
+Blockstream Jade: open-source HW wallet. Optional offline mode via QR, or SD / USB on Jade Plus. Liquid + Bitcoin support, "Pinserver" online mode for blind signing.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

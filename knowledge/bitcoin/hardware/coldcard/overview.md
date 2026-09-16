@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Coldcard hardware wallets (Coinkite): Mk4, Q. Bitcoin-only firmware, airgap support via SD card / NFC / QR, BIP85, MuSig2 (experimental), Trick PINs.
+Coldcard hardware wallets (Coinkite): Mk4, Mk5, Q. Bitcoin-only firmware, airgap support via SD card / NFC / QR, BIP85, MuSig2 (Edge firmware), Trick PINs, and the July 2026 seed-entropy advisory.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

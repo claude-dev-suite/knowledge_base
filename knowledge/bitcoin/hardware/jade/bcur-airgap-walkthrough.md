@@ -16,6 +16,11 @@ Jade has both a screen (for output) and a camera (for input), which
 makes it a true peer in QR exchanges - it can also act as the displayer
 for the partial signature it produces.
 
+This applies to Jade 1.0/1.1 and Jade Plus. **Jade Core** (firmware
+target `jade_v2c`, described in the Jade README as of September 2026 as
+"Jade Plus without camera and battery") has no camera, so it cannot
+receive a UR at all. Everything below assumes a camera-equipped model.
+
 The relevant UR types:
 
 - `crypto-account` - bundle of xpubs + key origin info.
@@ -95,13 +100,20 @@ solve the system. Lost frames are tolerated.
 - **Lighting**: glare on Jade's screen or coordinator's monitor causes
   scan failures. Adjust angle.
 - **Large PSBTs (>5 KB)**: 50+ frames at 3 fps = 15+ seconds; users
-  often quit early. Use SD card transport instead.
+  often quit early. SD card / USB drive transport is an alternative on
+  Jade Plus only — help.blockstream.com "Jade overview" (updated
+  12 August 2026) marks it "Jade Plus *only*", so on Jade 1.0/1.1 QR is
+  the only air-gapped transport.
 - **Mixing crypto-psbt and crypto-output**: if Jade expects a PSBT but
   coordinator sends an output descriptor, Jade displays "wrong UR
   type". Re-check coordinator export selection.
 - **Liquid-vs-Bitcoin confusion**: Jade also supports Liquid CT PSBT
   (`crypto-elements-psbt`); make sure the coordinator emits the right
   type for the network.
+- **Jade Core has no camera**: QR steps have no equivalent on
+  `jade_v2c`. Jade Plus lists SD card / USB drive as a transport
+  (blockstream.com/jade, September 2026); Jade Core lists only USB-C
+  and Bluetooth, so confirm the model before promising an airgap.
 
 ## References
 

@@ -8,7 +8,7 @@
 
 Trick PINs let a Coldcard owner set up secondary PINs that, when
 entered under coercion, do something **other than** unlock the real
-wallet. The Mk4 / Q both ship with this; the SE608A secure element
+wallet. The Mk4 / Mk5 / Q all ship with this; the SE608A secure element
 stores up to ~14 trick slots with per-slot policies.
 
 Common trick policies:
@@ -28,7 +28,7 @@ PIN-check happens in SE silicon, not in the main MCU.
 
 ## Walkthrough
 
-Setup via on-device menu (Mk4 or Q):
+Setup via on-device menu (Mk4, Mk5 or Q):
 
 ```
 Settings -> Login Settings -> Trick PINs -> Add New Trick
@@ -103,6 +103,13 @@ ckcc dump-state          # via ckcc-protocol; requires Coldcard's
 - **Wipe-on-fail counters**: `--login-countdown` policies that wipe
   after N failures can permanently destroy the wallet if you fat-finger
   several times. Always have your seed backed up first.
+- **Decoy seed generated on affected firmware**: Coinkite's July 2026
+  entropy advisory covers *any* secret generated on-device between March
+  2021 and July 2026, so a decoy seed created in that window is as
+  guessable as a master seed created then. Regenerate decoy wallets on
+  fixed firmware (5.6.0+ Mk4/Mk5, 1.5.0Q+ Q, 4.2.0 Mk3, 6.6.0X /
+  6.6.0QX Edge) along with the master seed - see the
+  `bitcoin/hardware/coldcard` skill.
 - **HSM mode interaction**: in HSM mode, trick PINs may behave
   differently (some policies disabled). Read coldcard docs for current
   HSM matrix.

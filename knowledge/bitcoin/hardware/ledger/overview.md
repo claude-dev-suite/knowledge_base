@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Ledger hardware wallets: Nano S Plus, Nano X, Stax, Flex. BOLOS app architecture, Ledger Live, secure element, anti-klepto.
+Ledger hardware wallets: Stax, Flex, Nano Gen5, Nano X, Nano S Plus. BOLOS app architecture, Ledger Wallet (formerly Ledger Live), secure element, anti-klepto.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

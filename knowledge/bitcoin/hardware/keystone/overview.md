@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Keystone Pro 3: airgap HW wallet with QR + microSD, color touchscreen, multi-currency support, fingerprint auth.
+Keystone 3 Pro: airgap HW wallet with QR + microSD, color touchscreen, multi-currency support, fingerprint auth.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.
