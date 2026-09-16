@@ -157,6 +157,10 @@ order, and the participants never publish `s_l` — only the partial sig
 - **Ignoring Pedersen DKG identifier convention.** Some impls use 1..n,
   others use random scalars. Mixing the two between DKG and signing breaks
   the polynomial.
+- **Assuming RFC 9591 interop means Bitcoin interop.** The Lagrange math is
+  identical, but RFC 9591's secp256k1 ciphersuite produces signatures that
+  are not BIP340-compatible (x-only public keys) and supports no key
+  tweaking. For Bitcoin, follow BIP 445.
 
 ## References
 
@@ -164,5 +168,9 @@ order, and the participants never publish `s_l` — only the partial sig
   Signatures" (2020): https://eprint.iacr.org/2020/852
 - Shamir, "How to share a secret" (1979): https://dl.acm.org/doi/10.1145/359168.359176
 - ZF FROST: https://github.com/ZcashFoundation/frost
-- draft-irtf-cfrg-frost sec. "Polynomials":
-  https://datatracker.ietf.org/doc/draft-irtf-cfrg-frost/
+- RFC 9591 (IRTF, June 2024; supersedes draft-irtf-cfrg-frost), sec.
+  4.2 "Polynomials": https://www.rfc-editor.org/rfc/rfc9591.html
+- BIP 445, "FROST Signing Protocol for BIP340 Signatures" — the
+  BIP340-compatible variant (Draft, number assigned 2026-01-30, spec
+  v0.10.0; PR open as of September 2026):
+  https://github.com/bitcoin/bips/pull/2070

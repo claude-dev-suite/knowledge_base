@@ -16,6 +16,16 @@ settlement) or three with the refund branch. This article traces every
 message, every state, and the cleanup conditions that must hold for the
 lifecycle to terminate without dust or stuck funds.
 
+> **Spec status (as of September 2026).** dlcspecs has merged no change
+> to `master` since 2023-02-13 and no DLC BIP has ever been filed, so
+> the message formats below are a de-facto standard frozen at their
+> early-2023 state. The repo is not archived — 22 PRs are open, six of
+> them updated with new commits or comments in March 2026 — but nothing
+> has landed in over three years. Cross-check field-level details
+> against a live implementation (`rust-dlc` v0.8.0, December 2025;
+> `node-dlc` v1.2.1, July 2026; `bitcoin-s` 1.9.12, March 2026) rather
+> than assuming the spec text will be corrected.
+
 ## Walkthrough / mechanics
 
 ### State machine
@@ -248,7 +258,8 @@ this outcome.
 
 ## References
 
-- dlcspecs: https://github.com/discreetlogcontracts/dlcspecs
+- dlcspecs (frozen at its 2023 state; see spec-status note above):
+  https://github.com/discreetlogcontracts/dlcspecs
 - Messaging spec:
   https://github.com/discreetlogcontracts/dlcspecs/blob/master/Messaging.md
 - Transactions spec:

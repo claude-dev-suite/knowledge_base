@@ -1,7 +1,7 @@
 # FROST Signing Round-Trip Walkthrough - Deep Dive
 
 > Phase B article. Companion to dev-suite skill `bitcoin/cryptography/frost`.
-> Canonical source: FROST (Komlo & Goldberg 2020) + draft-irtf-cfrg-frost
+> Canonical source: FROST (Komlo & Goldberg 2020) + RFC 9591 / BIP 445 draft
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/cryptography/frost/SKILL.md
 
 ## Concept
@@ -191,8 +191,9 @@ Verification: `z*G = 17 G`. Expected `R + c * P = 10 G + 6 * 17 G = 10 G +
 Hmm, mismatch — the toy example used arbitrary `c` and `rho` not derived from
 hashes, so this is expected; in a real run `c` and `rho_l` come from H of the
 actual transcript and the verification holds. The arithmetic above demonstrates
-the **shape** of the computation; for byte-accurate fixtures see the FROST
-draft test vectors at the link below.
+the **shape** of the computation; for byte-accurate fixtures see the RFC 9591
+test vectors, or — for BIP340-compatible ones — the BIP 445 draft vectors,
+both linked below.
 
 ## Common pitfalls
 
@@ -207,10 +208,20 @@ draft test vectors at the link below.
 - **Disjoint subsets across rounds.** Round 1 commitments and Round 2 partial
   sigs must come from the same S. Adding a participant late changes lambdas
   and breaks aggregation.
+- **Signing with an RFC 9591 library on Bitcoin.** RFC 9591's
+  `FROST(secp256k1, SHA-256)` ciphersuite does not produce BIP340-compatible
+  signatures (BIP340 x-only public keys) and has no key tweaking, so BIP32
+  derivation and BIP341 Taproot are out of reach. The parity handling in this
+  article is exactly what RFC 9591 omits; BIP 445 is the Bitcoin spec.
 
 ## References
 
 - Komlo & Goldberg, "FROST" (2020): https://eprint.iacr.org/2020/852
-- draft-irtf-cfrg-frost (signing): https://datatracker.ietf.org/doc/draft-irtf-cfrg-frost/
+- RFC 9591 (IRTF, June 2024; supersedes draft-irtf-cfrg-frost) — signing and
+  test vectors: https://www.rfc-editor.org/rfc/rfc9591.html
+- BIP 445, "FROST Signing Protocol for BIP340 Signatures" — the
+  BIP340-compatible variant (FROST3, with tweaking). Draft, number assigned
+  2026-01-30, spec v0.10.0; PR open as of September 2026:
+  https://github.com/bitcoin/bips/pull/2070
 - ZF FROST signing: https://github.com/ZcashFoundation/frost/blob/main/book/src/tutorial/signing.md
 - Crites/Komlo/Maller analysis: https://eprint.iacr.org/2021/1375

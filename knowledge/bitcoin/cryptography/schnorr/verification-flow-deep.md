@@ -19,11 +19,17 @@ and how libsecp256k1 structures the implementation for speed and safety.
 ```
 Input:
     pk    : 32 bytes (x-only public key)
-    msg   : 32 bytes
+    msg   : byte array of any length
     sig   : 64 bytes  (sig[0:32] = r,  sig[32:64] = s)
 
 Output: TRUE or FALSE
 ```
+
+BIP340 required `msg` to be exactly 32 bytes until its 2023-04 revision
+("Allow messages of arbitrary size"); it is arbitrary-length now, and a
+verifier that still rejects `len(msg) != 32` will reject valid
+signatures. Bitcoin consensus passes a 32-byte BIP341 sighash either
+way.
 
 The spec defines the verifier as:
 

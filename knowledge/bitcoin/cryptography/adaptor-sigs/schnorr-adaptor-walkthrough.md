@@ -2,7 +2,8 @@
 
 > Phase B article. Companion to dev-suite skill `bitcoin/cryptography/adaptor-sigs`.
 > Canonical source: Aumayr et al. "Generalized Channels" / Poelstra blog series
->                   "Scriptless Scripts" + secp256k1-zkp adaptor module
+>                   "Scriptless Scripts" + secp256k1-zkp's proposed
+>                   `schnorr_adaptor` module (PR #299, unmerged as of Sept 2026)
 > Skill source: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/cryptography/adaptor-sigs/SKILL.md
 
 ## Concept
@@ -14,8 +15,8 @@ verification but passes a modified verifier that checks against `R + T` where
 `T = t * G`. Any holder of `t` can convert the pre-sig into a valid sig with a
 single scalar add. Conversely, observing the completed sig reveals `t = s - s'`.
 This article gives the precise group-element and scalar arithmetic for the
-three primitives — `PreSign`, `PreVerify`, `Adapt`, `Extract` — and works a
-hex example to a libsecp256k1-zkp test vector.
+four primitives — `PreSign`, `PreVerify`, `Adapt`, `Extract` — and works a
+toy arithmetic example end to end.
 
 ## Walkthrough / mechanics
 
@@ -98,7 +99,7 @@ parity normalization). The verifier has no idea anything special happened.
 ### Encoding variants
 
 ```
-Variant A (BIP-340-style, secp256k1-zkp default):
+Variant A (BIP-340-style, "bare nonce" form):
   pre_sig = R0 (32 bytes) || s' (32 bytes)
   T sent separately
 
@@ -111,11 +112,24 @@ Variant C (DLC encoding, dlcspecs):
 ```
 
 Cross-implementation interop requires nailing down which variant your library
-uses. secp256k1-zkp's `secp256k1_schnorrsig_pre_sign` returns Variant A.
+uses — for the single-signer Schnorr variant there is no cross-library
+standard to appeal to (dlcspecs specifies ECDSA only). As of September 2026
+secp256k1-zkp ships no single-signer Schnorr adaptor API at all: master carries
+`ecdsa_adaptor` (ECDSA only) and BIP340 adaptor support folded into the `musig`
+module (`secp256k1_musig_nonce_process`'s `adaptor` argument, then
+`secp256k1_musig_adapt` / `secp256k1_musig_extract_adaptor`). A standalone
+`schnorr_adaptor` module is proposed in PR #299, open since October 2024 and
+still unmerged; its draft header defines `secp256k1_schnorr_adaptor_presign`,
+`_extract`, `_adapt` and `_extract_sec` over a **65-byte** pre-signature (a
+33-byte compressed point plus `s'`, i.e. closest to Variant B) and deliberately
+omits a `PreVerify` entrypoint — callers simulate it by extracting the adaptor
+point and comparing. PR #330 (opened February 2026) proposes splitting `musig`
+into `musig` + `musig_adaptor`. For encodings you can actually build against
+today, use the `musig` module, the dlcspecs ECDSA-adaptor spec, or rust-dlc.
 
 ## Worked example
 
-Synthetic vector inspired by `secp256k1-zkp` adaptor sig tests. We pick small
+Synthetic vector — no library test vectors are reproduced here. We pick small
 example scalars (real ones are 256-bit) for arithmetic clarity:
 
 ```
@@ -164,7 +178,8 @@ Sanity: 11 G == T?  yes.
 ```
 
 The same arithmetic, run on secp256k1's actual `n`, produces 32-byte
-big-endian hex strings; the libsecp256k1-zkp tests assert byte equality.
+big-endian hex strings. Byte-level test vectors for the PR #299 variant live in
+the Python reference implementation that PR cites (see References).
 
 ## Common pitfalls
 
@@ -191,6 +206,13 @@ big-endian hex strings; the libsecp256k1-zkp tests assert byte equality.
   https://download.wpsoftware.net/bitcoin/wizardry/mw-slides/2017-mit-bitcoin-expo/slides.pdf
 - Aumayr et al., "Generalized Channels from Limited Blockchain Scripts and
   Adaptor Signatures": https://eprint.iacr.org/2020/476
-- secp256k1-zkp adaptor sig module:
+- secp256k1-zkp `ecdsa_adaptor` module (the only single-signer adaptor module
+  on master as of Sept 2026):
   https://github.com/BlockstreamResearch/secp256k1-zkp/tree/master/src/modules/ecdsa_adaptor
+- secp256k1-zkp PR #299, "Add Schnorr adaptor signatures module" (open since
+  Oct 2024): https://github.com/BlockstreamResearch/secp256k1-zkp/pull/299
+- Python reference implementation the PR #299 test vectors are generated from:
+  https://github.com/ZhePang/Python_Specification_for_Schnorr_Adaptor
+- dlcspecs ECDSA adaptor signature spec:
+  https://github.com/discreetlogcontracts/dlcspecs/blob/master/ECDSA-adaptor.md
 - Erwig et al., "Two-Party Adaptor Signatures": https://eprint.iacr.org/2021/426
