@@ -22,7 +22,7 @@ A descriptor import is a JSON object with mandatory and optional fields:
 
 `importdescriptors` always returns an array, even for one entry. Each entry has a `success` boolean and a `warnings` array. If `timestamp` triggers a rescan, the call blocks until the rescan completes; for "now" it returns instantly.
 
-A descriptor wallet must be created with `descriptors=true` and ideally `blank=true` if you intend to import only your own. A non-blank wallet auto-generates four script types of descriptors and you'll then have a mix.
+A descriptor wallet must be created with `descriptors=true` — that argument has defaulted to `true` since 23.0, and as of Bitcoin Core 30.0 (October 2025) setting it `false` is an error — and ideally `blank=true` if you intend to import only your own. A non-blank wallet auto-generates four script types of descriptors and you'll then have a mix.
 
 ## Worked example
 
@@ -99,7 +99,7 @@ $ bitcoin-cli -rpcwallet=cold-watch getbalances
 - Setting `timestamp: 0` accidentally. This triggers a rescan from genesis and can take many hours.
 - Importing a descriptor without `<0;1>` multipath and no `internal` companion entry. New change addresses come from the auto-generated descriptors, not yours, leading to surprising change addresses.
 - Skipping the checksum (`#chk`). Returns `{"success": false, "error": {"code": -5, "message": "Missing checksum"}}`. Always run `getdescriptorinfo` first.
-- `importdescriptors` against a legacy wallet. Returns "Only descriptor wallets support this RPC". Migrate first with `migratewallet` or recreate.
+- `importdescriptors` against a legacy wallet. Since Bitcoin Core 30.0 (October 2025) BDB wallets can no longer be loaded at all, so the old `only descriptor wallets support this RPC` error path is gone. Migrate the file first with `bitcoin-cli migratewallet "<wallet name>" "<passphrase>"`, which leaves the pre-migration copy as `<wallet name>-<timestamp>.legacy.bak` in that wallet's directory.
 - Marking two descriptors as `active` for the same script type. The second silently replaces the first as the source of new addresses; the first remains usable but stops issuing new ones.
 - Importing the same descriptor twice with different `next_index`. Core keeps the larger of the two values, which can cause an address gap.
 

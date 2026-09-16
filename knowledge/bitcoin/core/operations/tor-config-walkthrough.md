@@ -18,6 +18,10 @@ Address advertisement: `-externalip=...` is normally not needed; Core auto-adver
 
 `onlynet=onion` is the privacy-maximalist choice: outbound only over Tor, refuse to peer with clearnet addresses even if you know them. Pair with `proxy=127.0.0.1:9050`.
 
+Bitcoin Core 31.0 (April 2026) added a fourth, narrower question: how do we broadcast our *own* transactions. `-privatebroadcast` changes `sendrawtransaction` so the transaction is announced only over Tor or I2P instead of to every relay peer, using a separate connection per transaction (#29415). Two properties follow: the originator's IP address, and therefore geolocation, is never known to the recipients; and two otherwise unrelated transactions from the same node are not linkable through a shared connection. `getprivatebroadcastinfo` lists transactions currently being privately broadcast and `abortprivatebroadcast` removes matching ones from the queue (#34329). The feature is orthogonal to `onlynet=onion` - it is useful precisely on a dual-stack node, where peer connections may be clearnet but you still want originator privacy for your own transactions.
+
+Version floor: 31.0 shipped a bug where, under certain circumstances, private-broadcast connections were still made over clearnet rather than the enabled privacy network. Bitcoin Core 31.1 (July 2026) "fixes an ip address leak when using the -privatebroadcast feature", together with #35032 (do not modify addrman for private broadcast connections) and #35410 (use the overridden proxy for v2 to v1 reconnections). Do not enable `-privatebroadcast` below 31.1.
+
 The `bind=` flag controls inbound. With Tor hidden services, the hidden service forwards to a local TCP port; that port should be `-bind=127.0.0.1:8334` (or a different port from your clearnet bind) so an external scan cannot find an open Bitcoin port on a public interface.
 
 ## Worked example
@@ -100,9 +104,12 @@ proxy=127.0.0.1:9050
 - Pinning `externalip=<your.onion>` manually. Not needed; Core does it. A typo here breaks address gossip.
 - `onlynet=onion` plus `proxy=` not pointing at a working Tor: the node has zero peers, IBD never starts. Always check `bitcoin-cli getpeerinfo | jq length` after enabling.
 - Different `onion_v3_private_key` after a server move: the `.onion` address changes, peers' `addr` cache is stale. Copy the file from the old datadir to keep stable addressing.
+- Assuming `proxy=`/`onlynet=onion` already hides the origin of your own transactions. It hides your IP from peers, but a peer that receives your transaction first still learns which of its connections announced it. `-privatebroadcast` (31.1+) is the lever that addresses originator linkability; enabling it on 31.0 does not, because of the clearnet fallback fixed in 31.1.
 
 ## References
 
 - `doc/tor.md` in bitcoin/bitcoin.
 - `src/torcontrol.cpp` for the control protocol implementation.
 - Tor manual on `ControlPort` and `CookieAuthentication`.
+- `doc/release-notes/release-notes-31.0.md` in bitcoin/bitcoin for private broadcast.
+- `doc/release-notes/release-notes-31.1.md` in bitcoin/bitcoin for the IP-leak fix.

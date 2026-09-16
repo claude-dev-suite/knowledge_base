@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Bitcoin Knots: Luke Dashjr's Bitcoin Core fork with stricter mempool policy and additional configuration. Differences vs Core, when to consider, compatibility.
+Bitcoin Knots: Luke Dashjr's Bitcoin Core fork with stricter mempool policy and additional configuration. Since the 2026 BIP-110 and BLAKE2b hardforks it is also a separate consensus network, not only a policy downstream. Differences vs Core, when to consider, compatibility.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

@@ -70,8 +70,9 @@ A push-style stream is different: subscribe to ZMQ `hashblock` for new tips and 
 - Sending a batch but reading responses positionally without checking `id`. A single error inside the batch shifts nothing in JSON-RPC 2.0, but a future Core release may legitimately reorder responses for parallel dispatch.
 - Putting one bad call in a 10000-entry batch and getting back 9999 results plus one `error` object. The HTTP status is still 200. You must scan every entry for `error`.
 - Mixing `notification` requests (no `id` field) into a batch and expecting responses for them. Per spec, notifications produce no entry in the response array.
-- Hitting `-rpcworkqueue` saturation: the default is 16 with `rpcthreads=4`. A single huge batch consumes one worker for its full duration; concurrent batches plus a long IBD-era reindex can spike queue depth. Raise `rpcworkqueue=64` and `rpcthreads=8` for high-fanout services.
+- Hitting `-rpcworkqueue` saturation. Since Bitcoin Core 29.0 (April 2025, #31215) the defaults are `-rpcthreads=16` and `-rpcworkqueue=64`; before 29.0 they were 4 and 16. A single huge batch still consumes one worker for its full duration, so concurrent batches plus a long reindex can spike queue depth even at the new defaults - measure before raising them further, and note that `-rpcworkqueue` is a debug-only option. On an EOL node still running pre-29.0 defaults, `rpcthreads=16` / `rpcworkqueue=64` is the value to set.
 - Treating the Core RPC as a streaming WebSocket. It is not. For push semantics use ZMQ `rawblock`/`rawtx`/`sequence` topics.
+- Assuming thread count is the only concurrency limit. `-rpcmaxconnections=<n>` (default 16) caps simultaneously connected HTTP clients; it was merged 2026-08-24 (#35730) and is not in any released version as of September 2026 (latest release: 31.1, July 2026). Until it ships, a client pool larger than `-rpcthreads` simply queues, and there is no built-in ceiling on open connections.
 
 ## References
 

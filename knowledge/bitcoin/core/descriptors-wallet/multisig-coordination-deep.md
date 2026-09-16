@@ -91,6 +91,12 @@ $ FINAL=$(bitcoin-cli combinepsbt "[\"$PSBT_A\",\"$PSBT_B\"]")
 $ bitcoin-cli finalizepsbt "$FINAL"
 ```
 
+## MuSig2 as an alternative to `sortedmulti`
+
+`wsh(sortedmulti(...))` is no longer the only way to run a shared-custody wallet on Core. Since Bitcoin Core 30.0 (October 2025) the descriptor engine parses the BIP 390 `musig(KEY,KEY,...)` key expression — permitted only inside `tr()` or `rawtr()`, never nested inside another `musig()` — and Core sorts the participant keys after derivation and before aggregation, so the order they are written in does not change the address. Since Bitcoin Core 31.0 (April 2026) the wallet can also *receive and spend* those outputs (PR #29675, merged 2025-10-14); 30.0 could only parse and derive them. Neither the 30.0 nor the 31.0 release notes mention MuSig2, so version-check against `doc/descriptors.md` and `test/functional/wallet_musig.py` at the tag you actually run rather than against the notes.
+
+The tradeoff: MuSig2 aggregation is n-of-n, and its spend is an ordinary Taproot key-path spend — one x-only key and one Schnorr signature, on-chain indistinguishable from single-sig — where `wsh(sortedmulti(2,...))` publishes the policy and every participant key at spend time. A k-of-n policy needs one `musig()` leaf per allowed subset in the taproot tree (`tr(H,{pk(musig(A,B,C)/<0;1>/*),pk(musig(B,C)/0/*)})`, a shape Core's own `wallet_musig.py` exercises), which grows fast. The coordination cost is one extra round: each participant calls `walletprocesspsbt` twice — first over the unsigned PSBT to contribute a public nonce (`PSBT_IN_MUSIG2_PUB_NONCE`), then over the combined nonce PSBT to contribute a partial signature (`PSBT_IN_MUSIG2_PARTIAL_SIG`), both BIP 373 fields. `combinepsbt` merges each round exactly as it does partial ECDSA sigs, `decodepsbt` exposes `musig2_participant_pubkeys`, `musig2_pubnonces` and `musig2_partial_sigs`, and `finalizepsbt` refuses while either round is short. Secnonces are held in memory only and never serialized, so a `bitcoind` restart between the two rounds voids the session and everyone must re-nonce.
+
 ## Common pitfalls
 
 - `multi` versus `sortedmulti`: every signer must use the same form. `sortedmulti` is the modern default and ordering-independent.
@@ -100,6 +106,7 @@ $ bitcoin-cli finalizepsbt "$FINAL"
 - Treating `combinepsbt` as a signer. It only merges signatures; it cannot create them.
 - Race during fee bump: `psbtbumpfee` rebuilds the PSBT but each signer must re-sign because the input set or fee changed.
 - Letting `range` drift: the coordinator's `range` is `[0,999]` and the signer's is `[0,99]`. The 100th change address Alice's wallet sees is not derived; she signs nothing.
+- Treating a `musig()` descriptor like `sortedmulti`: one `walletprocesspsbt` pass per participant only contributes a nonce, so `finalizepsbt` fails on a PSBT that looks signed. Run the second pass over the combined PSBT.
 
 ## References
 
@@ -107,3 +114,5 @@ $ bitcoin-cli finalizepsbt "$FINAL"
 - BIP 48 (multisig derivation paths).
 - `doc/psbt.md` in bitcoin/bitcoin.
 - `walletcreatefundedpsbt`, `walletprocesspsbt`, `analyzepsbt`, `combinepsbt`, `finalizepsbt` RPCs.
+- BIP 327 (MuSig2), BIP 328 (aggregate-key derivation), BIP 373 (MuSig2 PSBT fields), BIP 390 (`musig()` descriptor key expression).
+- `test/functional/wallet_musig.py` in bitcoin/bitcoin (present at v31.1, absent at v30.0).

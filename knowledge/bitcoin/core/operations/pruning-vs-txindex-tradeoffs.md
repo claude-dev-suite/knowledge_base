@@ -40,15 +40,23 @@ coinstatsindex=1
 dbcache=4096
 ```
 
-Disk usage at height ~840000 (early 2026):
+Disk usage at height ~967,000 (September 2026):
 
 | Setting | blocks/ | chainstate/ | indexes/ | Total |
 |---|---|---|---|---|
-| `prune=550` | ~0.6 GB | ~10 GB | n/a | ~11 GB |
-| `prune=15000` | ~15 GB | ~10 GB | ~6 GB (filters) | ~31 GB |
-| Full no indexes | ~700 GB | ~10 GB | n/a | ~710 GB |
-| Full + txindex | ~700 GB | ~10 GB | ~80 GB | ~790 GB |
-| Full + all indexes | ~700 GB | ~10 GB | ~87 GB | ~797 GB |
+| `prune=550` | ~0.6 GB | ~11 GB | n/a | ~12 GB |
+| `prune=15000` | ~15 GB | ~11 GB | ~6 GB (filters) | ~32 GB |
+| Full no indexes | ~875 GB | ~11 GB | n/a | ~886 GB |
+| Full + txindex | ~875 GB | ~11 GB | ~80 GB | ~966 GB |
+| Full + all indexes | ~875 GB | ~11 GB | ~87 GB | ~973 GB |
+
+The `blocks/` and `chainstate/` figures are `getblockchaininfo.size_on_disk`
+and `gettxoutsetinfo.disk_size` read off an unpruned mainnet node at height
+967,130 on 15 September 2026; the index sizes are order-of-magnitude only. Note
+that `blocks/` (~875 GB) is larger than the raw serialized chain (~769 GB at
+the same height) because it also holds the `rev*.dat` undo files. Chain data
+currently grows roughly 7 GB/month, so treat any fixed number here as a floor
+and provision headroom rather than sizing to it exactly.
 
 Switch from pruned to full archival (a full chain redownload):
 
@@ -102,3 +110,4 @@ $ bitcoin-cli getrawtransaction 4a5e1e... true
 - `src/node/blockstorage.cpp` for prune file deletion.
 - `src/index/txindex.cpp` for txindex maintenance.
 - BIP 158 for compact block filter semantics on pruned nodes.
+- Fountain-coded "droplets" letting pruned nodes serve IBD: proposed, not implemented as of September 2026 (Optech #413, 2026-07-10). See the `bitcoin/protocol/p2p` skill, section "Light-client & block-data research (2026)".
