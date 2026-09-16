@@ -18,7 +18,12 @@ block production cadence, supply, and reorgs without burning hashpower.
 It is the closest thing to mainnet you can get while keeping the
 "reset button". Used for protocol experiments (CTV, APO, Drivechains)
 and Lightning testing where regtest is too local and testnet is too
-chaotic.
+chaotic. "Testnet" here means testnet3, deprecated in Bitcoin Core
+28.0 (October 2024) and still shipping but warned about as of Core
+31.1 (July 2026); its replacement testnet4 (BIP94, `-testnet4`) fixes
+the block storms by retargeting off the first block of the previous
+difficulty period, but is still competitively mined, so signet remains
+the deterministic choice.
 
 ## Walkthrough / mechanics
 

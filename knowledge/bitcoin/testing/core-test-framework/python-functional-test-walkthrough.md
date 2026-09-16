@@ -10,10 +10,13 @@ Bitcoin Core's `test/functional/` runs Python tests that spin up real
 `bitcoind` subprocesses, drive them via JSON-RPC, and assert on
 node-observable state. Each test is a single `.py` file ending in
 `__main__.main()`, runnable in isolation, runnable in the suite via
-`test/functional/test_runner.py`. The framework is also redistributable:
-many out-of-tree projects (taproot soft-fork forks, mempool research
-nodes) vendor `test_framework/` and write tests against their patched
-bitcoind.
+`test_runner.py`. Since the CMake migration in Bitcoin Core 29.0
+(April 2025) the sources still live in `test/functional/` but the
+runnable copies are configured into `build/test/functional/`, which is
+where both the individual scripts and `test_runner.py` are invoked
+from. The framework is also redistributable: many out-of-tree projects
+(taproot soft-fork forks, mempool research nodes) vendor
+`test_framework/` and write tests against their patched bitcoind.
 
 A functional test is the highest-fidelity Bitcoin test you can write
 without leaving Python: every line corresponds to a real RPC call to a
@@ -42,21 +45,25 @@ The framework handles:
 Run:
 
 ```bash
-test/functional/feature_my_test.py --loglevel=DEBUG
+build/test/functional/feature_my_test.py --loglevel=DEBUG
 ```
 
 Test runner with parallelism:
 
 ```bash
-test/functional/test_runner.py --jobs=8 feature_csv_activation.py wallet_basic.py
+build/test/functional/test_runner.py --jobs=8 feature_csv_activation.py wallet_basic.py
 ```
 
 Useful framework helpers (from `test_framework/util.py`):
 
 - `assert_equal(a, b)`, `assert_raises_rpc_error(code, msg, fn, *args)`
-- `wait_until(predicate, timeout=10)`
-- `satoshi_round`, `count_bytes`
-- `MiniWallet` for descriptor-free output management
+- `try_rpc(code, msg, fn, *args)`, `assert_greater_than(a, b)`
+- `satoshi_round(amount, *, rounding)`, `count_bytes`
+- `MiniWallet` (from `test_framework/wallet.py`) for descriptor-free
+  output management
+
+Polling is a framework method rather than a `util.py` export:
+`self.wait_until(test_function, timeout=60, check_interval=0.05)`.
 
 ## Worked example
 
@@ -135,7 +142,7 @@ Run it standalone:
 
 ```bash
 cd bitcoin
-test/functional/feature_csv_maturity.py --loglevel=INFO
+build/test/functional/feature_csv_maturity.py --loglevel=INFO
 # ... 2024-01-01T00:00:00.000Z TestFramework (INFO): Tests successful
 ```
 
@@ -151,8 +158,19 @@ Debug a failure: pass `--nocleanup` to keep node datadirs, then
   the descriptor wallet via `node.createwallet`.
 - `assert_raises_rpc_error` matches by substring on the error message.
   RPC error message text changes between versions; pin specific bits.
-- Mixing `self.generate()` (helper that syncs) and
-  `node.generatetoaddress()` (raw RPC, no sync) leads to flaky tests.
+- Mining must go through the framework helpers. Since Bitcoin Core 23.0
+  (April 2022) `node.generatetoaddress()`, `node.generateblock()` and
+  `node.generatetodescriptor()` have carried a keyword-only guard that
+  only the framework helpers pass, so a direct call has failed since
+  then; Bitcoin Core 29.0 (April 2025) renamed that guard from
+  `invalid_call` to `called_by_framework` and attached the message
+  "Direct call of this mining RPC is discouraged". `node.generate()` has
+  no guard of its own — it dispatches to `generatetoaddress`, so a
+  direct call fails with `TypeError` for the missing keyword-only
+  argument instead. Use `self.generate(node, n)` /
+  `self.generatetoaddress(node, n, addr)`, which take the generating
+  node first and sync afterwards, and pass `sync_fun=self.no_op` when
+  you deliberately want the nodes left out of sync.
 - Tests must clean up subprocesses on early exit. Use `try/finally`
   around `bitcoind` setup if you fork off custom helpers.
 

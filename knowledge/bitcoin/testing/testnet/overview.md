@@ -1,11 +1,11 @@
-# Testing - Signet - Overview
+# Testing - Testnet - Overview
 
-> Canonical content lives in the dev-suite skill: **`bitcoin/testing/signet`**
-> Source link: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/testing/signet/SKILL.md
+> Canonical content lives in the dev-suite skill: **`bitcoin/testing/testnet`**
+> Source link: https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/bitcoin/testing/testnet/SKILL.md
 
 ## What this covers
 
-Signet: signature-based testnet alternatives. Default signet, custom signets (signetchallenge), Mutinynet (30-sec blocks). Faster + more deterministic than testnet.
+Public mined test networks: testnet3 (deprecated), testnet4 (BIP94) and the testnet5 draft (BIP95). Chain selection, the 20-minute difficulty exception, block storms, and when to prefer signet.
 
 ## When to use
 

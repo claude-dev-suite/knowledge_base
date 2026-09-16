@@ -20,7 +20,7 @@ what response is expected."
 
 ## Walkthrough / mechanics
 
-The shipped modules and what they cover:
+The shipped modules and what they cover (master, as of September 2026):
 
 - `messages.py`: wire types `CTransaction`, `CTxIn`, `CTxOut`, `CBlock`,
   `CBlockHeader`, `CInv`, P2P message classes, `ser_uint256`,
@@ -28,8 +28,16 @@ The shipped modules and what they cover:
 - `script.py`: `CScript`, all opcodes (`OP_CHECKSIG`,
   `OP_CHECKSEQUENCEVERIFY`, ...), `taproot_construct`, `tagged_hash`,
   Schnorr/ECDSA helpers via `key.py`.
-- `key.py`: `ECKey`, `ECPubKey`, BIP340 sign/verify, BIP32 helpers
-  (`compute_xpriv_child`).
+- `key.py`: `ECKey`, `ECPubKey`, and module-level BIP340 helpers
+  (`sign_schnorr`, `verify_schnorr`, `compute_xonly_pubkey`,
+  `tweak_add_privkey`, `tweak_add_pubkey`). No BIP32 lives here.
+- `extendedkey.py`: BIP32 derivation. `ExtendedPrivateKey`
+  (`from_seed`, `generate`, `derive_path`, `pubkey`, `to_string`)
+  and `ExtendedPublicKey` (`derive_path`, `to_string`). Added to
+  master in June 2026; not present in any release up to and
+  including Bitcoin Core 31.1 (July 2026), and first ships in the
+  32.0 line (present at tag v32.0rc1, September 2026), so a copy
+  vendored from an earlier release tag will not have it.
 - `descriptors.py`: descriptor checksum compute and verify.
 - `psbt.py`: round-trippable PSBT v0/v2.
 - `wallet.py`: `MiniWallet` (no-descriptor in-test wallet), helpers to
@@ -38,8 +46,12 @@ The shipped modules and what they cover:
 - `p2p.py`: `P2PInterface` to attach a Python peer to bitcoind and
   inject arbitrary messages.
 - `address.py`: bech32/bech32m, base58check.
-- `util.py`: `assert_equal`, `assert_raises_rpc_error`, `wait_until`,
-  `try_rpc`, `count_bytes`, `satoshi_round`.
+- `util.py`: `assert_equal`, `assert_raises_rpc_error`,
+  `assert_greater_than`, `try_rpc`, `count_bytes`, `satoshi_round`.
+  Polling is not here: `util.py` carries only
+  `wait_until_helper_internal`, and tests call
+  `self.wait_until(test_function, timeout=60, check_interval=0.05)` on
+  the framework (or the same method on a `TestNode`).
 
 Three patterns combine these into useful tests:
 
@@ -66,7 +78,9 @@ from test_framework.script import (
 from test_framework.messages import (
     CTransaction, CTxIn, CTxOut, COutPoint, COIN, CTxInWitness,
 )
-from test_framework.key import ECKey, compute_xonly_pubkey
+from test_framework.key import (
+    ECKey, compute_xonly_pubkey, sign_schnorr, tweak_add_privkey,
+)
 
 class TaprootKeyspendTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -102,7 +116,10 @@ class TaprootKeyspendTest(BitcoinTestFramework):
             spend, [CTxOut(50_000, spk)], SIGHASH_DEFAULT,
             input_index=0, scriptpath=False,
         )
-        sig = sk.sign_schnorr(sighash)
+        # Key-path spends sign with the *tweaked* secret, and
+        # `sign_schnorr` is a module-level function over raw bytes.
+        tweaked_sk = tweak_add_privkey(sk.get_bytes(), info.tweak)
+        sig = sign_schnorr(tweaked_sk, sighash)
         spend.wit.vtxinwit[0].scriptWitness.stack = [sig]
 
         node.sendrawtransaction(spend.serialize().hex())
@@ -150,8 +167,10 @@ assert_raises_rpc_error(
   forgetting to tweak yields invalid signatures.
 - `MiniWallet`'s `RAW_OP_TRUE` mode produces non-standard outputs; some
   tests need `MiniWalletMode.ADDRESS_OP_TRUE` for relay.
-- `ECKey.sign_ecdsa` returns DER; `sign_schnorr` returns 64 bytes. Mixing
-  them silently produces invalid sigs.
+- `sign_ecdsa` is an `ECKey` method and returns DER; `sign_schnorr` is
+  a module-level function in `key.py` taking raw 32-byte key material
+  and returning 64 bytes. `sk.sign_schnorr(...)` raises
+  `AttributeError` - call `sign_schnorr(sk.get_bytes(), msg)`.
 - `P2PInterface` is single-threaded; do not block in callbacks.
 - Versions of `test_framework` vendored from older Core releases may
   not include `taproot_construct` or the latest BIP utilities; pin a
