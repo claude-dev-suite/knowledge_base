@@ -6,7 +6,7 @@
 
 ## Concept
 
-TRUC ("Topologically Restricted Until Confirmation") is a mempool policy contract that opts a transaction in to a tighter topology in exchange for cleaner, pinning-resistant fee bumping. Activated as policy in Bitcoin Core 28.0, TRUC pairs with BIP331 (package relay) and ephemeral anchors to give Lightning and other contract protocols a reliable way to bump unconfirmed parents. Crucially, TRUC is **policy** only, not consensus.
+TRUC ("Topologically Restricted Until Confirmation") is a mempool policy contract that opts a transaction in to a tighter topology in exchange for cleaner, pinning-resistant fee bumping. Activated as policy in Bitcoin Core 28.0 (October 2024), TRUC pairs with package acceptance (the `submitpackage` RPC, and Core's own opportunistic 1-parent-1-child relay since 28.0 — not BIP331, which is still Draft as of September 2026) and ephemeral anchors to give Lightning and other contract protocols a reliable way to bump unconfirmed parents. Crucially, TRUC is **policy** only, not consensus.
 
 ## Walkthrough / mechanics
 
@@ -24,19 +24,24 @@ Transaction has `nVersion = 3`. Once accepted, the mempool enforces the rules be
 
 ### Zero-fee parents
 
-Because the child is mandatory to ship the parent (single descendant), a TRUC parent can pay **zero fee** as long as its child pays for the package. Mempool's package validation (`AcceptMultipleTransactions`) treats them as one feerate unit. This is what enables BOLT-3 commitment txs to be unsigned-fee anchors with no value carved off the channel.
+Because the child is mandatory to ship the parent (single descendant), a TRUC parent can pay **zero fee** as long as its child pays for the package. Mempool's package validation (`AcceptMultipleTransactions`) treats them as one feerate unit. This is what lets a BOLT-3 `zero_fee_commitments` commitment transaction pay no on-chain fee at all: its single keyless `shared_anchor` P2A output is 240 sat in the normal case, and only drops below 240 sat (down to 0, relayable as ephemeral dust) when the commitment has less than that left over.
 
 ### Ephemeral anchor outputs
 
-A v3 parent can include an output of `value = 0` and `scriptPubKey = <anyonecanspend>` (often `OP_TRUE`). Mempool requires:
+"Ephemeral anchor" is the historical name for two policies that shipped separately; BIP433 records the split:
 
-- Such anchors must be spent in the **same package** as the parent.
-- Only one ephemeral anchor per tx.
+- **Pay-to-Anchor (P2A)** - the keyless standard output `OP_1 <0x4e73>`, a 2-byte witness v1 program whose bytes spell "fees" in bech32m. It is *not* a Taproot output (those programs are 32 bytes), which trips up naive address decoders. Standard *to spend* since Bitcoin Core 28.0 (October 2024); default dust limit 240 sat. BIP433 is Status: Draft as of September 2026.
+- **Ephemeral dust** - Bitcoin Core 29.0 (April 2025) allows a single dust output, of any script type and down to `value = 0`, provided the transaction creating it pays **zero fee**.
+
+A bare `OP_TRUE` scriptPubKey is not a standard output template and will not relay; BIP433 presents P2A as the compact replacement for `sh(OP_TRUE)`. Mempool then requires:
+
+- An anchor carried as ephemeral dust must be spent in the **same package** as the parent - anything spending the parent's unconfirmed outputs must also spend the dust output.
+- Only one ephemeral dust output per tx.
 - After confirmation, normal UTXO rules resume - if anyone can spend it, anyone might.
 
 ### Why the constraints
 
-Pinning attack prevention: in pre-TRUC mempool, an attacker could attach a large, low-fee, hard-to-evict child to your unconfirmed funding tx, making it impossible to fee-bump (BIP125 rule 5: a replacement may evict at most 100 txs). Capping descendants to 1 means at most one child to evict, capping its size means low absolute-fee buy-in. Sibling eviction means the legitimate party can always swap in their own bumping child.
+Pinning attack prevention: in pre-TRUC mempool, an attacker could attach a large, low-fee, hard-to-evict child to your unconfirmed funding tx, making it impossible to fee-bump (BIP125 rule 5 capped an eviction at 100 transactions; since Bitcoin Core 31.0, April 2026, the limit is instead 100 distinct clusters of conflicting transactions). Capping descendants to 1 means at most one child to evict, capping its size means low absolute-fee buy-in. Sibling eviction means the legitimate party can always swap in their own bumping child.
 
 ### State machine pseudocode
 
@@ -70,7 +75,7 @@ def accept_v3(tx, mempool):
 Lightning commitment tx (post BOLT-3 + TRUC update):
 
 ```
-parent: v3, 1 input from funding, 2 outputs (to_local, to_remote), 1 ephemeral anchor (0 sat OP_TRUE)
+parent: v3, 1 input from funding, 2 outputs (to_local, to_remote), 1 P2A anchor (0 sat, OP_1 <0x4e73>, ephemeral dust)
         feerate = 0 sat/vB, fee = 0
 child:  v3, 1 input spending parent's ephemeral anchor, 1 output back to fee-payer
         size 200 vB, fee = 5000 sat -> child feerate 25 sat/vB
@@ -88,7 +93,8 @@ If a sibling child was already in the mempool paying 3 sat/vB feerate, the new c
 - Building a v3 child with `nVersion = 2`: ancestor mismatch, rejected.
 - A wallet that accidentally creates a v3 tx (libraries with `nVersion = 3` in test config) hits the topological cap on a normal payment chain.
 - Trying to RBF a v3 parent without using the child: rule 5 sibling eviction requires the new tx to be a *child*, not a replacement of the parent.
-- Including 2 ephemeral anchors hoping for redundancy: only one allowed.
+- Including 2 ephemeral anchors hoping for redundancy: only one ephemeral dust output allowed.
+- Using a bare `OP_TRUE` scriptPubKey as the anchor: non-standard output template, will not relay. Use P2A (`OP_1 <0x4e73>`) or a keyed anchor.
 - Ephemeral anchor present but no spending child in the same submitpackage call: parent-only is rejected.
 - Counting on TRUC rules in a block validator: TRUC is policy. A miner can include a v3 tx with a giant non-v3 descendant if no policy enforces relay - the resulting block is consensus-valid.
 - Assuming TRUC implies wtxid relay or signaling: TRUC has no header signaling; it is on by version.
@@ -96,6 +102,7 @@ If a sibling child was already in the mempool paying 3 sat/vB feerate, the new c
 ## References
 
 - BIP431 (TRUC): https://github.com/bitcoin/bips/blob/master/bip-0431.mediawiki
+- BIP433 (Pay to Anchor): https://github.com/bitcoin/bips/blob/master/bip-0433.mediawiki
 - BIP331 (package relay): https://github.com/bitcoin/bips/blob/master/bip-0331.mediawiki
 - Bitcoin Core 28.0 release notes: https://github.com/bitcoin/bitcoin/blob/v28.x/doc/release-notes/release-notes-28.0.md
 - Original design: https://delvingbitcoin.org/t/v3-transaction-policy-for-anti-pinning/340

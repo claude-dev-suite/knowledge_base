@@ -5,7 +5,7 @@
 
 ## What this covers
 
-Soft-fork proposals NOT activated on mainnet: CTV (BIP119), APO/APOAS (BIP118), OP_VAULT (BIP345), OP_CAT reactivation, drivechains (BIP300/301), spacechains, CISA. Status, mechanics, controversy per proposal.
+Soft-fork proposals NOT activated on mainnet: consensus cleanup (BIP54), CTV (BIP119), the BIP448 rebindable-transaction bundle (BIP446/348/349), APO/APOAS (BIP118), OP_CHECKCONTRACTVERIFY (BIP443), OP_CAT (BIP347), the 2026 script/covenant BIP cluster (BIP440-443, 446, 448, 449), post-quantum proposals (BIP360/361), drivechains (BIP300/301), spacechains, CISA. Status, mechanics, controversy per proposal.
 
 ## When to use
 
@@ -17,6 +17,6 @@ directory.
 
 ## Cross-references
 
-See related skills under [`knowledge/bitcoin/`](../) - protocol,
+See related skills under [`knowledge/bitcoin/`](../../) - protocol,
 cryptography, wallets, core, lightning, l2, metaprotocols, privacy,
 mining, hardware, infrastructure, testing, libraries.

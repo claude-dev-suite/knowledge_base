@@ -30,10 +30,12 @@ Requires the parent header in the `BlockMap`:
 ### Stage 3 - structural block check (`CheckBlock`)
 
 - Merkle root in header matches `MerkleRoot(txids)`.
-- No duplicate txids inside the block (CVE-2012-2459 mitigation: also check the merkle tree shape using the `mutated` flag).
+- No duplicate txids inside the block (CVE-2012-2459 mitigation), enforced solely by the `mutated` flag `ComputeMerkleRoot` sets; rejection reason `bad-txns-duplicate`.
 - First transaction is coinbase, all others are not.
 - Total serialized size and weight: `weight <= 4_000_000`.
 - Sigops counted via `GetLegacySigOpCount` and `GetP2SHSigOpCount` once UTXOs are known; after segwit, sigops counted as `weight units / 50` cap of 80,000.
+
+Two details about that `mutated` scan that informal prose usually loses (`src/consensus/merkle.cpp`): it compares adjacent pairs at *every* level **before** padding an odd level by duplicating its last hash, so a padding-synthesized duplicate is never compared with its twin; and the flag is strictly stronger than canonicality of the leaf list - `[a, a]` is canonical yet sets `mutated` - so the check needs no transaction-distinctness hypothesis. See [formal-verification-vs-property-tests-deep.md](../../testing/property-based/formal-verification-vs-property-tests-deep.md) for the machine-checked statement of both. The related 64-byte-transaction merkle ambiguity is not fixed here: BIP53/BIP54 (consensus cleanup) would make it a consensus rule - see [consensus-cleanup-bip54-deep.md](../proposals/consensus-cleanup-bip54-deep.md).
 
 ### Stage 4 - contextual block check (`ContextualCheckBlock`)
 
@@ -96,3 +98,5 @@ Validator: target = `0xa4019500 << (8 * (0x1d - 3))`, hash `SHA256d(header)` lit
 - BIP141 (witness commitment): https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki
 - BIP34 (height in coinbase): https://github.com/bitcoin/bips/blob/master/bip-0034.mediawiki
 - BIP113 (MTP): https://github.com/bitcoin/bips/blob/master/bip-0113.mediawiki
+- Bitcoin Core `src/consensus/merkle.cpp` (`ComputeMerkleRoot`, CVE-2012-2459 comment): https://github.com/bitcoin/bitcoin/blob/master/src/consensus/merkle.cpp
+- BIP54 (consensus cleanup): https://github.com/bitcoin/bips/blob/master/bip-0054.md

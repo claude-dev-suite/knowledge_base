@@ -12,6 +12,17 @@ the two-stage flow; this article walks the opcode semantics, the
 Tapscript encoding, the deferred-check mechanism that lets unvault txs
 target arbitrary destinations, and the comparison to CTV-based vaults.
 
+> **Status, as of September 2026: BIP345 is Closed.** Its preamble
+> carries `Status: Closed` and `Proposed-Replacement: 443`. Under
+> BIP-3, Closed means a BIP "that is of historical interest only, and
+> is not being actively worked on, promoted or in active use". The
+> designated successor is **BIP443 `OP_CHECKCONTRACTVERIFY`**
+> (Salvatore Ingala, assigned 2025-05-08, Status: Draft), a general
+> deferred-check covenant opcode of which a vault is one instance.
+> Everything below is accurate as a description of the BIP345 design
+> and worth reading for the deferred-check idea, which BIP443 keeps -
+> but treat it as design history, not as a live proposal.
+
 ## Walkthrough / mechanics
 
 **Two new opcodes (proposed for Tapscript):**
@@ -155,13 +166,46 @@ path agrees with the single output destination.
    requires more script logic and deferred validation.
 6. **Tapscript-only.** OP_VAULT is proposed for Tapscript only; no
    legacy P2WSH version. Vaults must be P2TR.
-7. **Activation pending.** Like CTV/APO, OP_VAULT is not active on
-   mainnet. Test deployments exist on signet but mainnet status
-   remains "proposed".
+7. **Calling BIP345 "proposed".** It is Closed, not proposed, and has
+   been since its preamble gained `Proposed-Replacement: 443`.
+   Describing it as an active proposal with signet test deployments
+   materially overstates its liveness. If someone asks "what is the
+   vault covenant proposal", the answer in September 2026 is BIP443,
+   with BIP345 as the prior art.
+
+## Successor: OP_CHECKCONTRACTVERIFY (BIP443)
+
+BIP443 replaces the vault-specific opcode pair with one general
+primitive, `OP_CCV`. Its abstract describes "a new type of output
+restrictions": a UTXO carries a **dynamic commitment to a piece of
+data**; the commitment can be validated during script execution,
+allowing introspection into the committed data; and a script can
+constrain the internal public key and taptree of one or more outputs,
+and possibly their committed data.
+
+What that buys over BIP345:
+
+- **Generality.** Combined with a vector-commitment opcode (BIP442
+  `OP_PAIRCOMMIT` is the Draft candidate), `OP_CCV` composes into
+  arbitrary state machines defining a UTXO's possible futures. A
+  two-stage vault is one such state machine; BIP443's motivation also
+  names UTXO-sharing schemes - Ark, CoinPools, timeout trees - which
+  BIP345 could not express.
+- **Same deferred-check shape.** The "push a check now, reconcile
+  against the output set after all inputs are processed" mechanism
+  described above is the part of OP_VAULT that survived; read that
+  section as background for `OP_CCV`.
+- **Still nothing on mainnet.** BIP443 is Draft, with no activation
+  parameters, no Bitcoin Core implementation, and no deployment.
+
+Anyone comparing vault designs in September 2026 is really comparing
+BIP443 against CTV-plus-script constructions, not BIP345 against CTV.
 
 ## References
 
-- BIP345: https://github.com/bitcoin/bips/blob/master/bip-0345.mediawiki
+- BIP345 (Closed, Proposed-Replacement 443): https://github.com/bitcoin/bips/blob/master/bip-0345.mediawiki
+- BIP443 OP_CHECKCONTRACTVERIFY (Draft): https://github.com/bitcoin/bips/blob/master/bip-0443.mediawiki
+- BIP-3 status semantics: https://github.com/bitcoin/bips/blob/master/bip-0003.md
 - James O'Beirne's vault impl: https://github.com/jamesob/bitcoin/tree/2023-opvault
 - Vaults design history: https://utxos.org/uses/vaults/
 - Bitcoin OS: https://bitcoinos.tech/

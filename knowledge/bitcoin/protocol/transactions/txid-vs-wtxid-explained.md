@@ -28,6 +28,17 @@ nLockTime (4)
 
 `txid = SHA256d(serialize_stripped(tx))`. This is what the merkle tree in the block header commits to and what `vin[i].outpoint.txid` references when spending.
 
+### 64-byte stripped serializations and merkle ambiguity
+
+An inner node of the block merkle tree is `SHA256d` over two concatenated 32-byte hashes - exactly 64 bytes of preimage. A transaction whose *stripped* serialization is also exactly 64 bytes therefore feeds the hash function an indistinguishable preimage, so a leaf can be passed off as an inner node (and vice versa) and an SPV verifier tricked into accepting an inclusion proof for a transaction that is not in the block. Bitcoin Core has neither relayed such transactions nor put them in a block template since 0.16.1, but that is policy: they remain consensus-valid.
+
+Two BIPs, both assigned 2025-04-11, would close this at the consensus layer:
+
+- **BIP54 "Consensus Cleanup"** (Status: Complete as of September 2026) bundles the rule with the timewarp and sigop fixes: "Transactions whose witness-stripped serialized size is exactly 64 bytes are invalid."
+- **BIP53 "Disallow 64-byte transactions"** (Status: Draft as of September 2026) is the standalone specification and rationale for the same rule.
+
+Neither is deployed - as of September 2026 Bitcoin Core master has no 64-byte-transaction deployment, only Bitcoin Core PR #35793, "Implement BIP 54 (Consensus Cleanup) without mainnet activation", which is open and unmerged as of September 2026. Note the rule keys on the **stripped** size, so it is a txid-side rule; the wtxid serialization is irrelevant to it, and a segwit transaction whose full serialization is 64 bytes is unaffected.
+
 ### Full serialization (wtxid input)
 
 ```
@@ -123,4 +134,6 @@ By BIP141 rule, this coinbase's wtxid is **defined as zero**, regardless of the 
 - BIP141 (witness commitment): https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki
 - BIP144 (peer-to-peer encoding): https://github.com/bitcoin/bips/blob/master/bip-0144.mediawiki
 - BIP339 (wtxid relay): https://github.com/bitcoin/bips/blob/master/bip-0339.mediawiki
+- BIP53 (disallow 64-byte transactions): https://github.com/bitcoin/bips/blob/master/bip-0053.mediawiki
+- BIP54 (consensus cleanup): https://github.com/bitcoin/bips/blob/master/bip-0054.md
 - Bitcoin Core `src/primitives/transaction.cpp` - `GetHash()` vs `GetWitnessHash()`

@@ -41,8 +41,9 @@ replacement semantics.
 - Rule 2 prevents an attacker from extending a chain of low-fee v3
   txs that an honest party can't economically replace.
 - Rule 3 limits descendant fanout; without it, an attacker spending
-  multiple outputs of one v3 parent could pin via 25 children
-  (default mempool descendant limit).
+  multiple outputs of one v3 parent could pin via 25 children (the
+  default descendant limit up to Core 30.x; since the cluster mempool
+  in 31.0, April 2026, the bound is the 64-tx cluster limit).
 - Rule 6 keeps the fee-bump child cheap; large children waste
   bandwidth on every replacement.
 - Rule 7 (sibling eviction) is the headline feature: in standard
@@ -125,13 +126,16 @@ descendant chain long enough to make replacement uneconomical.
 5. **Reorgs returning v3 chains to mempool.** When a v3 tx is
    re-added on reorg, all v3 rules re-apply. If multiple descendants
    were confirmed and now return, only one can stay; others evicted.
-6. **Ephemeral anchor output not spent in package.** Ephemeral anchors
-   (value=0) require atomic spending in the same package. Submitting
-   commitment alone (no child spending the anchor) fails policy.
+6. **Ephemeral dust output not spent alongside the parent.** Ephemeral
+   dust (Bitcoin Core 29.0, April 2025) allows one dust output only if
+   the creating tx pays zero fee, and any spend of that tx's unconfirmed
+   outputs must also spend the dust. Submitting the commitment alone
+   (no child spending the anchor) fails policy. Note this is dust
+   policy, not a TRUC rule - it applies to non-v3 transactions too.
 
 ## References
 
-- BIP431: https://github.com/bitcoin/bips/blob/master/bip-0431.mediawiki
+- BIP431 (Status: Draft as of September 2026): https://github.com/bitcoin/bips/blob/master/bip-0431.mediawiki
 - Bitcoin Core implementation: https://github.com/bitcoin/bitcoin/pull/28948
 - Replacement cycling research: https://bitcoinops.org/en/newsletters/2023/10/25/
 - BOLT3 anchor outputs: https://github.com/lightning/bolts/blob/master/03-transactions.md

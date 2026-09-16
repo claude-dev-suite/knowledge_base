@@ -18,6 +18,20 @@ the digest changes vs BIP341, the security model implications of
 sig-binding to less context, and why APO requires a new key version
 flag in Tapscript.
 
+> **Framing, as of September 2026.** BIP118 (assigned 2017-02-28) is
+> still **Draft** and has never been activated on mainnet; the only
+> deployment is on the default signet via Bitcoin Inquisition (binana
+> `[2016, 118, 0]`, deployment `ANYPREVOUT`). It has not been
+> withdrawn or given a `Proposed-Replacement` header, but it is no
+> longer the mainstream route to eltoo. Since **BIP448**
+> "Taproot-native (Re)bindable Transactions" reached Draft on
+> 2026-03-11, the active design reaches the same LN-Symmetry
+> semantics with three ordinary tapscript opcodes and **no new
+> sighash flag and no new key version**. Read this article for the
+> sighash mechanics and the eltoo state machine - both still the
+> clearest way to understand rebindability - but do not present
+> BIP118 as the live proposal.
+
 ## Walkthrough / mechanics
 
 **Standard BIP341 sighash commits to:**
@@ -148,10 +162,50 @@ identical outputs.
    keys should be considered single-purpose.
 6. **No mainnet activation.** Reasoning about Lightning Eltoo as if
    APO were live is incorrect. Always tag "requires BIP118 activation".
+7. **Assuming eltoo implies BIP118.** As of September 2026 the
+   LN-Symmetry work in the wild - draft BOLTs and a Core Lightning
+   implementation collected under the BIP448 GitHub organization -
+   targets BIP448, not BIP118. "Eltoo needs APO" was true in 2019 and
+   is misleading today.
+
+## Why BIP448 displaced this design
+
+BIP448 bundles `OP_TEMPLATEHASH` (BIP446), `OP_CHECKSIGFROMSTACK`
+(BIP348) and `OP_INTERNALKEY` (BIP349), all redefinitions of existing
+tapscript `OP_SUCCESS` opcodes. Its abstract states the three
+"introduce modular functionalities which improve existing second layer
+protocols", and its motivation says they "enable rebindable
+transaction signatures, making possible a new type of payment channel:
+LN-Symmetry ('Eltoo')".
+
+The structural differences that matter when comparing to BIP118:
+
+- **Mechanism.** BIP118 adds sighash flags that omit the prevout
+  (and, for APOAS, the script) from the BIP341 digest. BIP448 instead
+  has `OP_CHECKSIGFROMSTACK` verify a BIP340 signature over a message
+  taken from the stack, with `OP_TEMPLATEHASH` supplying the
+  transaction hash to sign over.
+- **Consensus surface.** BIP118 needs new sighash types plus a new
+  tapscript key version / pubkey prefix. BIP448 needs three
+  `OP_SUCCESS` redefinitions and no sighash or key-version change.
+- **Replay exposure.** Any signature made with an APO key is
+  replayable by construction across prevouts of the same script. In
+  BIP448, rebindability is expressed per script, in the script.
+- **Beyond eltoo.** BIP118 is usually pitched for statechains and
+  some Ark variants. BIP448 explicitly cites multiparty channels, the
+  Daric 2-party simplification, "substantially improve statechains",
+  the Ark variant "Erk", and PTLC upgrades.
+
+Neither is activated. BIP448 says only "the specific activation is
+left to be determined at a later date."
+
+See `bip448-rebindable-transactions-deep.md` for the opcode-level
+walkthrough.
 
 ## References
 
 - BIP118: https://github.com/bitcoin/bips/blob/master/bip-0118.mediawiki
+- BIP448 (the current rebindable-transactions route): https://github.com/bitcoin/bips/blob/master/bip-0448.md
 - Eltoo paper: https://blockstream.com/eltoo.pdf
 - Reference impl signet: https://github.com/ajtowns/bitcoin/tree/202203-anyprevout
 - Anthony Towns talks on APO: youtube

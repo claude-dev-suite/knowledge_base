@@ -160,10 +160,79 @@ miners only seeing the path actually taken.
    "committed-to" tx and the actual confirmed tx. Funder doesn't
    need to predict witness sizes (good for fee accounting).
 
+## Deployment status (as of September 2026)
+
+BIP119 was assigned 2020-01-06 and is still **Draft** in the BIPs
+repo. It is not active on mainnet and Bitcoin Core does not implement
+it. What changed since the "no activation path" era is that a
+third-party deployment now exists and can be observed:
+
+| Item | State as of 2026-09-15 |
+|------|------------------------|
+| BIP119 status | Draft |
+| Core PR #31989, BIP-119 (regtest only) | Open, unmerged; opened 2025-03-04 |
+| Core PR #32247, BIP-348 (regtest only) | Open, unmerged; opened 2025-04-10 |
+| Third-party activation client | `github.com/ctv-activation/activation-client` |
+| Deployment mechanism | BIP9, **bit 5** |
+| `nStartTime` | 1774809000 (2026-03-30) |
+| `nTimeout` | 1806345000 (2027-03-30) |
+| `threshold` | 1815 of 2016 (90%) |
+| `min_activation_height` | 1001952 (~May 2027) |
+| Miner signaling | 0.00%; periods 466-478 at 0/2016, 479 also 0.00% |
+
+The chronology behind those numbers:
+
+- **2025-06-09** - the CTV+CSFS open letter (ctv-csfs.com), signed by
+  dozens of application and protocol developers, asks Core
+  contributors to prioritise review and integration of CTV (PR #31989)
+  and CSFS (PR #32247) "within the next six months". Neither had been
+  merged fifteen months later.
+- **2026-01-02** - Optech reports a CTV activation meeting hosted by
+  1440000bytes; attendees agreed an activation client should use
+  conservative parameters and BIP9.
+- **2026-02-09** - the activation parameters and client repository are
+  posted to Delving Bitcoin.
+- **2026-03-30** - BIP9 start time. Signaling never leaves zero.
+
+Two things follow for anyone writing about CTV. First, a BIP9
+deployment existing is not the same as Bitcoin Core shipping it:
+nothing in a Core release enforces or signals bit 5. Second, 0.00%
+across thirteen consecutive difficulty periods is a measured outcome,
+not an absence of data - the monitor indexes every block since
+939,456.
+
+## Competing and adjacent proposals
+
+CTV is no longer the only serious way to commit to a spending
+transaction:
+
+- **BIP446 `OP_TEMPLATEHASH`** (Draft, assigned 2026-02-06) pushes the
+  template hash onto the stack instead of taking a commitment as an
+  argument, so it composes with other opcodes. It is bundled with
+  `OP_CHECKSIGFROMSTACK` (BIP348) and `OP_INTERNALKEY` (BIP349) by
+  **BIP448**, the Taproot-native rebindable-transactions proposal.
+- **BIP443 `OP_CHECKCONTRACTVERIFY`** (Draft) generalises the whole
+  area to deferred checks over committed data, and is the designated
+  `Proposed-Replacement` for BIP345 OP_VAULT.
+- Optech (2026-01-02) notes that CTV on a receiving address is a risky
+  application design, and that `OP_CHECKCONTRACTVERIFY` combined with
+  CTV may enable safer constructions.
+
+Ark's out-of-round VTXO work treats CTV and `OP_TEMPLATEHASH` as
+interchangeable for the "next transaction covenant" role (Optech,
+2026-09-04), which is a fair summary of where the two sit relative to
+each other.
+
 ## References
 
 - BIP119: https://github.com/bitcoin/bips/blob/master/bip-0119.mediawiki
 - Reference implementation in Bitcoin Core (PR): https://github.com/bitcoin/bitcoin/pull/21702
+- Current Core PR (regtest only, unmerged): https://github.com/bitcoin/bitcoin/pull/31989
+- CSFS Core PR (regtest only, unmerged): https://github.com/bitcoin/bitcoin/pull/32247
+- CTV+CSFS open letter (2025-06-09): https://ctv-csfs.com/
+- Activation client thread: https://delvingbitcoin.org/t/bip-119-ctv-activation-client/2242
+- Signaling monitor: https://bip119monitor.com/
+- Optech CTV topic: https://bitcoinops.org/en/topics/op_checktemplateverify/
 - Jeremy Rubin's CTV site: https://utxos.org/
 - CTV signet: https://signet.utxos.org/
-- OP_VAULT (similar territory): BIP345
+- OP_VAULT (Closed; see BIP443): BIP345

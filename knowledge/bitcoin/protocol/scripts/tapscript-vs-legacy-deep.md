@@ -14,10 +14,10 @@ Tapscript (BIP342) is the script-execution rule set used inside taproot script-p
 
 | Opcode | Legacy / segwit v0 | Tapscript (BIP342) |
 |--------|--------------------|--------------------|
-| `OP_CHECKMULTISIG` (0xae) | Verifies M-of-N | **OP_SUCCESS** (script always succeeds!) |
-| `OP_CHECKMULTISIGVERIFY` (0xaf) | Like above + VERIFY | **OP_SUCCESS** |
+| `OP_CHECKMULTISIG` (0xae) | Verifies M-of-N | **DISABLED** (script fails immediately when executed) |
+| `OP_CHECKMULTISIGVERIFY` (0xaf) | Like above + VERIFY | **DISABLED** (same) |
 | `OP_CHECKSIGADD` (0xba) | undefined / OP_NOP | **New**: pops `<sig> <num> <pubkey>`, pushes `num + 1` if sig valid else `num` |
-| 80, 98, 126-129, 131-134, 137-138, 141-142, 149-153, 187-254 | various OP_NOPs / undefined | **OP_SUCCESS** (anyone-can-spend if reached) |
+| 80, 98, 126-129, 131-134, 137-138, 141-142, 149-153, 187-254 | various OP_NOPs / undefined | **OP_SUCCESSx** (anyone-can-spend: presence anywhere in the script passes it) |
 | `OP_CODESEPARATOR` | costly behavior | retained but with new semantics: position is committed to in sighash |
 
 ### Stack / push limits
@@ -25,7 +25,7 @@ Tapscript (BIP342) is the script-execution rule set used inside taproot script-p
 | Limit | Legacy | Tapscript |
 |-------|--------|-----------|
 | Max script size | 10_000 bytes | unlimited (constrained by witness weight) |
-| Max stack item size | 520 bytes | unlimited (constrained by witness weight) |
+| Max stack item size | 520 bytes | 520 bytes - unchanged; BIP342 keeps it for both the initial stack and push opcodes |
 | Max stack + altstack items | 1000 | 1000 |
 | `MINIMALDATA` | flag-controlled | **always required** |
 | `MINIMALIF` | flag-controlled | **always required** |
@@ -44,7 +44,7 @@ In Tapscript:
 
 Tapscript leaves carry a 1-byte version tag. Currently defined: `0xc0` (with parity bit in low bit of control block first byte).
 
-If during execution the interpreter encounters an `OP_SUCCESS` opcode (any in the set above), the script **succeeds immediately**, regardless of stack state - no signature verification needed. This is the soft-fork upgrade lane: a future BIP can redefine an OP_SUCCESS opcode to a real check; old nodes (still seeing OP_SUCCESS) accept the spend, new nodes verify properly.
+If an `OP_SUCCESS` opcode (any in the set above) appears **anywhere** in the tapscript, validation **succeeds immediately**, regardless of stack state - no signature verification needed. The scan is a pre-pass over the whole script, so it precedes execution: an `OP_SUCCESS` in an unexecuted `OP_IF` branch still passes the script, as does one sitting after bytes that would not decode as opcodes at all. It also precedes the initial-stack and 520-byte element limits, so a script containing one passes even when those limits are violated. This is the soft-fork upgrade lane: a future BIP can redefine an OP_SUCCESS opcode to a real check; old nodes (still seeing OP_SUCCESS) accept the spend, new nodes verify properly.
 
 ### CODESEPARATOR
 
@@ -96,13 +96,13 @@ Sigops budget: 5 CHECKSIG-class ops -> 250 budget needed -> witness must be >= 1
 
 ## Common bugs / anti-patterns
 
-- Using `OP_CHECKMULTISIG` in a Tapscript leaf - it is OP_SUCCESS, anyone can drain the output.
+- Using `OP_CHECKMULTISIG` in a Tapscript leaf - it is disabled there, so executing it fails the script and the branch is unspendable (it is *not* an OP_SUCCESS).
 - Sigs in wrong order: Tapscript requires sigs in stack order matching pubkey order in script (last pubkey first on stack).
 - Missing the empty-sig placeholder for absent signers: stack underflow.
 - Encoding `OP_TRUE`/`OP_FALSE` non-minimally: `OP_PUSHBYTES_1 0x01` instead of `OP_1` is fail under MINIMALDATA (always-on in Tapscript).
 - Forgetting the leaf-version byte parity in the control block: validators reconstruct the wrong tweak and reject.
 - Designing a script-path that needs more sigops than its own witness funds.
-- Triggering an OP_SUCCESS during testing and not realising the script "works" - because OP_SUCCESS makes the spend always succeed; confused as a passing test.
+- Leaving an OP_SUCCESS anywhere in a test script and not realising the script "works" - its mere presence makes the spend always succeed, even from a branch the test never executes; confused as a passing test.
 - Using `OP_IF` without minimal `OP_TRUE`/`OP_FALSE` push: MINIMALIF fails.
 
 ## References
