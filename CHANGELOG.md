@@ -17,6 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Version delta files under `knowledge/{tech}/_versions/{version}/{topic}.md` for the
   previously-current majors of nestjs (10), prisma (6), nextjs (14, 15), spring-boot (3),
   and typescript (6), so the documentation server can reconstruct non-latest versions
+- `typesafe-jev/`: TypeSafe's Jev decision model. Covers the HTTP API reference, the Python
+  and JavaScript SDKs, the Pydantic AI, LangChain, Vercel AI SDK and DSPy integrations, ports
+  of the official cookbooks (extraction; routing and classification), and an evidence ledger
+  of the independent evaluations. Verified on 2026-10-03 against typesafe-sdk 0.7.2,
+  @typesafe-ai/sdk 0.6.0, pydantic-ai-slim 2.54.0, langchain-typesafe 0.0.1a3, dspy 3.4.0 and
+  @ai-sdk/typesafe-ai 3.0.12. Every code block is either quoted from a cited source, executed
+  offline against mocks, or type-checked.
+- `decision-calibration/`: calibrating a classifier's probabilities. Covers ECE variants and
+  their noise floor, temperature, Platt and isotonic fits, option-order bias, conformal
+  prediction sets, which LLM providers expose logprobs, and a complete evaluation harness
+  that was run end to end offline.
 
 ### Fixed
 - `bulk-engineering/namur-ne148.md` documented the wrong NAMUR recommendation and is now
